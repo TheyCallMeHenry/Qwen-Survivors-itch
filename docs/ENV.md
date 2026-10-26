@@ -38,3 +38,8 @@ Owned here; never re-narrated in PROGRESS.md.
 - `docs/ARCHIVE.md` (2026-09-06, session 27b compression pass): verbatim overflow home for PROGRESS.md — completed-phase checklist detail, Session Log entries before 2026-09-06 session 24, and the retired PROGRESS Decisions row table. Consult on demand; never loaded every session.
 
 - This file + `docs/DECISIONS.md` were planned in session 13 (2026-09-05) but lost before writing; created 2026-09-05 (session 16). Until a decision has a DECISIONS.md entry, its full text lives on its PROGRESS checklist line / table row.
+
+## Fork notes (2026-10-26, session 45)
+- This repo is a git clone of the parent (`origin` = parent folder; shared history `f2277cd`). Parent GitHub/Pages law applies to the parent only until the user creates a remote for the fork.
+- `serve.mjs` still binds 47893 (same as parent) — one dev server at a time; port-change decision pending (AGENTS rule 4 FORK).
+- From a parent-rooted Zed session, file/terminal tools reject paths in this folder; put `cd /d/Apps/Qwen-Survivors-itch` inside the command body. Sessions opened AT this folder: no caveat.

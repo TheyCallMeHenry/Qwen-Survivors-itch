@@ -13,6 +13,32 @@
 
 ## Entries (newest first)
 
+### 2026-10-26 — Record-sync directive for the fork (cold-resume ready; then commit docs)
+- **Received:** 2026-10-26
+- **Classification:** process rule
+- **Context:** issued while the session was still registered at the parent repo, immediately after the fork clone
+- **Verbatim input:**
+
+    Sync the record so a cold session - *after I (human user) open the newly cloned directory as the working session location - could resume without asking me anything: decisions, findings, research, tests run and their real results, troubleshooting attempts and resolutions, and the exact next step. Keep it lean — no transcripts and no line references; the code is the implementation record. Commit the updated docs after the doc sync has completed.
+
+### 2026-10-26 — Fork kickoff + constraints + the 41-pack shortlist + vision-review order
+- **Received:** 2026-10-26
+- **Classification:** feature request + design decision + process rule
+- **Context:** founding directive for this repo; the full 41 links are recorded verbatim in `docs/fork-asset-research-2026-10-26.md`; binding outcomes recorded there as D-F1…D-F5
+- **Key binding lines (verbatim):**
+
+    YES: Establish a new/separate/independent fork/clone of the Qwen-Survivors game. The new fork/clone will utilize art assets from itch.io to replace all current generated vector assets.
+
+    Yes, keep all gameplay logic as-is in the current build.
+
+    I approve your recommended sibling folder location for the fork.
+
+    I am considering the following art packs; please inform me of whether or not the listed packs would cover all of our visual needs. Keep in mind: in regard to the enemies, the primary goal will be to match the *number/quantity* of current enemies - *not necessarily* to find exact matches for the existing enemy models. If perfect replacements/matches *are* found then we *do* want to attempt using those first, though we may end up choosing different options if they would ultimately work better to serve our needs.
+
+    Consider the following asset packs (*100% cost-free packs ONLY*)
+
+    I first want to start out by having you spawn a sub-agent to review the contents of each of these links **BEFORE** we download **ANYTHING**, then report back with it's most recommended sets from the above list. ENSURE THE SUB-AGENT UTILIZES VISION WHEN ASSESSING EACH OF THE LINKED COLLECTIONS - NOT MERELY TEXT/CODE TO REVIEW THE ASSETS.
+
 ### 2026-10-26 — Record-sync directive (cold-resume ready; decisions/findings/research/tests/troubleshooting/next step, lean, then commit)
 - **Received:** 2026-10-26 (after the Phase-32 publish)
 - **Classification:** process rule

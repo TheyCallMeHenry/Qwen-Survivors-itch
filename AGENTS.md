@@ -15,9 +15,9 @@ Applies to every agent session in this repo. Overrides personal defaults where s
 ## Non-negotiables
 
 1. **`docs/PROGRESS.md` is the law.** A task/step/phase is NOT complete until its checkbox is ticked in `docs/PROGRESS.md` with a date + one-line note. Update it *before* declaring anything done. Zero exceptions. Keep it lean — it is loaded every session: Status + Master Checklist + *active* resume notes only, one line per session in the log; no API dumps, line refs, or kept-for-reference blocks (the code is the implementation record).
-2. **No external assets, ever.** All art/audio stays procedural in `js/art` and `js/audio`. No image files, no audio files, no CDN, no npm dependencies, no build step.
+2. **Assets law (FORK — amends the parent rule).** This fork exists to replace the procedural vector art with free itch.io packs: user-selected packs only (D-F5), every download via the itch MCP (`itch_get` + `project_dir`, which writes `ASSET-CREDITS.md`; check each `license_note` first; D-F3: 100% cost-free). Still forbidden: CDN, npm deps, build steps. **Audio stays procedural** in `js/audio` (unchanged parent law). Art files live under `assets/` with their credits sidecar.
 3. **ES6 modules** for all `js/` code. Top level of every module must be side-effect-free (imports + definitions only) so `tools/check.mjs` can import it in Node.
-4. **Ports:** only **47893** (tools/serve.mjs). Never 8000 or other common ports.
+4. **Ports (FORK — parent rule is parent-scoped):** `tools/serve.mjs` still hard-codes **47893** — the same port as the parent repo, so never run both dev servers at once. A fork-side port change (proposed **47894**) is a pending decision (`docs/ENV.md` fork notes). Never 8000 or other common ports.
 5. **Tuning lives in `js/config.js`.** Don't scatter magic numbers; add to config.
 6. **Mobile parity is a requirement**, not polish: touch targets ≥ 72 px, safe-area insets, pause-on-blur, gesture audio unlock.
 7. **No git commits unless the user explicitly asks.**
