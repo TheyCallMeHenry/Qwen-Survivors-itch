@@ -21,7 +21,7 @@ Owned here; never re-narrated in PROGRESS.md.
 
 ## Server
 
-- Dev serve: `node tools/serve.mjs` → port **47893** only (AGENTS rule 4). Server state at last check (2026-09-05): DOWN.
+- Dev serve (FORK): `node tools/serve.mjs` → port **47894** only (AGENTS rule 4 FORK / D-F6; parent keeps 47893 — both can run at once). Server state at last check: DOWN (not started in fork).
 - Co-op hosting (11.13, pending NAS-side impl): Tailscale on the user's DS124 NAS running unmodified `serve.mjs` (D64).
 
 ## Workspace artifacts
@@ -41,5 +41,6 @@ Owned here; never re-narrated in PROGRESS.md.
 
 ## Fork notes (2026-10-26, session 45)
 - This repo is a git clone of the parent (`origin` = parent folder; shared history `f2277cd`). Parent GitHub/Pages law applies to the parent only until the user creates a remote for the fork.
-- `serve.mjs` still binds 47893 (same as parent) — one dev server at a time; port-change decision pending (AGENTS rule 4 FORK).
+- `serve.mjs` binds **47894** in this fork (D-F6, user approved 2026-10-26) — parent's 47893 untouched; both dev servers can run simultaneously.
+- Tooling caveats found + worked around (2026-10-26): `agent_browser_*` MCP daemon times out on this machine (unused since) — visual asset review path = curl the itch page, pull `img.itch.zone` originals, view via `read_file` (images need line-range args). Zed `list_directory`/`write_file` hide gitignored dirs (`unsloth-tmp/`) but `read_file`/terminal can use them — write scratch scripts via terminal heredoc. itch store-search under-indexes known packs — take game-ids from the page's own `itch:path` meta; prices from page JSON `min_price` (0 = PWYW free).
 - From a parent-rooted Zed session, file/terminal tools reject paths in this folder; put `cd /d/Apps/Qwen-Survivors-itch` inside the command body. Sessions opened AT this folder: no caveat.

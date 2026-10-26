@@ -37,7 +37,7 @@ Each level also gets its own identity: gem/heart tints, music flavor (M02 temple
 
 ```bash
 node tools/serve.mjs
-# → http://<your-LAN-IP>:47893   (binds 0.0.0.0 so other devices on the network can play)
+# → http://<your-LAN-IP>:47894   (binds 0.0.0.0 so other devices on the network can play; fork port — parent uses 47893)
 ```
 
 Open in any modern browser. Audio starts after your first tap/click/keypress (browser policy).
