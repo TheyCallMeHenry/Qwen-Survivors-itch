@@ -334,15 +334,24 @@ export const CFG = {
     },
     bat: {
       name: 'Baseball Bat',
-      desc: 'Frantic short swings with huge knockback. 1-in-500 HOMERUN (one-hit KO).',
+      // B3 (user-ordered 2026-10-26 — amends fork law D-F2, decision D-F7): the bat is
+      // now a RANGED weapon. windup = the visible wind-up telegraph before each swing
+      // (flat at every level — the 23.1 bow `charge` idiom); swing = the drawn swing-frame
+      // duration (visual). Each level row keeps its ORIGINAL cd/dmg/kb/arc (the melee-era
+      // progression moved unchanged onto the ranged path, per the user's order) and gains
+      // `range` = the baseball's flight reach — a bruiser ladder under the ranged peers
+      // (fangs 520 / wand 560) at every level, rising to just under fangs at L5.
+      desc: 'Winds up, then cracks a baseball at the nearest foe. 1-in-500 the ball is a HOMERUN that punches through the whole line.',
       icon: 'bat',
-      homerun: 500, // spec-fixed odds (non-boss only) — homerKing synergy upgrades them
+      homerun: 500, // spec-fixed odds (non-boss target only) — homerKing synergy upgrades them
+      windup: 0.25, // s — visible wind-up before the swing (same bounds the bow charge obeys)
+      swing: 0.18,  // s — the drawn swing arc (Phase-21 visual, re-timed to the release)
       levels: [
-        { cd: 0.34, dmg: 26, kb: 3.0, arc: 100 },
-        { cd: 0.30, dmg: 31, kb: 3.0, arc: 100 },
-        { cd: 0.27, dmg: 36, kb: 3.5, arc: 105 },
-        { cd: 0.24, dmg: 41, kb: 3.5, arc: 105 },
-        { cd: 0.22, dmg: 48, kb: 4.0, arc: 110 },
+        { cd: 0.34, dmg: 26, kb: 3.0, arc: 100, range: 600 },
+        { cd: 0.30, dmg: 31, kb: 3.0, arc: 100, range: 660 },
+        { cd: 0.27, dmg: 36, kb: 3.5, arc: 105, range: 720 },
+        { cd: 0.24, dmg: 41, kb: 3.5, arc: 105, range: 780 },
+        { cd: 0.22, dmg: 48, kb: 4.0, arc: 110, range: 840 },
       ],
     },
     tongue: {
@@ -618,7 +627,7 @@ export const CFG = {
   combat: {
     boltSpeed: 540, boltLife: 1.5, boltR: 5, boltKb: 170,
     wandRange: 560, wandSpread: 0.16,
-    axeSpeed: 430, axeLife: 1.9, axeR: 10, axeKb: 130, axeTick: 0.30, axeTurnFrac: 0.45, // turn-back when life drops to this fraction (combat._axes; card range derives from 1−it)
+    axeSpeed: 490, axeLife: 1.9, axeR: 10, axeKb: 130, axeTick: 0.30, axeTurnFrac: 0.45, // turn-back when life drops to this fraction (combat._axes; card range derives from 1−it); 430→490 (2026-10-26 user floor: ranged reach ≥500 px — throw now ~512 px, timing unchanged)
     orbitSpeed: 2.4, orbitR: 9, orbitTick: 0.35, orbitKb: 190, orbitSize: 26,
     garlicTick: 0.45,
     spawnOriginFrac: 0.55, // 16.2: shared projectile spawn origin — fraction of the character sprite height above the feet (mid-torso); 1 = feet (legacy), 0 = head
@@ -680,7 +689,16 @@ export const CFG = {
     companionLeash: 192, companionPounceCd: 2.0, companionSpeed: 380, // Wolfpack (pounce cd spec-fixed)
     boulderSpeed: 300, boulderR: 34, boulderDecay: 0.75, boulderMaxHits: 6, boulderSquishR: 12,
     webSpeed: 430, webR: 9,                                  // Web-slingers
-    batRange: 62, batKbImpulse: 520, homerunFx: 1.2,         // Baseball Bat (HOMERUN fx = fx lifetime s)
+    // Baseball Bat (B3 ranged redesign): batRange is now the SWING-ARC VISUAL radius on the
+    // player (honest reach is the per-level row `range`); homerunFx retired (was dead config —
+    // the onFx 'homerun' burst lives in game.js with its own constants).
+    batRange: 62, batKbImpulse: 520,
+    // B3 baseballs: life is derived (row range ÷ speed) so the card-stated reach IS the
+    // flight distance; homerun balls pierce every foe once at ×homerunMul and trail
+    // rainbow dots through the existing onFx cosmetic channel (never the wire).
+    baseballSpeed: 640, baseballR: 6, baseballSpin: 16, homerunMul: 3,
+    ballTrailEvery: 0.05, ballTrailLife: 0.45, ballTrailSize: 2.6,
+    ballTrailHues: [[255, 90, 90], [255, 170, 70], [240, 220, 90], [110, 225, 130], [90, 170, 255], [160, 120, 245]],
     tongueRange: 660, tongueSpeed: 760, tonguePullDur: 0.4, tongueHealK: 0.06, tongueHealCap: 15,
     ballSpeed: 620, ballDecay: 0.9, ballMaxHits: 6, ballSearchR: 260, // Cannonball (player ball-state)
     // 31.2 (user spec 2026-10-26): next-bounce input steering — full cone angle in degrees

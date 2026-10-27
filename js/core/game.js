@@ -21,7 +21,8 @@ import { buildCharacters } from '../art/characters.js';
 import { buildRoster, buildGhost } from '../art/heroes.js';   // Phase 27 from-scratch sheets
 import { gemHeartFor } from '../art/items.js';
 import { buildVignette } from '../art/terrain.js';
-import { flashCopy, shadowSprite } from '../art/base.js';
+import { shadowSprite } from '../art/base.js';
+import { bakeFlashes } from '../art/load.js';
 import { buildMinimapBase, drawMinimapLive } from '../world/minimap.js';
 import { playerSnap, applyPlayerSnap, enemySnap, applyEnemySnap, pickupSnaps, applyPickupSnaps, stateMsg, unpackState, ENEMY_KEYS } from '../net/sync.js';
 import { MSG, profileFromMeta, joinProfile, ghostColor, allocateGhostOffers, coopScale, leashClamp, weaponCap, bossCount, resolveChars, selChar, sanitizeShards } from '../net/coop.js';
@@ -61,7 +62,7 @@ export class Game {
     const sheet = this.roster[this.charKey];
     this.player = new Player(sheet);
     this.player.setCharacter(this.charKey);
-    this.player.flashes = [sheet.idle.map(flashCopy), sheet.run.map(flashCopy)];
+    this.player.flashes = [bakeFlashes(sheet.idle), bakeFlashes(sheet.run)];
     this.playerShadow = shadowSprite(sheet.shadowR, sheet.shadowR, 0.35);
     // 24.6 shared contact-shadow sprite for standing decor (one ellipse, scaled per decor
     // width at draw). Grounds trees/ruins/etc. on the ground plane under the top-left key.
@@ -94,6 +95,9 @@ export class Game {
     this.combat.missileImg = items.missile;
     this.combat.boulderImg = items.boulder;
     this.combat.webImg = items.web;
+    // B3 (2026-10-26): Baseball Bat baseballs (+ the HOMERUN variant through the draw seam).
+    this.combat.baseballImg = items.baseball;
+    this.combat.baseballVar = items.baseballVar;
     // 24.3 synergy variant maps (nil on base path → combat.draw falls back to *Img).
     this.combat.boltVar = items.boltVar;
     this.combat.bulletVar = items.bulletVar;
@@ -112,6 +116,14 @@ export class Game {
       else if (kind === 'reflect') P.spark(x, y, 8, 240, 170, 210, 255, 2.4, 0.5, 0);
       else if (kind === 'ball') P.spark(x, y, 8, 180, 200, 200, 210, 2.2, 0.45, 200);
       else if (kind === 'slide') P.spark(x, y, 6, 160, 230, 240, 250, 2, 0.4, 0);
+      // B3: rainbow trail dot for the HOMERUN baseball — pooled fading dots (the standard
+      // particle style), hue cycling through CFG.combat.ballTrailHues per emission.
+      else if (kind === 'balltrail') {
+        const H = CFG.combat.ballTrailHues;
+        this._trailHue = (this._trailHue | 0) + 1;
+        const [tr, tg, tb] = H[this._trailHue % H.length];
+        P.dot(x, y, 0, 0, CFG.combat.ballTrailLife, CFG.combat.ballTrailSize, tr, tg, tb);
+      }
     };
 
     this.meta = loadMeta(CFG.meta.storageKey);
@@ -616,7 +628,7 @@ export class Game {
     saveSelectedChar(CFG.meta.charKey, key);
     const sheet = this.roster[key]; // roster art/flash/shadow swap (D62)
     this.player.def = sheet;
-    this.player.flashes = [sheet.idle.map(flashCopy), sheet.run.map(flashCopy)];
+    this.player.flashes = [bakeFlashes(sheet.idle), bakeFlashes(sheet.run)];
     this.playerShadow = shadowSprite(sheet.shadowR, sheet.shadowR, 0.35);
     // 11.6.4 (D56): keep the host's own roster entry current — the assignment
     // resolves from roster profiles, seat 0 (host) always wins its pick.
@@ -846,7 +858,7 @@ export class Game {
   _remotePlayer(profile, key, seat) {
     const def = this.player.def;
     const pl = new Player(def);
-    pl.flashes = [def.idle.map(flashCopy), def.run.map(flashCopy)];
+    pl.flashes = [bakeFlashes(def.idle), bakeFlashes(def.run)];
     pl.reset(this.world.playerStart.x, this.world.playerStart.y);
     if (profile && typeof profile === 'object') {
       // D53 stat profile → the player's meta fields (exact inverse of profileFromMeta).
@@ -873,7 +885,7 @@ export class Game {
     pl.setCharacter(key);
     const sheet = key === 'ghost' ? buildGhost(ghostColor(seat)) : this.roster[key];
     pl.def = sheet;
-    pl.flashes = [sheet.idle.map(flashCopy), sheet.run.map(flashCopy)];
+    pl.flashes = [bakeFlashes(sheet.idle), bakeFlashes(sheet.run)];
     pl.weapons = {};
     const c = charDef(key);
     if (c.weapon) {
@@ -1084,7 +1096,7 @@ export class Game {
       }
       const def = this.player.def;
       const pl = new Player(def);
-      pl.flashes = [def.idle.map(flashCopy), def.run.map(flashCopy)];
+      pl.flashes = [bakeFlashes(def.idle), bakeFlashes(def.run)];
       pl.reset(this.world.playerStart.x, this.world.playerStart.y);
       this.remote.push(pl);
     }

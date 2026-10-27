@@ -37,6 +37,7 @@ export class Combat {
     this.beams = [];
     this.boulders = [];
     this.webs = [];
+    this.balls = []; // B3 (2026-10-26): Baseball Bat baseballs (normal = single hit; homerun = pierce ×3 + rainbow trail)
 
     this.explosions = [];
     this.reflectFx = [];  // 29.10: mirror-bursts at reflect points (visual only)
@@ -57,6 +58,8 @@ export class Combat {
     this.missileImg = null;    // P21/31.4: Homing Missile projectile sprite
     this.boulderImg = null;  // P21: rolling boulder
     this.webImg = null;      // P21: web strand
+    this.baseballImg = null; // B3: stitched baseball
+    this.baseballVar = null; // B3: { homer: rainbow-halo variant } — 24.2 variant seam
     this.explosionImg = null;
     // 24.2: per-type synergy variant sprite maps ({ variantKey: img }); empty/absent →
     // draw falls back to the base *Img above (base path byte-identical, solo invariance).
@@ -91,6 +94,7 @@ export class Combat {
     this.beams.length = 0;
     this.boulders.length = 0;
     this.webs.length = 0;
+    this.balls.length = 0;
     this.explosions.length = 0;
     this.reflectFx.length = 0;
     this.scorchFx.length = 0;
@@ -309,32 +313,34 @@ export class Combat {
     });
   }
 
-  // Baseball Bat melee arc: everything within batRange inside ±arc/2 of the owner's
-  // aim gets hit once per swing, with very high knockback (batKbImpulse × level kb,
-  // spec identity). HOMERUN = one-hit KO of a NON-BOSS at 1-in-homerun odds
-  // (weapon def; homerKing synergy level row overrides) + fireworks over the player
-  // (cosmetic — onFx). S = the level row {cd, dmg, kb, arc(deg)}.
-  batSwing(owner, S) {
+  // Baseball Bat (B3 ranged redesign, user-ordered 2026-10-26): the wind-up (player-side,
+  // 23.1 bow idiom) ends in a swing that LOOSES A BASEBALL at the target — a straight,
+  // fast ball flying exactly the level row's stated range. The HOMERUN trigger is kept
+  // verbatim (1-in-homerun odds on a NON-BOSS target; the homerKing synergy row overrides;
+  // the onFx fireworks tell still fires) but its RESULT is the ball itself: it pierces
+  // every foe on its trajectory (each exactly once via the `hit` set) at ×homerunMul
+  // damage and trails rainbow dots (onFx 'balltrail' — cosmetic, never the wire). A
+  // normal ball behaves like a standard projectile hit: damage + the bat's huge knockback
+  // (batKbImpulse × level kb, spec identity), consumed by the first foe.
+  // S = the level row {cd, dmg, kb, arc, range}; target = the owner's nearest foe.
+  batSwing(owner, S, target) {
     const C = CFG.combat;
-    if (!this.enemies) return;
+    if (!target || target.dead) return;
     const hk = owner.synergies && owner.synergies.homerKing;
     const odds = hk ? CFG.synergies.homerKing.levels[hk - 1].odds : CFG.weapons.bat.homerun;
+    const homer = !target.boss && rand(0, odds) < 1;
     const oy = owner._spawnY();
-    const half = (S.arc * Math.PI) / 360;
-    for (const e of this.enemies.grid.range(owner.x, oy, C.batRange + CFG.ai.gridCell)) {
-      if (e.dead) continue;
-      const dx = e.x - owner.x, dy = e.y - oy;
-      const d = Math.hypot(dx, dy) || 1;
-      if (d > C.batRange + e.r) continue;
-      let a = Math.atan2(dy, dx) - owner.aimAng;
-      while (a > Math.PI) a -= TAU;
-      while (a < -Math.PI) a += TAU;
-      if (Math.abs(a) > half) continue;
-      const homer = !e.boss && rand(0, odds) < 1;
-      const dmg = homer ? e.hp + 1 : S.dmg * owner.dmgMul;
-      this.damageEnemy(e, dmg, Math.cos(owner.aimAng), Math.sin(owner.aimAng), C.batKbImpulse * S.kb, owner);
-      if (homer && this.onFx) this.onFx('homerun', owner.x, oy - owner.def.h - 6);
-    }
+    const ang = Math.atan2(target.y - oy, target.x - owner.x);
+    this.balls.push({
+      x: owner.x, y: oy,
+      vx: Math.cos(ang) * C.baseballSpeed,
+      vy: Math.sin(ang) * C.baseballSpeed,
+      rot: ang, dmg: S.dmg * owner.dmgMul, kb: C.batKbImpulse * S.kb, homer, owner,
+      v: homer ? 'homer' : '', // 24.2 draw variant (the rainbow-halo ball is the tell)
+      hit: new Set(), trailT: 0,
+      life: S.range / C.baseballSpeed, // flight distance == the card-stated reach
+    });
+    if (homer && this.onFx) this.onFx('homerun', owner.x, oy - owner.def.h - 6);
   }
 
   // Frog Tongue: instant lash — initial damage, poison DoT (D21 channel), then a
@@ -371,6 +377,7 @@ export class Combat {
     this._beams(dt, enemies);
     this._boulders(dt, enemies);
     this._webs(dt, enemies);
+    this._balls(dt, enemies);
     this._tonguePull(dt);
     this._shieldStep(dt, players, enemies);
     this._dot(dt);
@@ -787,6 +794,39 @@ export class Combat {
         if (this.pulse) this.pulse('boom');
         this.webs.splice(i, 1);
       }
+    }
+  }
+
+  // B3 baseballs: straight line drive, spinning stitched ball. Normal balls are consumed
+  // by their FIRST hit (standard projectile semantics + the bat's knockback); HOMERUN
+  // balls pierce the whole line — each foe exactly once (the `hit` set re-arms nowhere)
+  // at ×homerunMul damage — and emit rainbow trail dots through onFx every ballTrailEvery.
+  // Both expire at their row's stated range (life = range ÷ speed, set at batSwing).
+  _balls(dt, enemies) {
+    const C = CFG.combat;
+    for (let i = this.balls.length - 1; i >= 0; i--) {
+      const b = this.balls[i];
+      b.x += b.vx * dt;
+      b.y += b.vy * dt;
+      b.rot += C.baseballSpin * dt; // seams spin — the stitches read as rotation
+      b.life -= dt;
+      let gone = b.life <= 0 || b.x < 0 || b.x > CFG.world.w || b.y < 0 || b.y > CFG.world.h;
+      if (b.homer && !gone && this.onFx) {
+        b.trailT -= dt;
+        if (b.trailT <= 0) { this.onFx('balltrail', b.x, b.y); b.trailT = C.ballTrailEvery; }
+      }
+      if (!gone) {
+        for (const e of enemies.grid.near(b.x, b.y)) {
+          if (e.dead || b.hit.has(e)) continue;
+          const rr = e.r + C.baseballR;
+          const dx = e.x - b.x, dy = e.y - b.y;
+          if (dx * dx + dy * dy >= rr * rr) continue;
+          b.hit.add(e);
+          this.damageEnemy(e, b.homer ? b.dmg * C.homerunMul : b.dmg, b.vx / C.baseballSpeed, b.vy / C.baseballSpeed, b.kb, b.owner);
+          if (!b.homer) { gone = true; break; }
+        }
+      }
+      if (gone) this.balls.splice(i, 1);
     }
   }
 
@@ -1253,6 +1293,16 @@ export class Combat {
       ctx.save();
       ctx.translate(a.x, a.y);
       ctx.rotate(a.rot);
+      ctx.drawImage(img, -img.width / 2, -img.height / 2);
+      ctx.restore();
+    }
+    // B3 baseballs: stitched ball spinning along its line drive; the HOMERUN ball draws
+    // through the 24.2 variant seam (rainbow-halo sprite) — trail dots live in particles.
+    if (this.baseballImg) for (const b of this.balls) {
+      const img = (this.baseballVar && this.baseballVar[b.v]) || this.baseballImg;
+      ctx.save();
+      ctx.translate(b.x, b.y);
+      ctx.rotate(b.rot);
       ctx.drawImage(img, -img.width / 2, -img.height / 2);
       ctx.restore();
     }

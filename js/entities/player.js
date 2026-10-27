@@ -49,7 +49,7 @@ export class Player {
     // 29.8: _gatReload is the remaining reload time (monotonic countdown), _gatReloadTotal its
     // value at reload start — together the HUD ring reads a decreasing fraction of time left.
     this._gatCd = 0; this._gatMag = CFG.weapons.gatling.burst; this._gatReload = 0; this._gatReloadTotal = 0;
-    this._batCd = 0; this._batSwing = 0; this._boulderCd = 0; this._boulder = null;
+    this._batCd = 0; this._batSwing = 0; this._batWindup = 0; this._boulderCd = 0; this._boulder = null;
     this._tongueCd = 0; this._tongueFx = null; this._ballCd = 0; this._ball = null;
     this._lastInputAng = null; // 31.2: most-recent movement-input direction (Cannonball cone steering); null = none ever
     this._companion = null; this._wolves = null; this._shieldBank = null; this._skateCd = new Map();
@@ -96,7 +96,7 @@ export class Player {
     this._ringCd = 0; this._ringBeams = [];
     this._missileCd = 0; this._laserCd = 0; this._laserT = 0; this._laserAng = 0; this._webCd = 0;
     this._gatCd = 0; this._gatMag = CFG.weapons.gatling.burst; this._gatReload = 0; this._gatReloadTotal = 0; // runs/mid-picks start with a full mag
-    this._batCd = 0; this._batSwing = 0; this._boulderCd = 0; this._boulder = null;
+    this._batCd = 0; this._batSwing = 0; this._batWindup = 0; this._boulderCd = 0; this._boulder = null;
     this._tongueCd = 0; this._tongueFx = null; this._ballCd = 0; this._ball = null;
     this._lastInputAng = null; // 31.2 cone-steering memory dies with the run
     this._companion = null; this._wolves = null; this._shieldBank = null; this._skateCd.clear();
@@ -598,12 +598,25 @@ export class Player {
     }
     if (this.weapons.bat) {
       const S = W.bat.levels[this.weapons.bat - 1];
+      // B3 (user-ordered 2026-10-26): the bat is ranged now — same shape as the 23.1 bow:
+      // full interval → visible wind-up (CFG.weapons.bat.windup, drawn on the player) →
+      // swing frame + baseball at the nearest foe → back to interval. Per-level cd/dmg/kb
+      // ride the level rows unchanged (progression preserved); range gates acquisition.
       this._batCd -= dt;
       if (this._batSwing > 0) this._batSwing -= dt;
-      if (this._batCd <= 0 && this._nearest(enemies, CFG.combat.batRange + 30)) {
-        this._batCd = S.cd * this.cdMul;
-        this._batSwing = 0.18; // draw() telegraph arc
-        combat.batSwing(this, S);
+      if (this._batWindup > 0) {
+        this._batWindup -= dt;
+        if (this._batWindup <= 0) {
+          const e = this._nearest(enemies, S.range);
+          if (e) {
+            this._batCd = S.cd * this.cdMul;
+            this._batSwing = W.bat.swing; // the drawn swing arc (see draw())
+            combat.batSwing(this, S, e);
+          }
+        }
+      } else if (this._batCd <= 0) {
+        const e = this._nearest(enemies, S.range);
+        if (e) this._batWindup = W.bat.windup;
       }
     }
     if (this.weapons.tongue) {
@@ -731,10 +744,29 @@ export class Player {
       ctx.stroke();
       ctx.restore();
     }
-    // Bat swing arc (Phase 21): a quick wedge in the swing direction, fading with _batSwing.
+    // Baseball Bat wind-up telegraph (B3, 23.1 bow idiom): the bat line cocks back and
+    // sweeps up toward the swing position as the wind-up drains — the visible tell that a
+    // ball is coming. Local draw only (co-op: weapon state never crosses the projectile-free wire).
+    if (this.weapons.bat && this._batWindup > 0) {
+      const oy = this._spawnY();
+      const w = Math.max(0, Math.min(1, 1 - this._batWindup / CFG.weapons.bat.windup));
+      const back = this.aimAng + Math.PI - Math.PI * 1.25 * w; // full back-swing → loaded
+      ctx.save();
+      ctx.globalAlpha = 0.35 + 0.4 * w;
+      ctx.strokeStyle = '#e0b285'; // bat-wood palette (matches icons.bat)
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(this.x, oy);
+      ctx.lineTo(this.x + Math.cos(back) * 30, oy + Math.sin(back) * 30);
+      ctx.stroke();
+      ctx.restore();
+    }
+    // Bat swing frame (B3): the Phase-21 wedge is now the SWING animation — it draws on
+    // release, after the wind-up, fading with _batSwing (duration CFG.weapons.bat.swing).
     if (this._batSwing > 0) {
       const S = CFG.weapons.bat.levels[this.weapons.bat - 1];
-      const k = this._batSwing / 0.18;
+      const k = this._batSwing / CFG.weapons.bat.swing;
       const oy = this._spawnY();
       const half = (S.arc * Math.PI) / 360;
       ctx.save();
@@ -897,9 +929,11 @@ const WEAPON_FIELDS = {
   ],
   bat: [
     ['cd', (v) => `every ${fmtS(v)} s`, (a, b) => `every ${fmtS(a)}→${fmtS(b)} s`],
+    // B3: range joins the row (delta-relevant); `arc` left the card — it is swing-arc
+    // VISUAL config now, not a hit model, and card text must be truthful (30.4/30.5).
+    ['range', (v) => `reach ${v} px`, (a, b) => `reach ${a}→${b}`],
     ['dmg', (v) => `${v} dmg`, (a, b) => `dmg ${a}→${b}`],
     ['kb', (v) => `knockback ×${v}`, (a, b) => `knockback ×${a}→×${b}`],
-    ['arc', (v) => `arc ${v}°`, (a, b) => `arc ${a}°→${b}°`],
     ['homerun', (v) => `1-in-${v} HOMERUN`, null],
   ],
   tongue: [
@@ -1032,10 +1066,13 @@ const WEAPON_STATS = {
     skip: ['cd', 'dmg', 'burst', 'reload'],
   },
   bat: {
-    range: () => `swing reach ${CFG.combat.batRange} px`,
-    cadence: (d, s) => `every ${fmtS(s.cd)} s`,
-    damage: (d, s) => `${s.dmg} dmg per swing, 1-in-${d.homerun} HOMERUN`,
-    skip: ['cd', 'dmg', 'homerun'],
+    // B3 ranged redesign: the honest reach is the ball flight (row `range`); the card
+    // states the wind-up alongside the cadence and the ×homerunMul pierce as the roll's
+    // result — every number read from CFG at render time (30.4/30.5 mandate).
+    range: (d, s) => `ball range ${s.range} px`,
+    cadence: (d, s) => `every ${fmtS(s.cd)} s, wind-up ${fmtS(d.windup)} s`,
+    damage: (d, s) => `${s.dmg} dmg per ball, 1-in-${d.homerun} HOMERUN pierces ×${CFG.combat.homerunMul}`,
+    skip: ['cd', 'dmg', 'range', 'homerun'],
   },
   tongue: {
     range: () => `tongue reach ${CFG.combat.tongueRange} px`,

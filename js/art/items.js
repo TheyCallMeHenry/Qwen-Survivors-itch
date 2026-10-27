@@ -246,6 +246,56 @@ function snowballSprite() {
   return c;
 }
 
+// B3 (2026-10-26): shared baseball painter — white leather + the classic two-seam look
+// (parenthesis arcs near each edge + short red stitch ticks). Both ball sprites use it;
+// they differ only in the halo, so there is no near-twin duplicate (rule 16).
+function drawStitchedBall(g, cx, cy, r) {
+  const grad = g.createRadialGradient(cx - r * 0.35, cy - r * 0.35, r * 0.15, cx, cy, r);
+  grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.65, '#f4f0e6'); grad.addColorStop(1, '#c9c2b4');
+  g.fillStyle = grad;
+  g.beginPath(); g.arc(cx, cy, r, 0, TAU); g.fill();
+  g.strokeStyle = 'rgba(70,50,40,0.3)'; g.lineWidth = 1; g.stroke();
+  for (const s of [1, -1]) {
+    const scx = cx + s * r * 1.9, R = r * 1.5, mid = s > 0 ? Math.PI : 0;
+    g.strokeStyle = '#c8352e'; g.lineWidth = Math.max(1, r * 0.14);
+    g.beginPath(); g.arc(scx, cy, R, mid - 0.62, mid + 0.62); g.stroke();
+    g.lineWidth = Math.max(0.8, r * 0.09);
+    for (let i = -2; i <= 2; i++) {
+      const a = mid + i * 0.24;
+      g.beginPath();
+      g.moveTo(scx + Math.cos(a) * R * 0.86, cy + Math.sin(a) * R * 0.86);
+      g.lineTo(scx + Math.cos(a) * R * 1.16, cy + Math.sin(a) * R * 1.16);
+      g.stroke();
+    }
+  }
+}
+
+function baseballSprite() {
+  // B3: the Baseball Bat's line drive — stitched white ball. combat.draw spins it along
+  // the flight, so the seams visibly rotate like a real baseball.
+  const c = makeCanvas(16, 16);
+  const g = c.getContext('2d');
+  drawStitchedBall(g, 8, 8, 6.5);
+  return c;
+}
+
+function baseballHomerunSprite() {
+  // B3 HOMERUN ball (24.2 variant seam, v='homer'): the same ball under a hard rainbow
+  // halo — the mid-flight tell that pairs with the fading rainbow trail dots (game.js
+  // onFx 'balltrail' → particles).
+  const c = makeCanvas(24, 24);
+  const g = c.getContext('2d');
+  const hues = ['#ff5a5a', '#ffaa46', '#f0dc5a', '#6ee182', '#5aaaff', '#a078f5'];
+  g.lineWidth = 2.4;
+  hues.forEach((col, i) => {
+    g.strokeStyle = col;
+    const a0 = (i * TAU) / hues.length;
+    g.beginPath(); g.arc(12, 12, 10.6, a0 + 0.05, a0 + TAU / hues.length - 0.05); g.stroke();
+  });
+  drawStitchedBall(g, 12, 12, 7.5);
+  return c;
+}
+
 function frostBurstSprite() {
   // 12.3: snowball impact — cold white/cyan flash, drawn additively and scaled to the
   // damage radius at runtime (same ≥1.0× ramp as the bomb flash, 23.2 rule)
@@ -2204,6 +2254,8 @@ export function buildItems() {
     bullet: bulletSprite(),
     arrow: arrowSprite(),
     snowball: snowballSprite(),
+    baseball: baseballSprite(),                    // B3 Baseball Bat (ranged redesign)
+    baseballVar: { homer: baseballHomerunSprite() },
     frostBurst: frostBurstSprite(),
     spark: sparkSprite(),
     bomb: bombSprite(),

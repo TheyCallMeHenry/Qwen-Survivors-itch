@@ -3,7 +3,10 @@
 // disk — entry shape, src existence, PNG IHDR geometry (a strip's frames must physically
 // fit the sheet) — plus per-slot hero asserts (33.4.2) and per-slot ENEMY asserts
 // (33.4.3): engine footprint shape + packed frame count (or strip+bob derivation) + the
-// right-facing contract declaration per enemy key, the elite recolour marker against the
+// right-facing contract declaration per enemy key, PLUS a source-PIXEL facing
+// measurement for quadruped profile silhouettes (added after phone-playtest DEFECT B1:
+// the declaration check alone passed a left-facing wolf — see the probe section), the
+// elite recolour marker against the
 // palette block, and the wolfpack companion block. 33.4.4 adds BOSS asserts (footprint
 // mirrors the engine's procedural tables, no elite marker, guest-dialect downscale ≤2×,
 // render.flip for left-facing sources) and level-SKIN asserts (footprint identical to
@@ -11,6 +14,7 @@
 // (browser-side); this test proves the data pipeline can never ask the renderer for a
 // bad rect, and that the manifest footprints equal the engine's required ones.
 import { readFileSync, existsSync } from 'node:fs';
+import { inflateSync } from 'node:zlib';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -189,7 +193,8 @@ for (const [slot, want] of Object.entries(SKIN)) {
   const st = e.strips?.frames;
   if (!st || st.count < 1 || st.count > want.frames) fail(`skin.${slot}: frames strip count must be 1..${want.frames}, got ${st?.count}`);
   if (e.facing !== 'right') fail(`skin.${slot}: must declare facing "right" (engine flips for left)`);
-  if (!!e.render?.flip) fail(`skin.${slot}: unexpected render.flip`);
+  // render.flip correctness for this slot is MEASURED from source pixels in the facing
+  // probe section below (DEFECT B1: a declaration-only check passed a left-facing wolf).
   if (e.recolour !== 'elite') fail(`skin.${slot}: elite skin path marker missing (recolour "elite")`);
   const [x, y, tw, th] = e.render?.trim || [];
   if (![x, y, tw, th].every(Number.isInteger) || x < 0 || y < 0 || tw < 1 || th < 1 || x + tw > e.frame.w || y + th > e.frame.h) {
@@ -198,5 +203,82 @@ for (const [slot, want] of Object.entries(SKIN)) {
   skinChecked++;
   console.log(`ok   skin.${slot}  footprint ${want.sheet.join('/')} · ${want.frames} frame(s) · facing right · elite tint`);
 }
-console.log(fails === 0 ? `\ntest-art: PASS (${checked} manifest entries validated, ${heroChecked} hero slots, ${enemyChecked} enemy slots, ${bossChecked} boss slots, ${skinChecked} skin slots)` : `\ntest-art: ${fails} FAILURE(S)`);
+// ── source-PIXEL facing probes (DEFECT B1 strengthening, 2026-10-26) ──────────────
+// Why the old assert passed a left-facing sheet: it only compared the declared
+// `facing` string to "right" — a declaration, never a measurement (the manifest note
+// "every source was viewed before wiring" was itself wrong for wolf fb5_003). For a
+// quadruped PROFILE silhouette the source facing IS measurable: the head/ears are the
+// TOP of the silhouette, so the opaque mass in the top 15% band of the silhouette bbox
+// centroids toward the facing side. Rule for every slot listed here: the measured
+// verdict must equal (render.flip ? left : right) — i.e. the bake flag matches the
+// actual source orientation. The mirrored re-measurement must invert the verdict and
+// negate `rel` (the probe demonstrably fires both ways, never "not-inverted"=pass).
+// Non-profile art (3/4-view wraith, the ryū mech source) has no such cue and stays on
+// the declaration + flip-table asserts in its own section — honest limitation, stated.
+function decodeRGBA8(file) {
+  const buf = readFileSync(file);
+  let pos = 8, w = 0, h = 0, idat = [];
+  let bd = 0, ct = 0, il = 0;
+  while (pos + 8 <= buf.length) {
+    const len = buf.readUInt32BE(pos), type = buf.toString('ascii', pos + 4, pos + 8);
+    if (type === 'IHDR') { w = buf.readUInt32BE(pos + 8); h = buf.readUInt32BE(pos + 12); bd = buf[pos + 16]; ct = buf[pos + 17]; il = buf[pos + 20]; }
+    else if (type === 'IDAT') idat.push(buf.subarray(pos + 8, pos + 8 + len));
+    else if (type === 'IEND') break;
+    pos += 12 + len;
+  }
+  if (bd !== 8 || ct !== 6 || il !== 0) return null; // only RGBA8 non-interlaced is measurable here
+  const raw = inflateSync(Buffer.concat(idat));
+  const bpp = 4, px = new Uint8Array(w * h * 4);
+  for (let y = 0; y < h; y++) {
+    const base = y * (w * bpp + 1), f = raw[base], line = raw.subarray(base + 1, base + 1 + w * bpp);
+    for (let x = 0; x < w * bpp; x++) {
+      const a = line[x], left = x >= bpp ? px[y * w * bpp + x - bpp] : 0, up = y ? px[(y - 1) * w * bpp + x] : 0, ul = y && x >= bpp ? px[(y - 1) * w * bpp + x - bpp] : 0;
+      let v;
+      if (f === 0) v = a; else if (f === 1) v = a + left; else if (f === 2) v = a + up;
+      else if (f === 3) v = a + ((left + up) >> 1);
+      else { const p = left + up - ul, pa = Math.abs(p - left), pb = Math.abs(p - up), pc = Math.abs(p - ul); v = a + (pa <= pb && pa <= pc ? left : pb <= pc ? up : ul); }
+      px[y * w * bpp + x] = v & 255;
+    }
+  }
+  return { w, h, px };
+}
+function measureFacing(img, mirror = false) {
+  const { w, h, px } = img;
+  let x0 = Infinity, x1 = -1, y0 = Infinity, y1 = -1;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (px[(y * w + x) * 4 + 3] > 32) {
+    if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+  }
+  if (x1 < 0) return { rel: 0, verdict: 'empty' };
+  const bx0 = mirror ? w - 1 - x1 : x0, bx1 = mirror ? w - 1 - x0 : x1;
+  const cw = x1 - x0 + 1, band = Math.max(1, Math.round((y1 - y0 + 1) * 0.15));
+  let m = 0, sx = 0;
+  for (let y = y0; y < y0 + band; y++) for (let x = x0; x <= x1; x++) if (px[(y * w + x) * 4 + 3] > 32) {
+    m++; sx += mirror ? w - 1 - x : x;
+  }
+  const rel = (sx / m - (bx0 + bx1) / 2) / cw;
+  return { rel, verdict: Math.abs(rel) < 0.06 ? 'invariant' : rel < 0 ? 'left' : 'right' };
+}
+const PROFILE_SLOTS = ['enemy.wolf', 'skin.m02.wolf']; // quadruped profiles = measurable cue
+let faceChecked = 0;
+for (const slot of PROFILE_SLOTS) {
+  const e = sprites[slot];
+  if (!e) continue; // already failed in its own section
+  const img = decodeRGBA8(join(root, e.strips.frames.src));
+  if (!img) { fail(`${slot}: facing probe needs an RGBA8 non-interlaced PNG: ${e.strips.frames.src}`); continue; }
+  const direct = measureFacing(img), mirrored = measureFacing(img, true);
+  const flips = (a, b) => (a === 'left' && b === 'right') || (a === 'right' && b === 'left');
+  if (!flips(direct.verdict, mirrored.verdict) || Math.abs(direct.rel + mirrored.rel) > 1e-9) {
+    fail(`${slot}: facing probe inconclusive (measured ${direct.verdict} rel=${direct.rel.toFixed(3)}, mirror ${mirrored.verdict}) — cannot certify orientation`);
+    continue;
+  }
+  const declared = e.render?.flip ? 'left' : 'right';
+  if (direct.verdict !== declared) {
+    fail(`${slot}: source measures ${direct.verdict}-facing but declares render.flip=${!!e.render?.flip} → bake would violate the RIGHT-facing contract`);
+    continue;
+  }
+  if (slot === 'enemy.wolf' && e.pack && !e.pack.render?.flip) fail('enemy.wolf.pack: shares the left-facing source strip — pack.render.flip must be true');
+  faceChecked++;
+  console.log(`ok   ${slot}  source measured ${direct.verdict}-facing → ${e.render?.flip ? 'render.flip bake (contract OK)' : 'no flip (contract OK)'}`);
+}
+console.log(fails === 0 ? `\ntest-art: PASS (${checked} manifest entries validated, ${heroChecked} hero slots, ${enemyChecked} enemy slots, ${bossChecked} boss slots, ${skinChecked} skin slots, ${faceChecked} pixel facing probes)` : `\ntest-art: ${fails} FAILURE(S)`);
 process.exit(fails === 0 ? 0 : 1);

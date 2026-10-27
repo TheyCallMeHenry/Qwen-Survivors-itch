@@ -501,7 +501,7 @@ const near = (a, b, eps = 1e-9) => Math.abs(a - b) <= eps;
     boulder: [() => `range ${C.wandRange} px`, (d, s) => `every ${f2(s.cd)} s`, (d, s) => `${s.dmg} dmg first hit`],
     webs: [(d, s) => `range ${C.wandRange} px, burst radius ${s.r} px`, (d, s) => `every ${f2(s.cd)} s`, (d, s) => `${s.dmg} dmg per burst`],
     gatling: [() => `bullet range ${Math.round(C.bulletSpeed * C.bulletLife)} px`, (d, s) => `one shot every ${f2(s.cd)} s`, (d) => `mag ${d.burst} → reload ${f2(d.reload)} s`, (d, s) => `${s.dmg} dmg per round`],
-    bat: [() => `swing reach ${C.batRange} px`, (d, s) => `every ${f2(s.cd)} s`, (d, s) => `${s.dmg} dmg per swing`],
+    bat: [(d, s) => `ball range ${s.range} px`, (d, s) => `every ${f2(s.cd)} s`, (d, s) => `${s.dmg} dmg per ball`],
     tongue: [() => `tongue reach ${C.tongueRange} px`, (d, s) => `every ${f2(s.cd)} s`, (d, s) => `${s.dmg} dmg per bite`],
     cannonball: [() => `dash range ${C.ballSearchR} px`, (d) => `every ${f2(d.cd)} s`, (d, s) => `${s.dmg} dmg first hit`],
   };
@@ -2819,34 +2819,114 @@ const slots0 = (row) => row.filter((f) => f !== null).length;
     ok(e2.holdT === undefined && e2.hp === 300, 'P21 web: far foe untouched');
   }
 
-  // Baseball Bat: arc gate + huge knockback + deterministic HOMERUN (Math.random=0 → always).
+  // Baseball Bat (B3 RANGED redesign, user-ordered 2026-10-26 — amends fork law D-F2,
+  // decision D-F7): wind-up (23.1 bow idiom) → visible swing → baseball at the NEAREST
+  // foe. Normal ball = a standard projectile hit (dmg + the bat's huge knockback, consumed
+  // by the first foe); HOMERUN keeps the roll (1-in-odds, non-boss target gate, homerKing
+  // row override) but the RESULT is the ball itself: it pierces every foe on its trajectory
+  // at ×homerunMul damage, each exactly once, trailing rainbow particles (onFx, cosmetic).
+  // All Math.random pins are the documented spread-MIN/MAX pins — deterministic-testable.
   {
     const c = new Combat();
     const pl = new Player({ h: 64 }); pl.reset(0, 100); pl.aimAng = 0;
     const oy = pl._spawnY();
-    const e1 = mk(50, oy), e2 = mk(0, oy + 50); // e2: 90° off a 100° arc → outside
-    c.enemies = stub([e1, e2]); // combat reads this.enemies (host always has it after the first step)
-    const S = CFG.weapons.bat.levels[0];
-    c.batSwing(pl, S);
-    ok(e1.hp === 300 - S.dmg && e1.vx === C.batKbImpulse * S.kb && e2.hp === 300,
-      `P21 bat: in-arc hit with ×${S.kb} knockback impulse (${e1.vx}); 90° foe outside the ${S.arc}° arc`);
-    const e3 = mk(50, oy, { hp: 100000 });
+    const B = CFG.weapons.bat;
+    const S = B.levels[0];
+    ok(typeof B.windup === 'number' && B.windup > 0 && B.windup <= 0.5,
+      'B3 bat: wind-up scalar present + sane (0 < windup ≤ 0.5 s — the bow-23.1 bound)');
+    ok(typeof C.homerunMul === 'number' && C.homerunMul >= 2,
+      `B3 bat: homerun damage multiplier present in CFG (homerunMul ${C.homerunMul})`);
+    // The 5-level progression is PRESERVED: cd/dmg moved unchanged onto the ranged path.
+    // Range ladder floor = 600 px per user directive (2026-10-26; supersedes B2's
+    // "under the ranged peers" guardrail — the bat is now a long-range weapon).
+    ok(JSON.stringify(B.levels.map((s) => [s.cd, s.dmg])) ===
+      JSON.stringify([[0.34, 26], [0.30, 31], [0.27, 36], [0.24, 41], [0.22, 48]]),
+      'B3 bat: per-level cd/dmg values moved unchanged onto the ranged path');
+    const RG = B.levels.map((s) => s.range);
+    let ladder = RG.every((r) => r > 0);
+    for (let i = 1; i < RG.length; i++) if (!(RG[i] > RG[i - 1])) ladder = false;
+    ok(ladder && RG[0] >= 600,
+      `B3 bat: positive monotonic range ladder, L1 floor 600 per user directive (${RG.join(', ')})`);
+    // Wind-up state visible for its CFG duration BEFORE the ball spawns (23.1 test shape):
+    pl.weapons = { bat: 1 }; pl._batCd = 0; pl._batWindup = 0;
+    const near = mk(60, oy), far = mk(210, oy); // both inside L1 range; near is the pick
+    const foes = { list: [near, far], grid: { near: () => [], range: () => [] } };
+    pl._weapons(1 / 60, foes, c, null);
+    ok(c.balls.length === 0 && pl._batWindup > 0, 'B3 bat: the fire pass enters the wind-up with no ball yet');
+    ok(Math.abs(pl._batWindup - B.windup) < 1e-9, `B3 bat: wind-up armed at CFG.weapons.bat.windup (${B.windup})`);
+    let wt = 0;
+    while (c.balls.length === 0 && wt < 60) { pl._weapons(1 / 60, foes, c, null); wt++; }
+    ok(wt >= Math.round(B.windup * 60) - 1, `B3 bat: the ball looses only after the full wind-up (ticks=${wt})`);
+    ok(c.balls.length === 1 && pl._batSwing > 0, 'B3 bat: the release sets the swing frame + exactly one ball');
+    const b0 = c.balls[0];
+    ok(Math.abs(Math.atan2(b0.vy, b0.vx)) < 1e-9, 'B3 bat: the ball launches at the NEAREST foe (velocity along the target line)');
+    ok(Math.abs(b0.life - S.range / C.baseballSpeed) < 1e-9,
+      'B3 bat: ball life = range ÷ speed (the card-stated reach IS the honest flight distance)');
+    c.balls.length = 0;
+    // Normal (non-homerun) ball: standard projectile hit — first foe takes dmg + the bat's
+    // knockback, then the ball is consumed (no pierce, no trail).
     const R0 = Math.random;
+    Math.random = () => 0.99; // rand(0,500) → 495 — no HOMERUN
+    const e1 = mk(80, oy, { hp: 100000 }), e2 = mk(150, oy, { hp: 100000 });
+    c.batSwing(pl, S, e1);
+    ok(c.balls.length === 1 && c.balls[0].homer === false && c.balls[0].v === '',
+      'B3 bat: a pinned-high roll launches a normal (base-variant) ball');
+    let t = 0;
+    while (c.balls.length && t < 60) { c.update(1 / 60, [], stub([e1, e2])); t++; }
+    ok(c.balls.length === 0, `B3 bat: the normal ball is consumed by its FIRST hit (no pierce, t=${t})`);
+    ok(e1.hp === 100000 - S.dmg && e1.vx === C.batKbImpulse * S.kb,
+      `B3 bat: hit deals card dmg with the ×${S.kb} knockback impulse (${e1.vx})`);
+    ok(e2.hp === 100000, 'B3 bat: a normal ball never reaches a second foe');
+    // HOMERUN ball: same pinned roll mechanism (rand 0) → pierces EVERY foe on the
+    // trajectory at ×M, exactly once each, and expires at its stated range.
+    c.balls.length = 0;
+    const h1 = mk(80, oy, { hp: 100000 }), h2 = mk(150, oy, { hp: 100000 }), h3 = mk(210, oy, { hp: 100000 });
+    const hOut = mk(S.range + 60, oy, { hp: 100000 }); // beyond the L1 card range — never touched
     Math.random = () => 0; // the documented spread-MINIMUM pin → HOMERUN fires for sure
-    c.enemies = stub([e3]);
-    c.batSwing(pl, S);
-    ok(e3.dead, 'P21 bat: HOMERUN one-hit-KOs a non-boss at rand 0');
-    const e4 = mk(50, oy, { hp: 100000, boss: true });
-    c.enemies = stub([e4]);
-    c.batSwing(pl, S);
-    ok(!e4.dead, 'P21 bat: HOMERUN never fires on a boss (rand 0 does not cheat the boss gate)');
-    Math.random = R0;
-    // homerKing synergy swaps the odds row (1-in-50 → rand 0.005 still under 1)
-    const e5 = mk(50, oy, { hp: 100000 });
+    c.batSwing(pl, S, h1);
+    ok(c.balls.length === 1 && c.balls[0].homer === true && c.balls[0].v === 'homer',
+      'B3 bat: the pinned roll flags the launched ball as the HOMERUN variant (draw seam)');
+    t = 0;
+    while (c.balls.length && t < 60) { c.update(1 / 60, [], stub([h1, h2, h3, hOut])); t++; }
+    ok(c.balls.length === 0, `B3 bat: the homer ball expires at its stated range (t=${t})`);
+    const M = C.homerunMul;
+    ok(h1.hp === 100000 - S.dmg * M && h2.hp === 100000 - S.dmg * M && h3.hp === 100000 - S.dmg * M,
+      `B3 bat: the homer pierces every foe on the trajectory for exactly ×${M} each, once (no re-hits)`);
+    ok(hOut.hp === 100000, 'B3 bat: the ball never flies past its card range (foe beyond stays clean)');
+    // The rainbow trail rides the existing cosmetic onFx channel (never the wire):
+    const cT = new Combat();
+    let trails = 0, homerFx = 0;
+    cT.onFx = (kind) => { if (kind === 'balltrail') trails++; else if (kind === 'homerun') homerFx++; };
+    const tr1 = mk(80, oy, { hp: 100000 });
+    Math.random = () => 0;
+    cT.batSwing(pl, S, tr1);
+    ok(homerFx === 1, 'B3 bat: the HOMERUN swing still fires its existing onFx tell');
+    t = 0;
+    while (cT.balls.length && t < 60) { cT.update(1 / 60, [], stub([tr1])); t++; }
+    ok(trails >= 2, `B3 bat: the homer ball trails rainbow particles via onFx (events=${trails})`);
+    let normalTrails = 0;
+    const cN = new Combat();
+    cN.onFx = (kind) => { if (kind === 'balltrail') normalTrails++; };
+    const n1 = mk(80, oy, { hp: 100000 });
+    Math.random = () => 0.99;
+    cN.batSwing(pl, S, n1);
+    t = 0;
+    while (cN.balls.length && t < 60) { cN.update(1 / 60, [], stub([n1])); t++; }
+    ok(normalTrails === 0, 'B3 bat: a normal ball never trails');
+    // Boss gate + homerKing odds row — the trigger mechanism is unchanged from P21:
+    c.balls.length = 0;
+    const eb = mk(80, oy, { hp: 100000, boss: true });
+    Math.random = () => 0;
+    c.batSwing(pl, S, eb);
+    ok(!c.balls[0].homer, 'B3 bat: HOMERUN never fires on a boss target (rand 0 does not cheat the boss gate)');
+    t = 0;
+    while (c.balls.length && t < 60) { c.update(1 / 60, [], stub([eb])); t++; }
+    ok(eb.hp === 100000 - S.dmg, 'B3 bat: a boss target takes the normal ball (no ×3 roll, hit once)');
+    c.balls.length = 0;
+    const ek = mk(80, oy, { hp: 100000 });
     pl.synergies.homerKing = 5; Math.random = () => 0.0005; // ×50 = 0.025 < 50 ✓, ×500 = 25 > 1 ✗
-    c.enemies = stub([e5]);
-    c.batSwing(pl, S);
-    ok(e5.dead, 'P21 bat: homerKing L5 odds (1-in-50) make the same roll a HOMERUN');
+    c.batSwing(pl, S, ek);
+    ok(c.balls[0].homer, 'B3 bat: homerKing L5 odds (1-in-50) make the same roll a HOMERUN');
     Math.random = R0;
   }
 

@@ -6,9 +6,10 @@
 // via art/load.js — every sheet was viewed before wiring (rule 6): rat ← vermin
 // "Infected Mouse", bat ← vermin "Swooping Bat", goblin ← humanoid "goblin fighter",
 // brute ← magical "ice golem" (the m01 snow theme), cultist ← undead "Grave Revenant",
-// wolf ← Aaron freebies-5 #003 (both wolf candidates viewed: gen-0 #008's head sits 3/4
-// toward the viewer and breaks the right-facing flip contract; fb5_003 is a pure right
-// profile — kept). ELITE: each packed def also carries eliteFrames — the same frames
+// wolf ← Aaron freebies-5 #003. DEFECT B1 correction (2026-10-26): fb5_003's source
+// faces LEFT — the earlier "pure right profile" note here was wrong and test-art's
+// declaration-only facing check could not catch it. The entry now declares render.flip
+// like the ryū; test-art measures the source pixels for profile silhouettes. ELITE: each packed def also carries eliteFrames — the same frames
 // through the shared lumaTintMap gold ladder (manifest palette.eliteColor); the engine's
 // gold-diamond tell is untouched (enemies.js, D105) and simply never picks the skins up
 // until a future engine go. 33.4.4: the m01 WRAITH boss is packed from the Aaron gen-0

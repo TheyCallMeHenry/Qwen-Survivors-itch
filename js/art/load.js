@@ -5,7 +5,7 @@
 // Node-safety (rule 3): nothing runs at import — fetch/Image/canvas are used only when a
 // browser caller invokes these; tools/check.mjs can still import the module clean.
 
-import { makeCanvas } from './base.js';
+import { makeCanvas, flashCopy } from './base.js';
 
 // Fetch + parse the sprite manifest. Path is served by tools/serve.mjs (application/json).
 export async function loadManifest(path) {
@@ -171,3 +171,31 @@ export function loadPack() {
 // the canvases handed out earlier — never replace them: the engine holds references
 // (enemies.js setDefs bakes flash copies from the live frame pixels).
 export function onArtReady(pk, fn) { if (pk.ready) fn(); else pk.waiters.push(fn); }
+
+// White hit-flash copies of a frame set, safe against the async art load (DEFECT B1,
+// phone playtest 2026-10-26). The engine used to bake these at def-construction time —
+// while packed frame canvases were still blank — so every derived flash stayed blank
+// forever and the sprite VANISHED while hurt (the in-place repaint only touches the
+// frames themselves, never copies made from their pixels). bakeFlashes hands out the
+// flash canvases immediately and repaints THOSE in place when art decodes, so callers
+// hold stable references with correct pixels.
+export function bakeFlashes(frames) {
+  const flashes = frames.map(flashCopy);
+  const pk = loadPack();
+  if (pk && !pk.ready) {
+    onArtReady(pk, () => {
+      frames.forEach((f, i) => {
+        const g = flashes[i].getContext('2d');
+        // flashCopy returns a context left in 'source-in' — reset before compositing.
+        g.globalCompositeOperation = 'source-over';
+        g.clearRect(0, 0, flashes[i].width, flashes[i].height);
+        g.drawImage(f, 0, 0);
+        g.globalCompositeOperation = 'source-in';
+        g.fillStyle = '#ffffff';
+        g.fillRect(0, 0, flashes[i].width, flashes[i].height);
+        g.globalCompositeOperation = 'source-over';
+      });
+    });
+  }
+  return flashes;
+}

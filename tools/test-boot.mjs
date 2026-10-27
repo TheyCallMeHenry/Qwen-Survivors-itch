@@ -1996,7 +1996,7 @@ m03RunDone = true;
   const pP = gP.player;
   const Cp = CFG.combat;
   const Wp = CFG.weapons;
-  gP.combat.enemies = gP.enemies; // batSwing reads this.enemies directly (host-sim side)
+  gP.combat.enemies = gP.enemies; // the P21 projectile pipelines read combat.enemies (host-sim side)
   const dmgBakP = gP.combat.damagePlayer;
   gP.combat.damagePlayer = () => false; // contact/self damage never kills the pinned probe player
   const clearFoesP = () => { gP.enemies.list.length = 0; gP.enemies.grid.clear(); gP.enemies.orbs.length = 0; };
@@ -2016,10 +2016,10 @@ m03RunDone = true;
     // Every P21 cooldown must reset too — a prior probe's shot cd (missile 2.6 s,
     // boulder 7 s, tongue 2.2 s…) would otherwise gate the next probe's fire pass.
     pP._missileCd = 0; pP._laserCd = 0; pP._laserT = 0; pP._laserAng = 0; pP._webCd = 0; pP._gatCd = 0;
-    pP._gatMag = Wp.gatling.burst; pP._gatReload = 0; pP._batCd = 0; pP._boulderCd = 0;
+    pP._gatMag = Wp.gatling.burst; pP._gatReload = 0; pP._batCd = 0; pP._batWindup = 0; pP._batSwing = 0; pP._boulderCd = 0;
     pP._tongueCd = 0; pP._ballCd = 0;
     pP._companion = null; pP._wolves = null; pP._boulder = null; pP._ball = null; pP._shieldBank = null; pP._tongueFx = null;
-    for (const arr of [gP.combat.missiles, gP.combat.beams, gP.combat.boulders, gP.combat.webs,
+    for (const arr of [gP.combat.missiles, gP.combat.beams, gP.combat.boulders, gP.combat.webs, gP.combat.balls,
       gP.combat.bullets, gP.combat.bolts, gP.combat.explosions]) arr.length = 0;
     clearFoesP();
   };
@@ -2235,24 +2235,59 @@ m03RunDone = true;
     assert(magDrop && reloadSeen && refilled && dmgSeen,
       `P21 gatling: burst drains (magDrop=${magDrop}), reloads (${reloadSeen}), refills to full (${refilled}), deals damage (${dmgSeen})`);
   }
-  // --- Baseball Bat: heavy knockback, and the HOMERUN one-hit-KO branch (rand pinned) ---
+  // --- Baseball Bat (B3 RANGED redesign, 2026-10-26, D-F7): wind-up → baseball at the
+  // nearest foe. Normal ball = standard hit (card dmg + the bat's huge knockback, consumed
+  // by the first foe, no pierce); HOMERUN (rand-pinned, same trigger mechanism) launches
+  // the variant ball which pierces every foe on the trajectory at ×homerunMul, once each. ---
   resetP21();
   pP.x = 400; pP.y = 600;
   {
     const realRandom = Math.random;
-    const e = mkFoeP('goblin', pP.x + 40, torsoP());
+    const Sb = Wp.bat.levels[0];
+    const e = mkFoeP('goblin', pP.x + 120, torsoP());
     pP.weapons.bat = 1;
-    Math.random = () => 0.99; // rand(0,500) → 495 — no HOMERUN
-    regridP(); // batSwing queries the grid — the foe must be IN it (pitfall: fireP alone never regrids)
+    // The wind-up state is visible for its CFG duration BEFORE the ball spawns (23.1 shape):
     fireP();
-    assert(!e.dead && 1e6 - e.hp > 0 && e.vx >= Cp.batKbImpulse,
-      `P21 bat: swing deals normal dmg with huge knockback (vx=${e.vx.toFixed(0)} ≥ ${Cp.batKbImpulse})`);
-    const e2 = mkFoeP('goblin', pP.x + 40, torsoP());
+    assert(gP.combat.balls.length === 0 && pP._batWindup > 0, 'B3 bat: the fire pass enters the wind-up with no ball yet');
+    assert(Math.abs(pP._batWindup - Wp.bat.windup) < 1e-9, `B3 bat: wind-up armed at CFG.weapons.bat.windup (${Wp.bat.windup})`);
+    const st0b = drawOps.stroke;
+    pP.draw(gP.ctx);
+    assert(drawOps.stroke - st0b === 1, 'B3 bat: the wind-up telegraph renders on the player during the wind-up');
+    Math.random = () => 0.99; // rand(0,500) → 495 — no HOMERUN (the branch stays rand-pinned)
+    let wt = 0;
+    while (!gP.combat.balls.length && wt < 60) { fireP(); wt++; }
+    assert(wt >= Math.round(Wp.bat.windup * 60) - 1 && gP.combat.balls.length === 1,
+      `B3 bat: the ball looses only after the full wind-up (ticks=${wt})`);
+    assert(gP.combat.balls[0].x === pP.x && gP.combat.balls[0].y === torsoP(), '16.2: baseball spawned at mid-torso');
+    const di0 = drawOps.drawImage;
+    gP.combat.draw(makeCtx(), 1, gP.players, gP.enemies);
+    assert(drawOps.drawImage - di0 >= 1, 'B3 bat: combat.draw blits the baseball sprite (base path live)');
+    // Normal ball: consumed by its FIRST hit — second foe on the same line stays clean.
+    const e2 = mkFoeP('goblin', pP.x + 200, torsoP());
+    let bt = 0;
+    while (gP.combat.balls.length && bt < 90) { regridP(); gP.combat.update(1 / 60, [pP], gP.enemies); bt++; }
+    assert(gP.combat.balls.length === 0, `B3 bat: the normal ball is consumed by its first hit (ticks=${bt})`);
+    assert(!e.dead && e.hp === 1e6 - Sb.dmg * pP.dmgMul && e.vx >= Cp.batKbImpulse,
+      `B3 bat: normal hit = card dmg with huge knockback (vx=${e.vx.toFixed(0)} ≥ ${Cp.batKbImpulse})`);
+    assert(e2.hp === 1e6, 'B3 bat: a normal ball never pierces to the second foe');
+    assert(pP._batCd > 0, 'B3 bat: the swing arms the level cooldown');
+    // HOMERUN: the pinned roll launches the variant ball; it passes through the whole row.
+    const h1 = mkFoeP('goblin', pP.x + 60, torsoP());
+    const h2 = mkFoeP('goblin', pP.x + 120, torsoP());
+    const h3 = mkFoeP('goblin', pP.x + 180, torsoP());
     pP._batCd = 0;
     Math.random = () => 0; // rand → 0 < 1 — the HOMERUN branch fires
-    regridP();
     fireP();
-    assert(e2.dead, 'P21 bat: HOMERUN one-hit-KOs a non-boss regardless of pinned HP');
+    wt = 0;
+    while (!gP.combat.balls.length && wt < 60) { fireP(); wt++; }
+    assert(gP.combat.balls.length === 1 && gP.combat.balls[0].homer && gP.combat.balls[0].v === 'homer',
+      'B3 bat: the pinned roll launches the HOMERUN variant ball');
+    bt = 0;
+    while (gP.combat.balls.length && bt < 90) { regridP(); gP.combat.update(1 / 60, [pP], gP.enemies); bt++; }
+    assert(gP.combat.balls.length === 0, `B3 bat: the homer ball expires at its card range (ticks=${bt})`);
+    const M = Cp.homerunMul, D = Sb.dmg * pP.dmgMul;
+    assert(h1.hp === 1e6 - D * M && h2.hp === 1e6 - D * M && h3.hp === 1e6 - D * M,
+      `B3 bat: the homer pierces every foe on the trajectory, exactly ×${M} once each`);
     Math.random = realRandom;
   }
   // --- Frog Tongue: eat a kill (Gut Feast ×mul heal); poison + drag the survivors in ---
@@ -3508,5 +3543,5 @@ console.log(
   `meta: gameover shards saved → Upgrades buy → maxHp 80 at run start (mage 60+20) · ` +
   `boss spawned · pause/resume + mute · card pick via click + key 1 · all 8 weapons (wand-off kill window) · ` +
   `all 8 weapons observed live (bolts/axes/blades/garlic/bullets/bombs/flames/arrows) · burn DoT kill · dash i-frame E2E · synergy E2E (blight) · 12.8 per-synergy E2Es (flamingArrows burn-on-hit · heartPiercer bonus+pierce exactly 1 extra · blueFlame freeze+burn on burst · stormVolley 4th-volley both-rounds strike + chain shock) · 10.7 empty-pool guard (entry + mid-queue) · heart heal · gem pickup SFX (10.8) · ` +
-  `touch stick + dash button · HUD dash --cd driven (10.1) · level select (13.7: 3 cards, locked denied blip + shake, select → backdrop preview + persist) · zoom + Settings (13.8: 0.80↔1.0 persist, Settings mute) · per-level flavor (13.10: NEW MAP UNLOCKED once-at-threshold + unlock-progress line + pickup reskin m02/m03) · scores save/render/clear + per-level lists (13.9: m02/m03 victory → own key, m01 untouched) · quit flow · M02 backdrop (13.2) + m02 real run: Higan skins, ×1.25 stats, Ryū boss (13.3) · M03 backdrop (13.4: sun glow + godrays + fish schools + bubbles) + m03 real run: drowned skins, ×1.56 stats, Great White boss (13.5) · 17 durations E2E (menu chips + per-level persist, d10 two-boss 4:00+9:00, victory gate per-duration, ENDLESS no-victory + 9:00 cadence) · 11.1 co-op transport E2E (real serve.mjs WS room on ephemeral port: host join / seats / full / leave+roster / host-leave close / room re-open) · 11.2/11.3 sync E2E (host+2 clients: shared seed, client tracking, input drive, leave→roster reconcile, ×1.66 spawn) + 11.4 leash (1.5R teleport → pairwise ≤ leashR) + 11.5 exclusivity (first-pick ownership, remote exclusion, per-picker picks, 3P cap) + 11.10 boss count (3P: Wraith ×3 via the real _spawns wave at B.at — each maxHp = base × diff × coopS, ×N banner, all three on the client wire; solo m02/m03 exactly 1 boss) + 11.11 solo invariance (net-free solo: no roster/seat/remotes, coopS 1, cap = base 5, exactly 1 Wraith, per-entry local ownership + empty exclusion) + 11.12 final co-op gate (pause-on-blur = host-only: host blur-pauses, client pause() no-op, host resume + 3P run pumped to VICTORY at t=300) · 18 level-up actions E2E (locked toolbar hidden + zero uses solo-invariant, shop Unlock 300 → +1 600 persisted, run-seed from shop levels, SKIP = exact 66% XP + step consumed, RE-ROLL disjoint redraw, BANISH arm/click run-long + slot refill without consuming the pick, per-run reseed, per-picker isolation) · 14 in-run Soulshards counter (live floor(score/400) projection, change-detected) + 14.2 unified co-op earnings (run-level total rides the room close, client accrues in full, meta player-specific)P21 boot battery (9 new weapons + 2 item-passives live: missile lock→home→detonate + napalmMissile ignite · laser orbit sear no-kb (continuous rotation while idle, 180°/120° multi-beam) · wolfpack pounce/bleed/leash/staticPelt shock + pack growth 1/1/2/2/3 · Coffee cdMul on boulder+laser cds · boulder squish/decay/one-at-a-time/avalanche stacks · web burst hold · gatling mag→reload→full-mag refill · bat knockback + HOMERUN KO branch (rand-pinned) · tongue poison/drag/eat-heal with gutFeast ×mul · cannonball roll self-propelled + i-frame gate open/close; Mirror Shield reflect+bank+spend; Ice Skates glide drift + slide-hits-both with re-hit lock; 5 new chars selectable: pre-owned starter, zero passives, per-char hp/dmg; 5 fused synergies offered across 60 seeds; P21 sprite draw pass) · 32.3 live-run elite observed (×1.5 HP through the real _spawns path, gold-diamond tell drawn) · loop alive throughout`,
+  `touch stick + dash button · HUD dash --cd driven (10.1) · level select (13.7: 3 cards, locked denied blip + shake, select → backdrop preview + persist) · zoom + Settings (13.8: 0.80↔1.0 persist, Settings mute) · per-level flavor (13.10: NEW MAP UNLOCKED once-at-threshold + unlock-progress line + pickup reskin m02/m03) · scores save/render/clear + per-level lists (13.9: m02/m03 victory → own key, m01 untouched) · quit flow · M02 backdrop (13.2) + m02 real run: Higan skins, ×1.25 stats, Ryū boss (13.3) · M03 backdrop (13.4: sun glow + godrays + fish schools + bubbles) + m03 real run: drowned skins, ×1.56 stats, Great White boss (13.5) · 17 durations E2E (menu chips + per-level persist, d10 two-boss 4:00+9:00, victory gate per-duration, ENDLESS no-victory + 9:00 cadence) · 11.1 co-op transport E2E (real serve.mjs WS room on ephemeral port: host join / seats / full / leave+roster / host-leave close / room re-open) · 11.2/11.3 sync E2E (host+2 clients: shared seed, client tracking, input drive, leave→roster reconcile, ×1.66 spawn) + 11.4 leash (1.5R teleport → pairwise ≤ leashR) + 11.5 exclusivity (first-pick ownership, remote exclusion, per-picker picks, 3P cap) + 11.10 boss count (3P: Wraith ×3 via the real _spawns wave at B.at — each maxHp = base × diff × coopS, ×N banner, all three on the client wire; solo m02/m03 exactly 1 boss) + 11.11 solo invariance (net-free solo: no roster/seat/remotes, coopS 1, cap = base 5, exactly 1 Wraith, per-entry local ownership + empty exclusion) + 11.12 final co-op gate (pause-on-blur = host-only: host blur-pauses, client pause() no-op, host resume + 3P run pumped to VICTORY at t=300) · 18 level-up actions E2E (locked toolbar hidden + zero uses solo-invariant, shop Unlock 300 → +1 600 persisted, run-seed from shop levels, SKIP = exact 66% XP + step consumed, RE-ROLL disjoint redraw, BANISH arm/click run-long + slot refill without consuming the pick, per-run reseed, per-picker isolation) · 14 in-run Soulshards counter (live floor(score/400) projection, change-detected) + 14.2 unified co-op earnings (run-level total rides the room close, client accrues in full, meta player-specific)P21 boot battery (9 new weapons + 2 item-passives live: missile lock→home→detonate + napalmMissile ignite · laser orbit sear no-kb (continuous rotation while idle, 180°/120° multi-beam) · wolfpack pounce/bleed/leash/staticPelt shock + pack growth 1/1/2/2/3 · Coffee cdMul on boulder+laser cds · boulder squish/decay/one-at-a-time/avalanche stacks · web burst hold · gatling mag→reload→full-mag refill · bat wind-up→baseball at nearest (mid-torso spawn + telegraph/draw seams live) + normal-hit knockback no-pierce + HOMERUN pierce ×homerunMul once-each + rainbow-trail onFx (rand-pinned) · tongue poison/drag/eat-heal with gutFeast ×mul · cannonball roll self-propelled + i-frame gate open/close; Mirror Shield reflect+bank+spend; Ice Skates glide drift + slide-hits-both with re-hit lock; 5 new chars selectable: pre-owned starter, zero passives, per-char hp/dmg; 5 fused synergies offered across 60 seeds; P21 sprite draw pass) · 32.3 live-run elite observed (×1.5 HP through the real _spawns path, gold-diamond tell drawn) · loop alive throughout`,
 );

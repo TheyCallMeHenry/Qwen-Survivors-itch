@@ -43,7 +43,8 @@ export function glowSprite(r, rgb, alpha = 0.45) {
   return c;
 }
 
-// White silhouette copy (for hit-flash).
+// White silhouette copy (for hit-flash). Resets the context's composite mode before
+// returning: callers reusing the returned canvas must not inherit 'source-in'.
 export function flashCopy(src) {
   const c = makeCanvas(src.width, src.height);
   const g = c.getContext('2d');
@@ -51,6 +52,7 @@ export function flashCopy(src) {
   g.globalCompositeOperation = 'source-in';
   g.fillStyle = '#ffffff';
   g.fillRect(0, 0, c.width, c.height);
+  g.globalCompositeOperation = 'source-over';
   return c;
 }
 

@@ -5,7 +5,8 @@
 import { CFG } from '../config.js';
 import { HashGrid } from '../utils/grid.js';
 import { TAU, approach, clamp, rand } from '../utils/math.js';
-import { flashCopy, shadowSprite } from '../art/base.js';
+import { shadowSprite } from '../art/base.js';
+import { bakeFlashes } from '../art/load.js';
 
 // 32.3 (user approved 2026-10-26): decide whether a spawn becomes elite. Pure + rng-injectable
 // for tests; the production caller is spawn(), whose own path draws from the global Math.random
@@ -39,7 +40,10 @@ export class Enemies {
     for (const k of Object.keys(CFG.enemies)) {
       const d = chars[k];
       if (!d) continue;
-      d.flash = d.flash || d.frames.map(flashCopy);
+      // bakeFlashes (art/load.js): packed frames may still be mid-decode at setDefs
+      // time (first defs come from the Game constructor); the flash set repaints in
+      // place when art is ready instead of staying blank (DEFECT B1 fix).
+      d.flash = d.flash || bakeFlashes(d.frames);
     }
   }
 

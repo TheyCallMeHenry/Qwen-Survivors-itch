@@ -127,13 +127,13 @@
       "strips": {
         "frames": { "src": "assets/itch/aaron-sprites-freebies-5/192/aaron_fb5_003.png", "from": 0, "count": 1 }
       },
-      "render": { "artH": 32, "trim": [10, 28, 178, 148] },
+      "render": { "artH": 32, "trim": [10, 28, 178, 148], "flip": true },
       "recolour": "elite",
       "pack": {
         "sheet": { "w": 54, "h": 38, "shadowR": 13 },
         "frames": 4,
         "bob": [0, 1, 0, -1],
-        "render": { "artH": 38, "trim": [10, 28, 178, 148] }
+        "render": { "artH": 38, "trim": [10, 28, 178, 148], "flip": true }
       }
     },
     "enemy.brute": {
@@ -189,7 +189,7 @@
       "strips": {
         "frames": { "src": "assets/itch/aaron-sprites-freebies-3/192/aaron_fb3_004.png", "from": 0, "count": 1 }
       },
-      "render": { "artH": 32, "trim": [32, 24, 152, 140] },
+      "render": { "artH": 32, "trim": [32, 24, 152, 140], "flip": true },
       "recolour": "elite"
     }
   }
