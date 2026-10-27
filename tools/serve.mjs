@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Zero-dependency static server + co-op WebSocket room (Phase 11).
-// Port 47893, binds 0.0.0.0 so LAN devices can reach it.
+// Port 47894 (FORK — user approved 2026-10-26, distinct from parent's 47893 so
+// both dev servers can run at once), binds 0.0.0.0 so LAN devices can reach it.
 // 1 room = 1 run; the server only relays frames — the host browser runs the
 // sim (host-authoritative, 11.2). Import-safe: nothing starts on import.
 import { createServer } from 'node:http';
@@ -11,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { networkInterfaces } from 'node:os';
 import { MSG, pack, unpack, createRoom, joinRoom, leaveRoom, closeRoom } from '../js/net/coop.js';
 
-export const PORT = 47893;
+export const PORT = 47894;
 const ROOT = resolve(join(dirname(fileURLToPath(import.meta.url)), '..'));
 
 const MIME = {

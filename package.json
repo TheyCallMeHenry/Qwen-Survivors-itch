@@ -7,6 +7,7 @@
   "scripts": {
     "check": "node tools/check.mjs",
     "test": "node tools/test-logic.mjs",
+    "art": "node tools/test-art.mjs",
     "serve": "node tools/serve.mjs"
   }
 }

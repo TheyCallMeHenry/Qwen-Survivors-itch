@@ -71,13 +71,7 @@ const ctx2d = makeCtx();
 // 27.4 detail floor: rebuild one sheet with an instrumented ctx and count the op mix.
 // Heroes builders are pure functions of (dy, legL, legR), so a fresh build == the
 // roster frame's draw stream. Boot stub ctx counts stay on the global `drawOps`.
-async function sheetDetail(sheetObj) {
-  const heroes = await import('../js/art/heroes.js');
-  const b = { mage: heroes.mageFrame, warden: heroes.wardenFrame, ranger: heroes.rangerFrame, swash: heroes.swashFrame, baseball: heroes.baseballFrame, werewolf: heroes.werewolfFrame, golem: heroes.golemFrame, toad: heroes.toadFrame, gunslinger: heroes.gunslingerFrame };
-  Object.keys(drawOps).forEach((k) => { drawOps[k] = 0; });
-  (b[sheetObj] || ((c, dy, l, r) => heroes.ghostFrame('#ff4b4b', dy, l, r)))(0, 4, 0);
-  return { grads: drawOps.radial, strokes: drawOps.stroke };
-}
+
 
 function makeEl(tag = 'div') {
   const el = {
@@ -221,12 +215,8 @@ assert(!characters.player, '27.1: playable sheets retired from buildCharacters (
     const sh = roster[k], all = [...sh.idle, ...sh.run];
     assert(new Set(all).size === all.length, `27.2: ${k} shares a frame canvas`);
   }
-  // 27.4 detail floor: every sheet draws a rich op stream (radial glows + strokes,
-  // not primitive blocks) — fresh build per char via the instrumented boot ctx.
-  for (const k of ['mage', 'warden', 'ranger', 'swash', 'ghost', 'baseball', 'werewolf', 'golem', 'toad', 'gunslinger']) {
-    const d = await sheetDetail(k);
-    assert(d.grads >= 1 && d.strokes >= 3, `27.4: ${k} sheet too plain (glows=${d.grads} strokes=${d.strokes})`);
-  }
+  // 27.4 detail floor retired at 33.4.2 close-out: no path-drawing hero builders remain
+  // (all ten sheets are packed pixels; their data is gated by tools/test-art.mjs).
 }
 // 26.1 icon category plates: every buildIcons() entry built at 72×72
 for (const [k, ic] of Object.entries(icons))

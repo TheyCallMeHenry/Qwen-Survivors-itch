@@ -1,0 +1,196 @@
+{
+  "$schema": "qsurv.sprites.v0",
+  "notes": "Frame sources for packed-sprite art. Validated by tools/test-art.mjs (paths + sheet geometry + hero + enemy footprints). Loaded by js/art/load.js in the browser only. One entry per engine slot; strip = horizontal frame range of the source sheet. sheet = the engine footprint the built sheet must keep (test-boot 26.3 / 33.4.3 tables). render.artH = final art height in px (scale derived), render.trim = [x,y,w,h] crop for static battlers, render.head = [cx,top] in source-cell coords for the baseball overlay, recolour 'seat' = CFG.ghostColors paletteSwap ladder. A 'walk' strip (where the pack has real walk frames) feeds run[4]; without it run[4] reuses the idle frames + the ±1px bob derived in heroes.js. Enemy entries (33.4.3): frames = engine frame count (strip frames cycled + integer-px bob offsets where the source is static or shorter); facing 'right' = right-facing contract (every source was viewed before wiring; symmetric front-facing art is flip-invariant and satisfies it; a LEFT-facing source carries render.flip and bakeInto mirrors it); recolour 'elite' = gold skin path via palette.eliteColor + lumaTintMap (enemies.js keeps the gold-diamond tell; eliteFrames are the skin half); enemy.wolf.pack = per-coat wolfpack block (bigger footprint + own bob) tinted from PACK_PALS in characters.js. Boss entries (33.4.4: enemy.wraith, enemy.ryu) keep the exact engine footprints (92x112/r20, 96x112/r20, 2 frames) and declare NO recolour — D105 rolls elite on non-bosses only. Large sprites may use guest-dialect sources downscaled ≤2× (PLAN-FORK §2). 'skin.<level>.<slot>' entries (skin.m02.wolf) are per-level re-skins of common slots: same footprint/frames as the base slot, own source strip, and the same 'elite' marker.",
+  "palette": { "eliteColor": "#ffd75e" },
+  "sprites": {
+    "hero.mage": {
+      "frame": { "w": 16, "h": 16 },
+      "sheet": { "w": 56, "h": 64, "shadowR": 12 },
+      "strips": {
+        "idle": { "src": "assets/itch/humanoid2-asset-pack/Basic Humanoid II Animations/Elf Enchanter/ElfEnchanter.png", "from": 0, "count": 4 }
+      },
+      "render": { "artH": 48 }
+    },
+    "hero.warden": {
+      "frame": { "w": 16, "h": 16 },
+      "sheet": { "w": 58, "h": 66, "shadowR": 13 },
+      "strips": {
+        "idle": { "src": "assets/itch/humanoid2-asset-pack/Basic Humanoid II Animations/Adventurous Adolescent/AdventurousAdolescent.png", "from": 0, "count": 4 }
+      },
+      "render": { "artH": 48 }
+    },
+    "hero.ranger": {
+      "frame": { "w": 16, "h": 16 },
+      "sheet": { "w": 52, "h": 60, "shadowR": 11 },
+      "strips": {
+        "idle": { "src": "assets/itch/humanoid2-asset-pack/Basic Humanoid II Animations/Elf Sharpshooter/ElfSharpshooter.png", "from": 0, "count": 4 }
+      },
+      "render": { "artH": 48 }
+    },
+    "hero.swash": {
+      "frame": { "w": 16, "h": 16 },
+      "sheet": { "w": 54, "h": 62, "shadowR": 12 },
+      "strips": {
+        "idle": { "src": "assets/itch/humanoid-asset-pack/Basic Humanoid Animations/halfling rogue/HalflingRogue.png", "from": 0, "count": 4 }
+      },
+      "render": { "artH": 48 }
+    },
+    "hero.baseball": {
+      "frame": { "w": 16, "h": 16 },
+      "sheet": { "w": 56, "h": 64, "shadowR": 12 },
+      "strips": {
+        "idle": { "src": "assets/itch/humanoid2-asset-pack/Basic Humanoid II Animations/Boisterous Youth/BoisterousYouth.png", "from": 0, "count": 4 }
+      },
+      "render": { "artH": 48, "head": [8, 3] }
+    },
+    "hero.werewolf": {
+      "frame": { "w": 192, "h": 192 },
+      "sheet": { "w": 54, "h": 62, "shadowR": 11 },
+      "strips": {
+        "idle": { "src": "assets/itch/aaron-sprites-generation-0/192/aaron_gp0_010.png", "from": 0, "count": 1 }
+      },
+      "render": { "artH": 48, "trim": [38, 38, 120, 112] }
+    },
+    "hero.golem": {
+      "frame": { "w": 16, "h": 16 },
+      "sheet": { "w": 62, "h": 68, "shadowR": 14 },
+      "strips": {
+        "idle": { "src": "assets/itch/magical-asset-pack/basic magical animations/earth elemental/EarthElemental.png", "from": 0, "count": 4 }
+      },
+      "render": { "artH": 48 }
+    },
+    "hero.gunslinger": {
+      "frame": { "w": 16, "h": 16 },
+      "sheet": { "w": 54, "h": 64, "shadowR": 11 },
+      "strips": {
+        "idle": { "src": "assets/itch/humanoid-asset-pack/Basic Humanoid Animations/halfling slinger/HalflingSlinger.png", "from": 0, "count": 4 }
+      },
+      "render": { "artH": 48 }
+    },
+    "hero.toad": {
+      "frame": { "w": 16, "h": 16 },
+      "sheet": { "w": 58, "h": 60, "shadowR": 13 },
+      "strips": {
+        "idle": { "src": "assets/itch/Toad_16x16.png", "from": 0, "count": 4, "sy": 80 },
+        "walk": { "src": "assets/itch/Toad_16x16.png", "from": 0, "count": 4, "sx": 64, "sy": 80 }
+      },
+      "render": { "artH": 48 }
+    },
+    "hero.ghost": {
+      "frame": { "w": 16, "h": 16 },
+      "sheet": { "w": 56, "h": 64, "shadowR": 12 },
+      "strips": {
+        "idle": { "src": "assets/itch/undead-asset-pack/Basic Undead Animations/Unraveling Crawler/UnravelingCrawler.png", "from": 0, "count": 4 }
+      },
+      "render": { "artH": 48 },
+      "recolour": "seat"
+    },
+    "enemy.rat": {
+      "frame": { "w": 16, "h": 16 },
+      "sheet": { "w": 30, "h": 26, "shadowR": 8 },
+      "frames": 1,
+      "facing": "right",
+      "strips": {
+        "frames": { "src": "assets/itch/vermin-asset-pack/Basic Vermin Animations/Infected Mouse/InfectedMouse.png", "from": 0, "count": 1 }
+      },
+      "render": { "artH": 20, "trim": [2, 6, 11, 10] },
+      "recolour": "elite"
+    },
+    "enemy.bat": {
+      "frame": { "w": 16, "h": 16 },
+      "sheet": { "w": 34, "h": 28, "shadowR": 8 },
+      "frames": 2,
+      "facing": "right",
+      "strips": {
+        "frames": { "src": "assets/itch/vermin-asset-pack/Basic Vermin Animations/Swooping Bat/SwoopingBat.png", "from": 0, "count": 2 }
+      },
+      "render": { "artH": 18, "trim": [0, 4, 16, 9] },
+      "recolour": "elite"
+    },
+    "enemy.goblin": {
+      "frame": { "w": 16, "h": 16 },
+      "sheet": { "w": 30, "h": 38, "shadowR": 9 },
+      "frames": 3,
+      "facing": "right",
+      "strips": {
+        "frames": { "src": "assets/itch/humanoid-asset-pack/Basic Humanoid Animations/goblin fighter/GoblinFighter.png", "from": 0, "count": 3 }
+      },
+      "render": { "artH": 32, "trim": [0, 0, 15, 16] },
+      "recolour": "elite"
+    },
+    "enemy.wolf": {
+      "frame": { "w": 192, "h": 192 },
+      "sheet": { "w": 46, "h": 32, "shadowR": 11 },
+      "frames": 4,
+      "bob": [0, 1, 0, -1],
+      "facing": "right",
+      "strips": {
+        "frames": { "src": "assets/itch/aaron-sprites-freebies-5/192/aaron_fb5_003.png", "from": 0, "count": 1 }
+      },
+      "render": { "artH": 32, "trim": [10, 28, 178, 148] },
+      "recolour": "elite",
+      "pack": {
+        "sheet": { "w": 54, "h": 38, "shadowR": 13 },
+        "frames": 4,
+        "bob": [0, 1, 0, -1],
+        "render": { "artH": 38, "trim": [10, 28, 178, 148] }
+      }
+    },
+    "enemy.brute": {
+      "frame": { "w": 16, "h": 16 },
+      "sheet": { "w": 64, "h": 60, "shadowR": 14 },
+      "frames": 2,
+      "facing": "right",
+      "strips": {
+        "frames": { "src": "assets/itch/magical-asset-pack/basic magical animations/ice golem/IceGolem.png", "from": 0, "count": 2 }
+      },
+      "render": { "artH": 48, "trim": [1, 0, 14, 16] },
+      "recolour": "elite"
+    },
+    "enemy.cultist": {
+      "frame": { "w": 16, "h": 16 },
+      "sheet": { "w": 32, "h": 46, "shadowR": 9 },
+      "frames": 2,
+      "facing": "right",
+      "strips": {
+        "frames": { "src": "assets/itch/undead-asset-pack/Basic Undead Animations/Grave Revenant/GraveRevenant.png", "from": 0, "count": 2 }
+      },
+      "render": { "artH": 44, "trim": [3, 0, 10, 16] },
+      "recolour": "elite"
+    },
+    "enemy.wraith": {
+      "frame": { "w": 192, "h": 192 },
+      "sheet": { "w": 92, "h": 112, "shadowR": 20 },
+      "frames": 2,
+      "bob": [0, -1],
+      "facing": "right",
+      "strips": {
+        "frames": { "src": "assets/itch/aaron-sprites-generation-0/192/aaron_gp0_002.png", "from": 0, "count": 1 }
+      },
+      "render": { "artH": 104, "trim": [42, 26, 98, 128] }
+    },
+    "enemy.ryu": {
+      "frame": { "w": 192, "h": 192 },
+      "sheet": { "w": 96, "h": 112, "shadowR": 20 },
+      "frames": 2,
+      "bob": [0, 1],
+      "facing": "right",
+      "strips": {
+        "frames": { "src": "assets/itch/aaron-sprites-freebies-3/192/aaron_fb3_002.png", "from": 0, "count": 1 }
+      },
+      "render": { "artH": 88, "trim": [14, 24, 160, 148], "flip": true }
+    },
+    "skin.m02.wolf": {
+      "frame": { "w": 192, "h": 192 },
+      "sheet": { "w": 46, "h": 32, "shadowR": 11 },
+      "frames": 4,
+      "bob": [0, 1, 0, -1],
+      "facing": "right",
+      "strips": {
+        "frames": { "src": "assets/itch/aaron-sprites-freebies-3/192/aaron_fb3_004.png", "from": 0, "count": 1 }
+      },
+      "render": { "artH": 32, "trim": [32, 24, 152, 140] },
+      "recolour": "elite"
+    }
+  }
+}
