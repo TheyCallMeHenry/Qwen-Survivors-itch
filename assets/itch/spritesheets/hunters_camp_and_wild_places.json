@@ -1,0 +1,222 @@
+{
+ "cell": 80,
+ "columns": 8,
+ "sprites": {
+  "big_covered_clay_storage_jar": {
+   "x": 0,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "big_woven_basket_with_a_lid_tied_shut": {
+   "x": 80,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "brown_pack_mule_loaded_with_hunters_bundles": {
+   "x": 160,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "clump_of_tall_night_reeds_with_fireflies": {
+   "x": 240,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "crate_of_arrows_with_a_lid": {
+   "x": 320,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "heap_of_cut_bamboo_poles": {
+   "x": 400,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "hide_drying_frame_with_a_wolf_pelt": {
+   "x": 480,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "hollow_log_with_glowing_eyes_inside": {
+   "x": 560,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "hollow_tree_stump_with_a_fox_fire_inside": {
+   "x": 0,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "hollowed_log_full_of_rainwater": {
+   "x": 80,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "hunters_camp_tent_of_oiled_cloth": {
+   "x": 160,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "hunters_campfire_with_a_hanging_kettle": {
+   "x": 240,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "lacquered_stand_of_three_hunting_bows": {
+   "x": 320,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "lean_to_shelter_of_pine_branches": {
+   "x": 400,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "log_seat_by_the_fire_with_a_fur_throw": {
+   "x": 480,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "low_camp_table_with_a_hunting_map_and_a_lantern": {
+   "x": 560,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "low_wooden_lantern_stand": {
+   "x": 0,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "moss_covered_old_cart_wheel": {
+   "x": 80,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "mossy_stone_with_claw_marks": {
+   "x": 160,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "patch_of_red_spider_lilies": {
+   "x": 240,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "post_hung_with_rope_nets": {
+   "x": 320,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "ring_of_pale_mushrooms": {
+   "x": 400,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "rotten_wooden_boat_half_in_the_reeds": {
+   "x": 480,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "slimy_river_rock_with_a_puddle": {
+   "x": 560,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "small_cooking_fire_with_grilled_fish_on_sticks": {
+   "x": 0,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "smoking_rack_of_fish_over_coals": {
+   "x": 80,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "spider_web_stretched_between_two_sticks": {
+   "x": 160,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "stack_of_iron_beast_traps": {
+   "x": 240,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "stone_ring_fire_pit_with_glowing_coals": {
+   "x": 320,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "straw_sleeping_mat_with_a_rolled_quilt": {
+   "x": 400,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "straw_yokai_dummy_for_spear_practice": {
+   "x": 480,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "stump_chopping_block_with_an_axe": {
+   "x": 560,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "tree_stump_split_by_lightning": {
+   "x": 0,
+   "y": 320,
+   "w": 80,
+   "h": 80
+  },
+  "tree_stump_table_with_two_cups": {
+   "x": 80,
+   "y": 320,
+   "w": 80,
+   "h": 80
+  },
+  "wheelbarrow_of_cut_reeds": {
+   "x": 160,
+   "y": 320,
+   "w": 80,
+   "h": 80
+  },
+  "wooden_yokai_cage_on_a_handcart": {
+   "x": 240,
+   "y": 320,
+   "w": 80,
+   "h": 80
+  }
+ }
+}

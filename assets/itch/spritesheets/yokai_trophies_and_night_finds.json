@@ -1,0 +1,132 @@
+{
+ "cell": 48,
+ "columns": 8,
+ "sprites": {
+  "baku_tusk": {
+   "x": 0,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "cluster_of_pale_ghost_mushrooms": {
+   "x": 48,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "coiled_namazu_whisker": {
+   "x": 96,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "floating_orange_fox_fire": {
+   "x": 144,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "giant_centipede_leg": {
+   "x": 192,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "giant_crab_pincer": {
+   "x": 240,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "giant_white_moon_moth": {
+   "x": 288,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "gnarled_glowing_root": {
+   "x": 336,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "hooked_hair_needle": {
+   "x": 0,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "keukegen_hair_ball": {
+   "x": 48,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "lock_of_long_wet_green_river_hair": {
+   "x": 96,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "nues_striped_tail_tuft": {
+   "x": 144,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "onmoraki_tail_feather_of_blue_flame": {
+   "x": 192,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "pale_moonflower": {
+   "x": 240,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "raijus_crackling_blue_claw": {
+   "x": 288,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "red_spider_lily": {
+   "x": 336,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "scorched_kasha_claw": {
+   "x": 0,
+   "y": 96,
+   "w": 48,
+   "h": 48
+  },
+  "shed_serpent_skin": {
+   "x": 48,
+   "y": 96,
+   "w": 48,
+   "h": 48
+  },
+  "speckled_yokai_egg": {
+   "x": 96,
+   "y": 96,
+   "w": 48,
+   "h": 48
+  },
+  "tsuchigumo_silk_cocoon": {
+   "x": 144,
+   "y": 96,
+   "w": 48,
+   "h": 48
+  },
+  "wisp_of_blue_ghost_fire": {
+   "x": 192,
+   "y": 96,
+   "w": 48,
+   "h": 48
+  }
+ }
+}

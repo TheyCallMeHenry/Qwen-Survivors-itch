@@ -1,0 +1,228 @@
+{
+ "cell": 48,
+ "columns": 8,
+ "sprites": {
+  "arrow_with_a_whistling_bulb_tip": {
+   "x": 0,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "bamboo_yokai_trap_box_with_a_sliding_door": {
+   "x": 48,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "black_lacquer_powder_flask": {
+   "x": 96,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "blue_paper_lantern": {
+   "x": 144,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "braid_of_garlic_bulbs": {
+   "x": 192,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "bundle_of_white_candles_tied_with_string": {
+   "x": 240,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "cage_of_woven_iron_for_a_small_beast": {
+   "x": 288,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "chained_sickle_weapon": {
+   "x": 336,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "clam_shell_of_ointment": {
+   "x": 0,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "clay_ember_carrier_with_a_lid": {
+   "x": 48,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "clay_smoke_bomb_with_a_fuse": {
+   "x": 96,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "conch_shell_horn_with_a_cord": {
+   "x": 144,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "deer_bone_whistle": {
+   "x": 192,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "folded_catching_net_with_lead_weights": {
+   "x": 240,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "hunters_katana_with_a_wolf_fur_grip": {
+   "x": 288,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "hunters_lantern_on_a_short_hook_pole": {
+   "x": 336,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "hunters_sling_with_river_stones": {
+   "x": 0,
+   "y": 96,
+   "w": 48,
+   "h": 48
+  },
+  "iron_truncheon_with_a_side_hook": {
+   "x": 48,
+   "y": 96,
+   "w": 48,
+   "h": 48
+  },
+  "lidded_clay_pot_rattling_with_something_inside": {
+   "x": 96,
+   "y": 96,
+   "w": 48,
+   "h": 48
+  },
+  "matchlock_bullet_mould": {
+   "x": 144,
+   "y": 96,
+   "w": 48,
+   "h": 48
+  },
+  "pair_of_iron_climbing_spikes_for_feet": {
+   "x": 192,
+   "y": 96,
+   "w": 48,
+   "h": 48
+  },
+  "pouch_of_coarse_white_salt": {
+   "x": 240,
+   "y": 96,
+   "w": 48,
+   "h": 48
+  },
+  "pouch_of_iron_caltrops": {
+   "x": 288,
+   "y": 96,
+   "w": 48,
+   "h": 48
+  },
+  "pouch_of_lead_shot": {
+   "x": 336,
+   "y": 96,
+   "w": 48,
+   "h": 48
+  },
+  "quiver_of_white_fletched_night_arrows": {
+   "x": 0,
+   "y": 144,
+   "w": 48,
+   "h": 48
+  },
+  "rope_snare_loop_on_a_peg": {
+   "x": 48,
+   "y": 144,
+   "w": 48,
+   "h": 48
+  },
+  "sealing_jar_with_a_cork_lid": {
+   "x": 96,
+   "y": 144,
+   "w": 48,
+   "h": 48
+  },
+  "short_blade_with_a_crescent_guard": {
+   "x": 144,
+   "y": 144,
+   "w": 48,
+   "h": 48
+  },
+  "skinning_knife_in_a_bark_sheath": {
+   "x": 192,
+   "y": 144,
+   "w": 48,
+   "h": 48
+  },
+  "small_brass_gong_with_a_striker": {
+   "x": 240,
+   "y": 144,
+   "w": 48,
+   "h": 48
+  },
+  "small_iron_lantern_with_a_shutter": {
+   "x": 288,
+   "y": 144,
+   "w": 48,
+   "h": 48
+  },
+  "spear_with_a_white_horsehair_tassel": {
+   "x": 336,
+   "y": 144,
+   "w": 48,
+   "h": 48
+  },
+  "string_of_dried_red_peppers": {
+   "x": 0,
+   "y": 192,
+   "w": 48,
+   "h": 48
+  },
+  "tracking_stick_with_notches": {
+   "x": 48,
+   "y": 192,
+   "w": 48,
+   "h": 48
+  },
+  "weighted_throwing_chain": {
+   "x": 96,
+   "y": 192,
+   "w": 48,
+   "h": 48
+  },
+  "wooden_measure_of_roasted_soybeans": {
+   "x": 144,
+   "y": 192,
+   "w": 48,
+   "h": 48
+  },
+  "yokai_hunters_bow_wrapped_in_red_cord": {
+   "x": 192,
+   "y": 192,
+   "w": 48,
+   "h": 48
+  }
+ }
+}

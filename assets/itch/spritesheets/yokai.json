@@ -1,0 +1,210 @@
+{
+ "cell": 80,
+ "columns": 8,
+ "sprites": {
+  "akaname_red_imp_with_a_long_licking_tongue": {
+   "x": 0,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "aoandon_pale_blue_ghost_woman_holding_a_blue_lantern": {
+   "x": 80,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "baku_dream_eater_with_a_short_trunk_and_small_tusks": {
+   "x": 160,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "enenra_smoke_spirit_curling_up_from_a_brazier": {
+   "x": 240,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "futakuchi_onna_woman_with_a_second_mouth_in_her_hair": {
+   "x": 320,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "giant_centipede_with_red_legs_and_a_black_body": {
+   "x": 400,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "hari_onago_woman_with_needle_sharp_hooked_hair": {
+   "x": 480,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "heikegani_crab_with_a_fierce_face_on_its_shell": {
+   "x": 560,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "hone_onna_skeleton_woman_in_a_fine_kimono": {
+   "x": 0,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "itsumade_fire_breathing_bird_with_a_long_tail": {
+   "x": 80,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "kameosa_old_sake_jar_with_arms_and_a_grin": {
+   "x": 160,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "kasha_black_fire_cat_with_flaming_paws": {
+   "x": 240,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "kawahime_river_maiden_with_long_wet_green_hair": {
+   "x": 320,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "keukegen_shaggy_ball_of_black_hair_with_two_eyes": {
+   "x": 400,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "kitsunebi_row_of_floating_orange_fox_fires": {
+   "x": 480,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "kiyohime_woman_turning_into_a_fire_serpent": {
+   "x": 560,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "kurobozu_black_shadow_yokai_with_white_eyes": {
+   "x": 0,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "kyokotsu_skeleton_ghost_climbing_out_of_an_old_well": {
+   "x": 80,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "mokumokuren_old_paper_screen_covered_in_staring_eyes": {
+   "x": 160,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "namazu_giant_catfish_with_long_whiskers": {
+   "x": 240,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "nue_chimera_with_a_monkey_face_a_tiger_body_and_a_snake_tail": {
+   "x": 320,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "oboro_guruma_ghost_ox_cart_with_a_misty_face": {
+   "x": 400,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "onmoraki_heron_spirit_with_flaming_wings": {
+   "x": 480,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "raiju_thunder_beast_like_a_blue_wolf_with_crackling_fur": {
+   "x": 560,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "shibaten_small_grass_imp_ready_to_wrestle": {
+   "x": 0,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "tenome_blind_old_man_with_eyes_in_his_palms": {
+   "x": 80,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "tsuchigumo_giant_earth_spider_with_a_striped_body": {
+   "x": 160,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "tsuchikorobi_rolling_ball_of_earth_with_grass_on_top": {
+   "x": 240,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "umibozu_dark_round_sea_spirit_looming_over_a_wave": {
+   "x": 320,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "ushirogami_ghost_reaching_from_behind_with_long_arms": {
+   "x": 400,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "waira_big_grey_beast_with_one_long_claw": {
+   "x": 480,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "wanyudo_burning_cart_wheel_with_a_stern_bearded_face": {
+   "x": 560,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "yamajijii_one_legged_old_mountain_man": {
+   "x": 0,
+   "y": 320,
+   "w": 80,
+   "h": 80
+  },
+  "yamawaro_hairy_mountain_child_with_one_big_eye": {
+   "x": 80,
+   "y": 320,
+   "w": 80,
+   "h": 80
+  }
+ }
+}

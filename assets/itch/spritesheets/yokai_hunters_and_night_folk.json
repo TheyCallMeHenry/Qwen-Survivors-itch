@@ -1,0 +1,222 @@
+{
+ "cell": 80,
+ "columns": 8,
+ "sprites": {
+  "archer_hunter_with_a_longbow_and_a_full_quiver": {
+   "x": 0,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "bandit_with_a_heavy_wooden_club": {
+   "x": 80,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "charcoal_burner_with_a_soot_smeared_face_and_a_basket": {
+   "x": 160,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "falconer_with_a_hawk_on_his_gloved_arm": {
+   "x": 240,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "hunter_asleep_against_his_sword_with_his_arms_crossed": {
+   "x": 320,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "hunter_carrying_a_heavy_iron_trap": {
+   "x": 400,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "hunter_carrying_a_rope_net_and_a_bamboo_cage": {
+   "x": 480,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "hunter_drawing_a_bow_at_full_stretch": {
+   "x": 560,
+   "y": 0,
+   "w": 80,
+   "h": 80
+  },
+  "hunter_in_a_wolf_fur_cape_holding_a_spear": {
+   "x": 0,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "hunter_kneeling_to_study_tracks_on_the_ground": {
+   "x": 80,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "hunter_scattering_salt_from_a_cloth_pouch": {
+   "x": 160,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "hunter_sitting_by_himself_eating_a_rice_ball": {
+   "x": 240,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "hunter_sitting_on_a_log_sharpening_a_katana": {
+   "x": 320,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "hunter_with_a_bandaged_arm_and_a_short_sword": {
+   "x": 400,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "hunter_with_a_big_grey_hound_at_his_side": {
+   "x": 480,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "hunter_with_a_long_bamboo_pole_with_an_iron_hook": {
+   "x": 560,
+   "y": 80,
+   "w": 80,
+   "h": 80
+  },
+  "innkeeper_woman_raising_a_lantern_high": {
+   "x": 0,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "merchant_running_with_a_heavy_bundle_on_his_back": {
+   "x": 80,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "messenger_running_with_a_lantern": {
+   "x": 160,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "mountain_guide_with_a_tall_staff_and_a_straw_cape": {
+   "x": 240,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "night_patrolman_with_a_lantern_and_a_short_club": {
+   "x": 320,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "old_hunter_with_a_matchlock_rifle_on_his_shoulder": {
+   "x": 400,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "river_boatman_with_a_coiled_rope_and_a_lantern": {
+   "x": 480,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "ronin_in_a_straw_hat_and_a_frayed_grey_haori": {
+   "x": 560,
+   "y": 160,
+   "w": 80,
+   "h": 80
+  },
+  "samurai_in_dark_lacquered_armour_holding_a_paper_lantern_on_a_long_pole": {
+   "x": 0,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "samurai_lord_in_a_dark_hunting_coat_and_a_tall_black_hat": {
+   "x": 80,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "scared_boy_holding_a_small_lantern_with_both_hands": {
+   "x": 160,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "scout_in_dark_clothes_crouching_low": {
+   "x": 240,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "travelling_puppeteer_with_a_small_wooden_puppet": {
+   "x": 320,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "village_elder_with_a_lantern_and_a_walking_cane": {
+   "x": 400,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "woman_fishing_at_night_with_a_torch_and_a_spear": {
+   "x": 480,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "woman_hunter_in_indigo_holding_a_naginata_upright": {
+   "x": 560,
+   "y": 240,
+   "w": 80,
+   "h": 80
+  },
+  "woman_in_red_holding_two_short_swords": {
+   "x": 0,
+   "y": 320,
+   "w": 80,
+   "h": 80
+  },
+  "woman_scholar_with_a_stack_of_blank_scrolls_under_her_arm": {
+   "x": 80,
+   "y": 320,
+   "w": 80,
+   "h": 80
+  },
+  "woman_under_a_paper_umbrella_holding_a_lantern": {
+   "x": 160,
+   "y": 320,
+   "w": 80,
+   "h": 80
+  },
+  "young_apprentice_carrying_a_bundle_of_pine_torches": {
+   "x": 240,
+   "y": 320,
+   "w": 80,
+   "h": 80
+  }
+ }
+}

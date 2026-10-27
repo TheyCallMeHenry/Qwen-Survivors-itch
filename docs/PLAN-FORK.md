@@ -2,6 +2,8 @@
 
 Fork law: D-F2 gameplay frozen — only `js/art/*` builders and their call-site frame data change. Audio (`js/audio`) stays procedural (parent law). All art lives under `assets/itch/` with `ASSET-CREDITS.md` (written by the itch MCP; never hand-edit that file — re-import updates it). Packs + verdicts: `docs/fork-asset-research-2026-10-26.md`.
 
+**FULL-SWAP GOAL (user clarification 2026-10-26): practically ALL game art → itch.io assets.** Characters, enemies (ALL levels incl. m02/m03 skins + oni/tanuki/kitsune/merfolk/…), bosses, environments/tiles, props, items/icons, weapons' projectile visuals, FX, and weather particles. Anything still procedural is a tracked gap, not a design choice. “KEEP procedural” rows below (snow/petal/bubble, shark) are superseded where a fitting free pack exists (D-F3 free-only, D-F5 review-before-download; round-3 searches = new sub-phase 33.4.8). Only true exceptions remain: audio (parent law) and anything with no acceptable free source after searching — each must be reported as an open gap, never silently kept.
+
 ## 0. Current art contract (what the swap must preserve)
 - `art/characters.js buildCharacters(levelKey)` → `{ key: {w,h,shadowR,frames[]} }`, frames face RIGHT, drawn bottom-center, flipped at draw time (enemies.js). Wolfpack companion: `buildPackWolves()`.
 - `art/heroes.js buildRoster()/buildGhost()` → per-char `{w,h,shadowR,idle[2],run[4]}` sheets (player.js `def`; HUD accents from CFG).
@@ -49,6 +51,7 @@ Primary dialect = DeepDive 16px (flat, top-down, own shadow-blob). Engine-side l
 - 33.4.5 tilemaps: m01 raven → m03 atlantis → m02 serenevillage (+ torii prop pass).
 - 33.4.6 items/icons/pickups (F43 set; keep drawn fallbacks where license pending).
 - 33.4.7 FX: impacts/explosions/lightning/smoke; then full visual QA desktop+mobile.
+- 33.4.8 (new, 2026-10-26 full-swap goal) m02/m03 completeness: round-3 free-pack searches for the 12 level-skin creatures (tanuki/hō-ōi/shikome/kitsune reskin/miko/oni + crab/goldfish/merfolk/stingray/eel/orca) + shark/Great-White reskin (supersedes “stays procedural” unless the user re-confirms the deferral) + weather-particle sprite sources (snow/petals/bubbles) + any missed procedural art (projectile/glow sheets, decor, menu backdrops m02/m03, minimap). Every remaining gap gets a row here — silent keeps are defects (rule 15).
 Order rationale: heroes/enemies first = biggest visible payoff while tilesets (riskiest) stay isolated behind world.js.
 
 ## 5. Open items (tracked here so the next session sees them)

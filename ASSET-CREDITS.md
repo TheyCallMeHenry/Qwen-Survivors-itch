@@ -153,3 +153,59 @@
 - File: Free_japanese_themed_assets.zip
 - Imported: 2026-10-26
 - License: Licensed under CC-BY 3.0 (credit goes to "Damian Gasinski aka Gassasin" and to myself, Paul Barden), this asset pack has everything you need to get rolling with your awesome retro game.
+
+## Yokai Hunters - Free Halloween Japanese Top-Down Pixel Art Pack | Nasha's Samurai Tales
+- Author: nanasha
+- Store: https://nanasha.itch.io/nashas-samurai-tales-free-yokai-hunters
+- File: nashas_samurai_tales_free_yokai_hunters_v1.0.zip
+- Imported: 2026-10-27
+- License: ✔ Free for personal and commercial games ✔ Edit, recolour and combine freely ✘ Do not resell or redistribute the sprites as assets ✘ Do not use them to train AI models Full terms in LICENSE.txt.
+
+## Sengoku Pixel Pack — 41 Characters, 8 Warlords, 120 Weapons
+- Author: willYEE
+- Store: https://willyee.itch.io/sengoku-pixel-pack
+- File: Sengoku_Pixel_Pack.zip
+- Imported: 2026-10-27
+- License: Public domain (CC0) — commercial use, modification, no credit required. License CC0 1.
+
+## Ocean Creatures
+- Author: Michael Jay
+- Store: https://michael-jay-rov.itch.io/ocean-creatures
+- File: image - 2025-04-10T104122.414 (1).png
+- Imported: 2026-10-27
+- License: License: CC BY 4.0 Asset license: Creative Commons Attribution v4.0 International
+
+## Mud Man — Dorotabō Sprite Pack
+- Author: The Game Smith
+- Store: https://not-a-kappa-games.itch.io/mud-man-dorotabo
+- File: dorotabo-colorways.zip
+- Imported: 2026-10-27
+- License: 📜 License You can: ✅ Use in free & commercial projects ✅ Modify them to fit your game ✅ Ship them inside your game, including paid games, on any platform ✅ Use them across your whole team and in client work — one purchase covers you and anyone working with you on the project ✅ Use them in trailers, screenshots, store pages, and press materials for your game Not allowed: ❌ Resell or redistribute th
+
+## Mud Man — Dorotabō Sprite Pack
+- Author: The Game Smith
+- Store: https://not-a-kappa-games.itch.io/mud-man-dorotabo
+- File: mudball-colorways.zip
+- Imported: 2026-10-27
+- License: 📜 License You can: ✅ Use in free & commercial projects ✅ Modify them to fit your game ✅ Ship them inside your game, including paid games, on any platform ✅ Use them across your whole team and in client work — one purchase covers you and anyone working with you on the project ✅ Use them in trailers, screenshots, store pages, and press materials for your game Not allowed: ❌ Resell or redistribute th
+
+## Amabie
+- Author: RAPIDPUNCHES
+- Store: https://rapidpunches.itch.io/amabie
+- File: amabie-with-loops-pack.zip
+- Imported: 2026-10-27
+- License: Asset license: Creative Commons Attribution v4.0 International
+
+## Free Underwater Enemies Sprite Pack
+- Author: Free Game Assets (GUI, Sprite, Tilesets)
+- Store: https://free-game-assets.itch.io/free-underwater-enemies-pixel-art-character-pack
+- File: free-underwater-enemies-pixel-art-character-pack.zip
+- Imported: 2026-10-27
+- License: Not stated on store page - check before shipping
+
+## Quirky Kappa Asset Pack 🥒
+- Author: The Game Smith
+- Store: https://not-a-kappa-games.itch.io/kappa
+- File: sKappaDemo.png
+- Imported: 2026-10-27
+- License: 🎮 Use Ideas NPCs in rice paddies or swamp temples Quest givers near rivers or bathhouses Lovable townsfolk with a taste for pickles Optional party members or co-op villagers Background flavor for folklore-inspired maps 🛍️ Versions Free Version: ✅ 1 Color Variant (Classic Green) ✅ Walking Animation (4 directions) 🔒 For use in free games only Paid Version: ✅ All 10 Animations ✅ 12 Color Variants ✅ F

@@ -1,0 +1,66 @@
+{
+ "cell": 48,
+ "columns": 8,
+ "sprites": {
+  "dried_squid_on_a_stick": {
+   "x": 0,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "gourd_of_hot_ginger_tea": {
+   "x": 48,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "grilled_river_sweetfish": {
+   "x": 96,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "hot_sweet_potato_wrapped_in_paper": {
+   "x": 144,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "lidded_bowl_of_hot_udon": {
+   "x": 192,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "pheasant_hung_by_the_feet": {
+   "x": 240,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "plum_wine_jar_with_a_cord": {
+   "x": 288,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "smoked_boar_haunch": {
+   "x": 336,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "sweet_bean_bun": {
+   "x": 0,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "wrapped_sweet_mochi_cake": {
+   "x": 48,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  }
+ }
+}

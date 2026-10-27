@@ -1,0 +1,192 @@
+{
+ "cell": 48,
+ "columns": 8,
+ "sprites": {
+  "bear_claw_necklace": {
+   "x": 0,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "bundle_of_resin_kindling_sticks": {
+   "x": 48,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "carved_wooden_owl_decoy": {
+   "x": 96,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "coil_of_fishing_line_with_a_bone_hook": {
+   "x": 144,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "crow_feather_fletching_bundle": {
+   "x": 192,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "deer_hide_shoulder_bag": {
+   "x": 240,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "dried_lizard_on_a_string": {
+   "x": 288,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "falconry_leash_with_a_swivel": {
+   "x": 336,
+   "y": 0,
+   "w": 48,
+   "h": 48
+  },
+  "flint_pouch_with_a_striker": {
+   "x": 0,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "folded_wolf_pelt": {
+   "x": 48,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "fur_lined_hood": {
+   "x": 96,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "hand_drawn_hunting_map_of_the_hills": {
+   "x": 144,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "hunters_black_face_cloth": {
+   "x": 192,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "hunters_oil_cloth_for_blades": {
+   "x": 240,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "hunting_dogs_collar_with_a_bell": {
+   "x": 288,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "iron_shackle_for_a_captured_yokai": {
+   "x": 336,
+   "y": 48,
+   "w": 48,
+   "h": 48
+  },
+  "lacquer_pill_case_on_a_cord": {
+   "x": 0,
+   "y": 96,
+   "w": 48,
+   "h": 48
+  },
+  "lacquered_gourd_for_catching_smoke_spirits": {
+   "x": 48,
+   "y": 96,
+   "w": 48,
+   "h": 48
+  },
+  "lantern_wick_and_oil_pot": {
+   "x": 96,
+   "y": 96,
+   "w": 48,
+   "h": 48
+  },
+  "long_stemmed_tobacco_pipe": {
+   "x": 144,
+   "y": 96,
+   "w": 48,
+   "h": 48
+  },
+  "lure_feather_on_a_string": {
+   "x": 192,
+   "y": 96,
+   "w": 48,
+   "h": 48
+  },
+  "netsuke_carved_like_a_toad": {
+   "x": 240,
+   "y": 96,
+   "w": 48,
+   "h": 48
+  },
+  "pair_of_fur_lined_leggings": {
+   "x": 288,
+   "y": 96,
+   "w": 48,
+   "h": 48
+  },
+  "pinch_of_sparkling_ghost_dust_in_a_pouch": {
+   "x": 336,
+   "y": 96,
+   "w": 48,
+   "h": 48
+  },
+  "pouch_of_iron_arrowheads": {
+   "x": 0,
+   "y": 144,
+   "w": 48,
+   "h": 48
+  },
+  "quilted_hunters_vest": {
+   "x": 48,
+   "y": 144,
+   "w": 48,
+   "h": 48
+  },
+  "rusty_iron_spike_for_nailing_traps": {
+   "x": 96,
+   "y": 144,
+   "w": 48,
+   "h": 48
+  },
+  "spool_of_red_binding_thread": {
+   "x": 144,
+   "y": 144,
+   "w": 48,
+   "h": 48
+  },
+  "stick_of_fragrant_aloeswood": {
+   "x": 192,
+   "y": 144,
+   "w": 48,
+   "h": 48
+  },
+  "wooden_hunters_token_with_a_wolf_carving": {
+   "x": 240,
+   "y": 144,
+   "w": 48,
+   "h": 48
+  },
+  "wooden_rabbit_decoy": {
+   "x": 288,
+   "y": 144,
+   "w": 48,
+   "h": 48
+  }
+ }
+}
