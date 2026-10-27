@@ -18,7 +18,7 @@ Rules for every future edit — this file is loaded at every session start; its 
 
 - **This repo is the itch.io-art fork** of Qwen-Survivors (sibling of the parent repo, created 2026-10-26 by full git clone at published `f2277cd`). Parent phases 0–32 below are inherited history; the fork's own work is **Phase 33 — itch art swap**. Active step: 33.4.5 (tilemaps; m02 props via B+fallback C — B imported). Phase 34 (phone-test fixes + bat redesign) DONE in working tree, uncommitted. All founding decisions + law: `docs/fork-asset-research-2026-10-26.md`; swap plan + pipeline: `docs/PLAN-FORK.md`.
 - **Gates baseline (this fork, 2026-10-26 session 47, post-Phase-34):** check **35/35** · logic **1602/1602** (was 1582 until D-F7) · art **PASS** (19 manifest entries + 2 pixel facing probes; negative case verified firing at 33.4.1) · boot **PASS runs=4**.
-- **Git (fork):** GitHub remote `github-itch` = **public repo `TheyCallMeHenry/Qwen-Survivors-itch`** (created 2026-10-26 session 47); `dev` = `main` = `8ea7d7d` pushed (B1/B2/tuning tree UNCOMMITTED on top — publish on explicit ask only); **Pages LIVE: https://theycallmehenry.github.io/Qwen-Survivors-itch/** (served markers verified: module main.js, js/art/load.js 200, sprites.json 200, Toad png 200). `origin` = parent folder `D:/Apps/Qwen-Survivors` (shared history, push there only on ask). Drift check at session start: `git --no-optional-locks status --short` + `git --no-pager log --oneline main..dev` (local `main` branch now exists).
+- **Git (fork):** GitHub remote `github-itch` = **public repo `TheyCallMeHenry/Qwen-Survivors-itch`** (created 2026-10-26 session 47); `dev` = `main` = `756dccb` pushed & Pages-served-verified (Phase 34 live; markers: bakeFlashes ×2, homerunMul/windup/range-840 ×5, flip keys ×4); **Pages LIVE: https://theycallmehenry.github.io/Qwen-Survivors-itch/** (served markers verified: module main.js, js/art/load.js 200, sprites.json 200, Toad png 200). `origin` = parent folder `D:/Apps/Qwen-Survivors` (shared history, push there only on ask). Drift check at session start: `git --no-optional-locks status --short` + `git --no-pager log --oneline main..dev` (local `main` branch now exists).
 - **itch MCP + vision:** full tool set active (store search / license notes / downloads-with-credits / contact sheets — verified live 2026-10-26); user's local itch library empty. Sub-agent vision capability proven same session.
 - **Server:** fork serve port is **47894** (D-F6); parent's 47893 unaffected — both may run at once. Not started in this session.
 
@@ -164,11 +164,11 @@ Implementation state (session 39 final): ALL landed — 9 weapons in `CFG.weapon
 
 ## Resume Notes — 2026-10-26 (live state only; rewritten each session per Format contract)
 
-**PUBLISHED + LIVE:** https://theycallmehenry.github.io/Qwen-Survivors-itch/ (`github-itch` = TheyCallMeHenry/Qwen-Survivors-itch; `dev`=`main`=`8ea7d7d`). Phase 34 (wolf facing, hurt-flash vanish, bat→ranged D-F7 + ≥500 reach floor) DONE in working tree, UNCOMMITTED; gates 35/35 · 1602/1602 · art PASS 19+2 · boot runs=4 (parent run this session).
-OPEN: enemy.ryu renders as a red MECH (aaron_fb3_002), not the F46 gold dragon — user visual call (flip bake itself correct). werewolf static-frame + toad walk + pack-coat colors = phone-QA items.
+**PUBLISHED + LIVE (Phase 34):** https://theycallmehenry.github.io/Qwen-Survivors-itch/ (`github-itch` = TheyCallMeHenry/Qwen-Survivors-itch; `dev`=`main`=`756dccb`, served markers verified). Gates: 35/35 · 1602/1602 · art PASS 19+2 · boot runs=4 (parent run, published tree = working tree, zero drift).
+OPEN: user phone re-test (wolves / hurt heroes / new ranged bat); enemy.ryu renders as a red MECH (aaron_fb3_002) — user pick: keep / swap to real F46 sheet / revert procedural (my pick: swap, manifest-entry-only). werewolf static-frame + toad walk + pack-coat colors = QA items.
 
 **NEXT:**
-1. User: phone re-test of wolves / hurt heroes / new bat → then publish decision (explicit ask, rule 7).
+1. User: phone re-test of wolves / hurt heroes / new bat (LIVE now at the Pages URL).
 2. A4 = 33.4.5 tilemaps (m01 raven → m03 atlantis → m02 serenevillage + paulthepirateking props verify-first else own-draw; CC-BY credit "Damian Gasinski aka Gassasin"+Paul Barden).
 3. A5 icons (rrfreelance: use anyway if terms unfound) · A6 FX+QA.
 4. OPEN user calls: wire eliteFrames in drawOne? (frame-data change; gold tell currently diamond-only); ryū identity.
