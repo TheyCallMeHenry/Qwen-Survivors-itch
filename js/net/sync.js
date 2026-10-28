@@ -9,7 +9,7 @@ export const SNAP_V = 8; // v8 (29.14): Coffee passive joins the pool → passiv
 export const WEAPON_KEYS = Object.keys(CFG.weapons);    // 19
 export const PASSIVE_KEYS = Object.keys(CFG.passives);  // 8
 export const SYNERGY_KEYS = Object.keys(CFG.synergies); // 15
-export const ENEMY_KEYS = Object.keys(CFG.enemies).filter((k) => k !== 'elite'); // 9 — 'elite' (32.3) is the modifier block inside CFG.enemies, not a type
+export const ENEMY_KEYS = Object.keys(CFG.enemies).filter((k) => k !== 'elite'); // 14 (post-A7a m02 roster) — 'elite' (32.3) is the modifier block inside CFG.enemies, not a type; wire is index-based, both peers always run the same build (D103 law)
 
 // 32.3: E_FLAG_ELITE rides the existing flags slot — array length and key counts are
 // unchanged, so no SNAP_V bump (precedent: only slot/key-count changes re-vint, see v7/v8 notes).

@@ -19,7 +19,7 @@ import { aliveCap, spawnInterval, batchSize, pickType, spawnPoint } from '../ent
 import { getLevel, LEVEL_ORDER } from '../world/levels.js';
 import { buildCharacters } from '../art/characters.js';
 import { buildRoster, buildGhost } from '../art/heroes.js';   // Phase 27 from-scratch sheets
-import { gemHeartFor } from '../art/items.js';
+import { gemHeartFor, buildWeatherFrames } from '../art/items.js';
 import { buildVignette } from '../art/terrain.js';
 import { shadowSprite } from '../art/base.js';
 import { bakeFlashes } from '../art/load.js';
@@ -44,6 +44,7 @@ export class Game {
     this.camera = new Camera();
     this.lighting = new Lighting();
     this.snow = new Snow();
+    this.snow.spr = buildWeatherFrames(); // 33.4.8 full-swap: packed flake art (null in Node → procedural draw)
     this.particles = new Particles();
     this.pickups = new Pickups({}); // gem/heart reskin per level (13.10)
     this.enemies = new Enemies();

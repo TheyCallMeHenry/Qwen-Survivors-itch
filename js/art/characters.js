@@ -1,7 +1,8 @@
 // Characters: per-level enemy skins. All face RIGHT — flip at draw time with flipX().
 // Feet/base sit near the bottom of each canvas; shadowR is the runtime soft-shadow
 // radius. Hit-flash copies are made at use via flashCopy.
-// m01 = Evernight Wood · m02 = Higan re-skins (13.3) · m03 = Drowned City re-skins (13.5).
+// m01 = the shared default set · m02 = Higan (renamed packed types since 33.4.8 — see
+// the NODE_FALLBACK_ENEMY table) · m03 = Drowned City re-skins (13.5).
 // 33.4.3: the default (m01) set sources packed itch sprites from assets/itch/sprites.json
 // via art/load.js — every sheet was viewed before wiring (rule 6): rat ← vermin
 // "Infected Mouse", bat ← vermin "Swooping Bat", goblin ← humanoid "goblin fighter",
@@ -17,10 +18,22 @@
 // the RYŪ boss from the F46 gold eastern dragon (fb3_002 — its source faces LEFT, so the
 // entry declares render.flip and bakeInto mirrors it into the right-facing contract);
 // m02's kitsune (wolf slot) comes from the same F46 pack's flame-fox (fb3_004). All
-// three use the same downscale ≤2× / static+bob paths as the hero/enemy precedent. The
-// Great White stays procedural (user deferral, 2026-10-26) and so do the remaining
-// m02/m03 re-skins (oni, miko, sea creatures…): no imported source fits them — listed
-// as coverage gaps, no improvised substitutes.
+// three use the same downscale ≤2× / static+bob paths as the hero/enemy precedent.
+// 33.4.8 (D-F8 FULL SWAP, 2026-10-27): Higan's five procedural re-skins (tanuki/hō-ōi/
+// shikome/oni/miko — builders deleted) became packed, renamed types: baku + kitsunebi +
+// nue ← Nasha "Yokai Hunters" single-frame sheets (the baku's and nue's sources face
+// LEFT — like the ryū, their silhouettes have no measurable head cue [mane / raised
+// snake tail], so facing comes from the D-F5 visual review + render.flip bake, an honest
+// declaration as the ryū/wraith rows already do); dorotabo ← the Dorotabō walk sheet's
+// EAST-facing row (measured right-facing, frames 2-3, real 2-frame cycle, no flip); amabie
+// ← RAPIDPUNCHES 16px front-facing still (flip-invariant + bob, the static path). Footprints/frame counts
+// per slot are unchanged, so every stat + draw contract stays byte-identical (D-F2). The
+// m03 re-skins + the Great White were packed by the same session (user-ordered FULL SWAP):
+// see the skin.m03.* + enemy.shark manifest rows — Ocean Creatures (61x92-pitch grid: crab,
+// clownfish, manta, dolphin, seahorse, great-white shark cells) + Underwater Enemies #2
+// (drowned triton 3-frame walk). All viewed before wiring (D-F5). The drawn m03/shark
+// builders below stay ONLY as the Node-stub fallback (boot constructs real art there),
+// exactly like wraithFrame/ryuFrame did for the 33.4.4 bosses.
 
 import { makeCanvas, roundRectPath, poly, formShade } from './base.js';
 import { sliceStrip, paletteSwap, lumaTintMap, lumaOf, loadPack, onArtReady } from './load.js';
@@ -44,6 +57,9 @@ function canvasOf(w, h, draw) {
 const NODE_FALLBACK_ENEMY = {
   rat: [30, 26, 8, 1], bat: [34, 28, 8, 2], goblin: [30, 38, 9, 3],
   wolf: [46, 32, 11, 4], brute: [64, 60, 14, 2], cultist: [32, 46, 9, 2],
+  // 33.4.8 Higan-only types: footprints/frames mirror their manifest entries (= the old slot tables).
+  baku: [30, 26, 8, 1], kitsunebi: [34, 28, 8, 2], nue: [30, 38, 9, 3],
+  dorotabo: [64, 60, 14, 2], amabie: [32, 46, 9, 2],
 };
 
 // Paint a packed entry into PRE-EXISTING canvases (the deferred model in load.js:
@@ -104,86 +120,11 @@ const blankEnemy = ([w, h, shadowR, n]) => {
   return { w, h, shadowR, frames: Array.from({ length: n }, mk) };
 };
 
-// --- Map 02 "Higan" skins (13.3) — same canvas footprints as the m01 slots ---
-
-function tanukiFrame() {
-  return canvasOf(30, 26, (g) => {
-    g.strokeStyle = '#5a4a3c';
-    g.lineWidth = 3;
-    g.lineCap = 'round';
-    g.beginPath(); g.moveTo(4, 16); g.quadraticCurveTo(-1, 14, 1, 9); g.stroke();
-    g.fillStyle = '#6e5a48';
-    g.beginPath(); g.ellipse(13, 16, 9, 6.5, 0, 0, TAU); g.fill();
-    formShade(g, 4, 9.5, 18, 13); // 24.5 tanuki body
-    g.fillStyle = '#cbb9a4';
-    g.beginPath(); g.ellipse(14, 19, 5.5, 2.6, 0, 0, TAU); g.fill();
-    g.fillStyle = '#776450';
-    g.beginPath(); g.arc(22, 13, 5.8, 0, TAU); g.fill();
-    g.fillStyle = '#5f4d3e';
-    g.beginPath(); g.arc(19, 7.5, 1.8, 0, TAU); g.fill();
-    g.beginPath(); g.arc(25, 7.5, 1.8, 0, TAU); g.fill();
-    g.fillStyle = '#3d3128';
-    g.beginPath(); g.ellipse(23, 12.5, 4, 2.6, 0, 0, TAU); g.fill();
-    g.fillStyle = '#ff5a5a';
-    g.beginPath(); g.arc(24.5, 12, 1, 0, TAU); g.fill();
-    g.beginPath(); g.arc(27, 15, 0.9, 0, TAU); g.fill();
-    g.fillStyle = '#4a3d30';
-    g.beginPath(); g.ellipse(9, 21, 2.4, 1.4, 0, 0, TAU); g.fill();
-    g.beginPath(); g.ellipse(17, 21, 2.4, 1.4, 0, 0, TAU); g.fill();
-  });
-}
-
-function hooiFrame(up) {
-  return canvasOf(34, 28, (g) => {
-    const cy = up ? 12 : 15;
-    g.fillStyle = 'rgba(120,220,170,0.22)';
-    g.beginPath(); g.ellipse(15, cy + 6, 6, 4, 0, 0, TAU); g.fill();
-    const fl = g.createRadialGradient(17, cy, 1, 17, cy, 10);
-    fl.addColorStop(0, 'rgba(230,255,240,0.95)');
-    fl.addColorStop(0.45, 'rgba(120,235,190,0.7)');
-    fl.addColorStop(1, 'rgba(80,200,170,0)');
-    g.fillStyle = fl;
-    g.beginPath(); g.ellipse(17, cy, 8, 9, 0, 0, TAU); g.fill();
-    g.fillStyle = '#9fe8c8';
-    g.beginPath(); g.arc(17, cy, 5, 0, TAU); g.fill();
-    g.fillStyle = '#141f1a';
-    g.beginPath(); g.arc(19.5, cy - 0.5, 2.8, 0, 0, TAU); g.fill();
-    g.fillStyle = '#eafff4';
-    g.beginPath(); g.arc(20.5, cy - 1, 0.9, 0, TAU); g.fill();
-    g.beginPath(); g.arc(22, cy, 0.7, 0, TAU); g.fill();
-  });
-}
-
-function shikomeFrame(legL, legR) {
-  return canvasOf(30, 38, (g) => {
-    g.fillStyle = '#3c3a4a';
-    g.fillRect(11 + legL, 30, 4, 8);
-    g.fillRect(16 + legR, 30, 4, 8);
-    roundRectPath(g, 8, 16, 15, 16, 4);
-    g.fillStyle = '#5d5a72';
-    g.fill();
-    formShade(g, 8, 16, 15, 16); // 24.5 shikome torso
-    g.strokeStyle = '#8a8298';
-    g.lineWidth = 2.5;
-    g.lineCap = 'round';
-    g.beginPath(); g.moveTo(24, 20); g.lineTo(28, 8); g.stroke();
-    g.fillStyle = '#6a6478';
-    g.beginPath(); g.arc(28, 7, 3.4, 0, 0, TAU); g.fill();
-    g.fillStyle = '#6e6a86';
-    g.beginPath(); g.arc(16, 10, 7, 0, 0, TAU); g.fill();
-    g.fillStyle = '#d8d2e2';
-    poly(g, [[11, 6], [7, 1], [13, 4]]);
-    g.fill();
-    poly(g, [[21, 6], [25, 1], [19, 4]]);
-    g.fill();
-    g.fillStyle = '#ff8a4a';
-    g.beginPath(); g.arc(18.5, 9, 1.2, 0, 0, TAU); g.fill();
-    g.beginPath(); g.arc(22, 9.5, 1.1, 0, 0, TAU); g.fill();
-    g.fillStyle = '#e8e2f0';
-    poly(g, [[19, 13], [20, 16], [21.5, 13]]);
-    g.fill();
-  });
-}
+// --- Map 02 fallback art (Node stubs only) ---
+// The tanuki/hō-ōi/shikome/oni/miko procedural builders were deleted in 33.4.8: those
+// Higan slots are now the packed renamed types baku/kitsunebi/nue/dorotabo/amabie.
+// The kitsune (Node fallback for the packed flame-fox skin) and the Ryū (Node fallback
+// for the packed F46 dragon) stay.
 
 function kitsuneFrame(l1, l2) {
   return canvasOf(46, 32, (g) => {
@@ -217,92 +158,6 @@ function kitsuneFrame(l1, l2) {
     g.fill();
     g.fillStyle = '#ff6a4a';
     g.beginPath(); g.arc(38.5, 10.5, 1, 0, 0, TAU); g.fill();
-  });
-}
-
-function oniFrame(frame) {
-  return canvasOf(64, 60, (g) => {
-    g.save();
-    g.translate(0, frame ? -1.5 : 0);
-    g.fillStyle = '#5a2a2e';
-    g.fillRect(22, 46, 9, 14);
-    g.fillRect(36, 46, 9, 14);
-    roundRectPath(g, 17, 18, 32, 30, 8);
-    g.fillStyle = '#a83c3c';
-    g.fill();
-    formShade(g, 17, 18, 32, 30); // 24.5 oni torso
-    // loincloth belt
-    g.fillStyle = '#7a5a3a';
-    g.fillRect(19, 40, 28, 5);
-    // arms
-    roundRectPath(g, 8, 20 + (frame ? -3 : 0), 10, 22, 4);
-    g.fillStyle = '#963232';
-    g.fill();
-    roundRectPath(g, 48, 20 + (frame ? -3 : 0), 10, 22, 4);
-    g.fill();
-    // head
-    g.fillStyle = '#b04444';
-    g.beginPath(); g.arc(33, 11, 8, 0, 0, TAU); g.fill();
-    // horns
-    g.fillStyle = '#efe6d8';
-    poly(g, [[26, 6], [22, 0], [30, 3]]);
-    g.fill();
-    poly(g, [[40, 6], [44, 0], [36, 3]]);
-    g.fill();
-    g.fillStyle = '#2a0f10';
-    g.beginPath(); g.arc(31, 10, 1.3, 0, 0, TAU); g.fill();
-    g.beginPath(); g.arc(36, 10, 1.3, 0, 0, TAU); g.fill();
-    // fangs
-    g.fillStyle = '#f2ead8';
-    poly(g, [[30, 15], [31.5, 18], [33, 15]]);
-    g.fill();
-    poly(g, [[35, 15], [36.5, 18], [38, 15]]);
-    g.fill();
-    // glowing core
-    const core = g.createRadialGradient(33, 33, 1, 33, 33, 10);
-    core.addColorStop(0, frame ? 'rgba(255,220,130,0.95)' : 'rgba(255,200,100,0.8)');
-    core.addColorStop(0.4, 'rgba(255,170,60,0.35)');
-    core.addColorStop(1, 'rgba(255,150,50,0)');
-    g.fillStyle = core;
-    g.beginPath(); g.arc(33, 33, 10, 0, 0, TAU); g.fill();
-    g.fillStyle = '#ffe9c0';
-    g.beginPath(); g.arc(33, 33, 2.5, 0, 0, TAU); g.fill();
-    g.restore();
-  });
-}
-
-function mikoFrame(frame) {
-  return canvasOf(32, 46, (g) => {
-    g.save();
-    g.translate(0, frame ? -1.5 : 0);
-    poly(g, [[9, 46], [12, 14], [21, 14], [25, 46]]);
-    g.fillStyle = '#e8e2d8';
-    g.fill();
-    formShade(g, 9, 14, 16, 32); // 24.5 miko robe
-    poly(g, [[9, 46], [12, 14], [17, 14], [15, 46]]);
-    g.fillStyle = '#b8434a';
-    g.fill();
-    g.fillStyle = '#3a2a2c';
-    g.beginPath(); g.arc(17, 11, 6.5, 0, 0, TAU); g.fill();
-    g.beginPath(); g.rect(13, 11, 8, 26); g.fill();
-    g.fillStyle = '#08060e';
-    g.beginPath(); g.arc(19, 12, 4, 0, 0, TAU); g.fill();
-    g.fillStyle = '#d8c8e8';
-    g.beginPath(); g.arc(18, 12.5, 1, 0, 0, TAU); g.fill();
-    const orbY = 24 + (frame ? -2 : 0);
-    // ofuda talisman orb: white paper strip, red seal, kanji-like mark
-    const glow = g.createRadialGradient(27, orbY, 0.5, 27, orbY, 8);
-    glow.addColorStop(0, 'rgba(255,236,200,0.8)');
-    glow.addColorStop(1, 'rgba(255,236,200,0)');
-    g.fillStyle = glow;
-    g.beginPath(); g.arc(27, orbY, 8, 0, 0, TAU); g.fill();
-    g.fillStyle = '#f5f0e6';
-    g.fillRect(25, orbY - 4, 4, 8);
-    g.fillStyle = '#c03038';
-    g.fillRect(25.5, orbY - 3, 3, 2.4);
-    g.fillStyle = '#2a2438';
-    g.fillRect(26.5, orbY + 1, 1, 2.4);
-    g.restore();
   });
 }
 
@@ -358,6 +213,13 @@ function ryuFrame(frame) {
 }
 
 // --- Map 03 "The Drowned City" skins (13.5) — same canvas footprints as the m01 slots ---
+// 33.4.8: the browser draws these slots from the packed skin.m03.* rows (D-F5 viewings:
+// crab/clownfish/manta/dolphin/seahorse = Ocean Creatures grid cells; drowned triton =
+// Underwater Enemies #2 walk; great-white shark = the sheet's big-shark cell, LEFT-facing
+// → render.flip like the ryū; the shark's true orientation comes from its eye/fin — its
+// top band is the dorsal fin, so the facing probe's head cue is invalid there and the
+// declaration stands. Same for the dolphin (brute) and the ambiguous small seahorse.).
+// The builders below are the Node-stub fallback only.
 
 function crabFrame() {
   return canvasOf(30, 26, (g) => {
@@ -652,9 +514,10 @@ function wraithFrame(frame) {
 
 // Enemy skins only (Phase 27): playable sheets live in art/heroes.js. The `player` key
 // is retired — nothing reads it (players draw from buildRoster()[charKey]).
-// 33.4.3/33.4.4: the six common slots + both packed bosses + the m02 kitsune skin are
-// packed (see above); the Great White and the remaining m02/m03 re-skin slots stay
-// procedural — same keys, footprints and frame counts either way.
+// 33.4.3–33.4.8: every browser path is packed (common slots, both m01 bosses, the m02
+// kitsune skin, the Great White, and the skin.m03.* Drowned City re-skins); the drawn
+// builders remain ONLY as Node-stub fallbacks — same keys, footprints and frame counts
+// either way (D-F2).
 export function buildCharacters(levelKey) {
   const pk = loadPack();
   const enemy = (k) => (pk ? packedEnemy(pk, 'enemy.' + k) : blankEnemy(NODE_FALLBACK_ENEMY[k]));
@@ -665,40 +528,54 @@ export function buildCharacters(levelKey) {
     wolf: enemy('wolf'),
     brute: enemy('brute'),
     cultist: enemy('cultist'),
-    // 33.4.4: bosses packed in the browser (manifest entries); the drawn builders remain
-    // as the Node-stub fallback so boot still constructs real art there. Shark stays
-    // procedural entirely (user deferral).
+    // 33.4.4/33.4.8: bosses packed in the browser (manifest entries); the drawn builders
+    // remain as the Node-stub fallback so boot still constructs real art there. The
+    // Great White was packed by 33.4.8 (user deferral superseded by the full-swap goal).
     wraith: pk ? packedEnemy(pk, 'enemy.wraith') : { w: 92, h: 112, shadowR: 20, frames: [wraithFrame(0), wraithFrame(1)] },
     ryu: pk ? packedEnemy(pk, 'enemy.ryu') : { w: 96, h: 112, shadowR: 20, frames: [ryuFrame(0), ryuFrame(1)] },
-    shark: { w: 96, h: 112, shadowR: 20, frames: [sharkFrame(0), sharkFrame(1)] },
+    shark: pk ? packedEnemy(pk, 'enemy.shark') : { w: 96, h: 112, shadowR: 20, frames: [sharkFrame(0), sharkFrame(1)] },
+    // 33.4.8: the Higan roster (m02-only spawns via levels.js weights). Built in EVERY def set
+    // like the boss keys, so "every CFG.enemies type has art" holds everywhere (test-boot 13.3).
+    baku: enemy('baku'),
+    kitsunebi: enemy('kitsunebi'),
+    nue: enemy('nue'),
+    dorotabo: enemy('dorotabo'),
+    amabie: enemy('amabie'),
   };
   if (levelKey === 'm02') {
-    // Higan slot re-skins (A1) + Ryū boss (A5) — same footprints, mechanics unchanged
-    out.rat = { w: 30, h: 26, shadowR: 8, frames: [tanukiFrame()] };
-    out.bat = { w: 34, h: 28, shadowR: 8, frames: [hooiFrame(true), hooiFrame(false)] };
-    out.goblin = { w: 30, h: 38, shadowR: 9, frames: [[3, 0], [0, 0], [-3, 0]].map(([l, r]) => shikomeFrame(l, r)) };
-    // 33.4.4: the kitsune (wolf slot) packs from the F46 flame-fox (same pack as Ryū —
-    // shared guest dialect); the drawn kitsune stays as the Node-stub fallback only.
+    // 33.4.8: the Higan roster is the packed renamed types in the default set above — the
+    // procedural re-skin assignments and their builders are gone (FULL SWAP, D-F8).
+    // The kitsune (wolf slot) keeps its F46 flame-fox skin (33.4.4); the drawn kitsune
+    // stays as the Node-stub fallback only.
     if (pk) out.wolf = packedEnemy(pk, 'skin.m02.wolf');
     else out.wolf = { w: 46, h: 32, shadowR: 11, frames: [[5, 0], [0, 5], [0, 0], [-5, 0]].map(([l, r]) => kitsuneFrame(l, r)) };
-    out.brute = { w: 64, h: 60, shadowR: 14, frames: [oniFrame(0), oniFrame(1)] };
-    out.cultist = { w: 32, h: 46, shadowR: 9, frames: [mikoFrame(0), mikoFrame(1)] };
     out.wraith = out.ryu; // boss key swap — the m02 boss IS Ryū
   }
   if (levelKey === 'm03') {
-    // Drowned City slot re-skins (A1/A2) + Great White boss — same footprints, mechanics unchanged
-    out.rat = { w: 30, h: 26, shadowR: 8, frames: [crabFrame()] };
-    out.bat = { w: 34, h: 28, shadowR: 8, frames: [goldfishFrame(true), goldfishFrame(false)] };
-    out.goblin = {
-      w: 30, h: 38, shadowR: 9,
-      frames: [mermanFrame(3, 0), mermaidFrame(0, 0), mermanFrame(-3, 0)], // merman + mermaid skins
-    };
-    out.wolf = {
-      w: 46, h: 32, shadowR: 11,
-      frames: [[5, 0], [0, 5], [0, 0], [-5, 0]].map(([l, r]) => stingrayFrame(l, r)),
-    };
-    out.brute = { w: 64, h: 60, shadowR: 14, frames: [orcaFrame(0), orcaFrame(1)] };
-    out.cultist = { w: 32, h: 46, shadowR: 9, frames: [eelFrame(0), eelFrame(1)] };
+    // 33.4.8 FULL SWAP: the Drowned City re-skins are packed (manifest skin.m03.* rows —
+    // same footprints/frame counts, mechanics unchanged, D-F2). The Node-stub path keeps
+    // the drawn builders so boot still constructs real art (same pattern as the bosses).
+    if (pk) {
+      out.rat = packedEnemy(pk, 'skin.m03.rat');
+      out.bat = packedEnemy(pk, 'skin.m03.bat');
+      out.goblin = packedEnemy(pk, 'skin.m03.goblin');
+      out.wolf = packedEnemy(pk, 'skin.m03.wolf');
+      out.brute = packedEnemy(pk, 'skin.m03.brute');
+      out.cultist = packedEnemy(pk, 'skin.m03.cultist');
+    } else {
+      out.rat = { w: 30, h: 26, shadowR: 8, frames: [crabFrame()] };
+      out.bat = { w: 34, h: 28, shadowR: 8, frames: [goldfishFrame(true), goldfishFrame(false)] };
+      out.goblin = {
+        w: 30, h: 38, shadowR: 9,
+        frames: [mermanFrame(3, 0), mermaidFrame(0, 0), mermanFrame(-3, 0)], // merman + mermaid skins
+      };
+      out.wolf = {
+        w: 46, h: 32, shadowR: 11,
+        frames: [[5, 0], [0, 5], [0, 0], [-5, 0]].map(([l, r]) => stingrayFrame(l, r)),
+      };
+      out.brute = { w: 64, h: 60, shadowR: 14, frames: [orcaFrame(0), orcaFrame(1)] };
+      out.cultist = { w: 32, h: 46, shadowR: 9, frames: [eelFrame(0), eelFrame(1)] };
+    }
     out.wraith = out.shark; // boss key swap — the m03 boss IS the Great White
   }
   return out;

@@ -209,3 +209,10 @@
 - File: sKappaDemo.png
 - Imported: 2026-10-27
 - License: 🎮 Use Ideas NPCs in rice paddies or swamp temples Quest givers near rivers or bathhouses Lovable townsfolk with a taste for pickles Optional party members or co-op villagers Background flavor for folklore-inspired maps 🛍️ Versions Free Version: ✅ 1 Color Variant (Classic Green) ✅ Walking Animation (4 directions) 🔒 For use in free games only Paid Version: ✅ All 10 Animations ✅ 12 Color Variants ✅ F
+
+## 8000+ Raven Fantasy Icons - RPG Icons, Pixel Art Icons, Textures and Sprites
+- Author: None
+- Store: https://clockworkraven.itch.io/raven-fantasy-icons
+- File: Free - Raven Fantasy Icons.zip
+- Imported: 2026-10-27
+- License: This asset can be used in any project, even commercial and physical(print or tabletop) ones, but it cannot be distributed or sold as a separate product without the creator's permission (me). 5- Attribution is not necessary but welcome. 7- For more detailed licensing information: License Freebies: Click here to see and get our free products!

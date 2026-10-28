@@ -1,196 +1,2034 @@
 {
   "$schema": "qsurv.sprites.v0",
-  "notes": "Frame sources for packed-sprite art. Validated by tools/test-art.mjs (paths + sheet geometry + hero + enemy footprints). Loaded by js/art/load.js in the browser only. One entry per engine slot; strip = horizontal frame range of the source sheet. sheet = the engine footprint the built sheet must keep (test-boot 26.3 / 33.4.3 tables). render.artH = final art height in px (scale derived), render.trim = [x,y,w,h] crop for static battlers, render.head = [cx,top] in source-cell coords for the baseball overlay, recolour 'seat' = CFG.ghostColors paletteSwap ladder. A 'walk' strip (where the pack has real walk frames) feeds run[4]; without it run[4] reuses the idle frames + the ±1px bob derived in heroes.js. Enemy entries (33.4.3): frames = engine frame count (strip frames cycled + integer-px bob offsets where the source is static or shorter); facing 'right' = right-facing contract (every source was viewed before wiring; symmetric front-facing art is flip-invariant and satisfies it; a LEFT-facing source carries render.flip and bakeInto mirrors it); recolour 'elite' = gold skin path via palette.eliteColor + lumaTintMap (enemies.js keeps the gold-diamond tell; eliteFrames are the skin half); enemy.wolf.pack = per-coat wolfpack block (bigger footprint + own bob) tinted from PACK_PALS in characters.js. Boss entries (33.4.4: enemy.wraith, enemy.ryu) keep the exact engine footprints (92x112/r20, 96x112/r20, 2 frames) and declare NO recolour — D105 rolls elite on non-bosses only. Large sprites may use guest-dialect sources downscaled ≤2× (PLAN-FORK §2). 'skin.<level>.<slot>' entries (skin.m02.wolf) are per-level re-skins of common slots: same footprint/frames as the base slot, own source strip, and the same 'elite' marker.",
-  "palette": { "eliteColor": "#ffd75e" },
+  "notes": "Frame sources for packed-sprite art. Validated by tools/test-art.mjs (paths + sheet geometry + hero + enemy footprints). Loaded by js/art/load.js in the browser only. One entry per engine slot; strip = horizontal frame range of the source sheet. sheet = the engine footprint the built sheet must keep (test-boot 26.3 / 33.4.3 tables). render.artH = final art height in px (scale derived), render.trim = [x,y,w,h] crop for static battlers, render.head = [cx,top] in source-cell coords for the baseball overlay, recolour 'seat' = CFG.ghostColors paletteSwap ladder. A 'walk' strip (where the pack has real walk frames) feeds run[4]; without it run[4] reuses the idle frames + the ±1px bob derived in heroes.js. Enemy entries (33.4.3): frames = engine frame count (strip frames cycled + integer-px bob offsets where the source is static or shorter); facing 'right' = right-facing contract (every source was viewed before wiring; symmetric front-facing art is flip-invariant and satisfies it; a LEFT-facing source carries render.flip and bakeInto mirrors it); recolour 'elite' = gold skin path via palette.eliteColor + lumaTintMap (enemies.js keeps the gold-diamond tell; eliteFrames are the skin half); enemy.wolf.pack = per-coat wolfpack block (bigger footprint + own bob) tinted from PACK_PALS in characters.js. Boss entries (33.4.4/33.4.8: enemy.wraith, enemy.ryu, enemy.shark) keep the exact engine footprints (92x112/r20, 96x112/r20, 96x112/r20, 2 frames) and declare NO recolour — D105 rolls elite on non-bosses only. Large sprites may use guest-dialect sources downscaled ≤2× (PLAN-FORK §2). 'skin.<level>.<slot>' entries (skin.m02.wolf + the 33.4.8 skin.m03.* Drowned City set) are per-level re-skins of common slots: same footprint/frames as the base slot, own source strip, and the same 'elite' marker. 33.4.8 renamed Higan types (enemy.baku/kitsunebi/nue/dorotabo/amabie) are their OWN full type keys — only m02's weights reference them (world/levels.js) — carrying the exact footprint/frames of the slots they replace: left-facing Nasha stills bake through render.flip like the ryū, the Dorotabō strip is the walk sheet's measured EAST-facing row, and static single-frame sources cycle via bob[]. 33.4.8 m03 sea set (D-F5 viewings recorded in js/art/characters.js + docs): the Ocean Creatures sheet (305x368) is a 61x92-pitch grid — skin.m03.rat/bat/wolf/brute/cultist + the enemy.shark boss cut its cells via that grid pitch + measured content-rect trims (crab/clownfish/manta/dolphin/seahorse/great-white); skin.m03.goblin is Underwater Enemies pack #2's real 3-frame walk row (48x48 pitch). 'fx.snow'/'fx.petal'/'fx.bubble' (weather flake sources, blitted by entities/particles.js Snow.draw — emitter logic untouched): single-cell cuts from the Sengoku ambient-loop frames (X-snowflake; greyscale sakura petal clump declared tint \"petal\" = builder recolours to CFG.perf.petalColor) and the atlantis char_bubbles ring sheet. No sheet/render fields on fx entries — the builder slices the cell at native size. 33.4.5 TERRAIN entries (level tilesets; js/art/terrain.js packedGround/packedProp): 'terrain.ground.<level>' carries frame 16 + one strip per source ROW slice + a recipe {tile:256, pitch:16, seed, base:[strip,idx], scatter:[[strip,idx,weight],…]} — a deterministic patchwork of that pack's VERIFIED floor-interior cells at world.js's native tile size (the packs ship RPG-Maker autotile blocks, but the engine has no autotiler: Wang/transition rules stay unused, only seamless interior cells are consumed, and only fully-opaque cells are referenced); prefill = base-cell colour for the pre-art-ready frames. 'terrain.<prop>.<level>' cuts verified single cells (frame = measured content bbox, black cell-guide rows excluded) + place {strip, scale}; terrain.js bakes them into the exact decor-contract canvases (bottom-center, integer scale; mirror flag flips the same cell). Sources: m01 = clockworkraven 'Raven Fantasy Green Forest' All Tileset/16x16.png (26x15 free-form grid; grass cells c8/c11/c12 r0 + c8 r1; tree bbox (0,74,48,86), dead tree (64,16,48,61→44-crop), rocks (66,5)/(81,2), tent (96,112,64,63); NO autotile rules — free-form sheet). m02 = limezu Serene Village Outside.png (16px 8-col grid; r0-r2 c0-c4 grass/lawn variants). m03 = finalbossblues ATLANTIS RPGMAKER-100 (16px variant; tf_A5_atlantisA A5 flat grid: r0-r1 blue-grey city cobblestone, r14 mossy algae stone; the A2 48x48 autotile water blocks are NOT used — no autotiler). GAP LIST (kept procedural, rule 15): m01 pineBig/stump/mushroom/monolith/campfire/well + all ground decals; m02 all standing props (paulthepirateking Japanese-themed set VIEWED: walls/roofs/fences/rocks/small trees only — NO clean torii/pagoda/lantern single cells, so the own-drawn builders (plan C) stay; serenevillage props are tiny trees/flowers/signposts + indoor demo rows); m03 all standing props (atlantis sheets contain no matching kelp/coral/ruin props); mountain/lake/koi-pond/vignette landmarks are parameterized-size procedural (no fixed-size pack equivalent fits). 33.4.6 ICONS/PICKUPS (A5): icon.* and pickup.* entries carry ONE 16x16 rrfreelance \"Sprites pack 16px over 150\" cell (PropsInPixels_16x<N>.png) or 32x32 willYEE Sengoku weapon-icon cell (CC0; icon.tempest/cannonball). js/art/items.js buildIcons() bakes them centred into the unchanged 72x72 category-plate canvases (content bbox trimmed, nearest-neighbour, fit ~52px; entry.tint hex = lumaTintMap recolour, used ONLY for icon.blueFlame); pickup.* bake the EXACT engine sizes (render.bake = [24,26]/[22,20], test-boot 13.10 asserts) with per-level tints from GEM_PAL/HEART_PAL. LICENSE (user ruling 2026-10-26): the rrfreelance pack page states NO license terms — USE ANYWAY; the user will contact the author. Sengoku = CC0. The other 20 buildIcons() keys have no clean match in either pack and stay drawn (list in test-art). 33.4.6 SECOND PASS (A5b): icon.garlic/missile/laser/wolfpack/bat/sigil/reroll moved from drawn to packed via clockworkraven \"Free - Raven Fantasy Icons\" (imported 2026-10-27; 2192 unnamed icons — every cell VIEWED from indexed contact sheets of the Separated Files, D-F5; license commercial-OK per the round-1 research review). 13 keys stay drawn (no clean glyph in ANY imported pack): fangs, tongue, magnet, dash, skates, phoenix, flamingArrows, heartPiercer, stormVolley, heartMagnet, napalmMissile, staticPelt, homerKing.",
+  "palette": {
+    "eliteColor": "#ffd75e"
+  },
   "sprites": {
     "hero.mage": {
-      "frame": { "w": 16, "h": 16 },
-      "sheet": { "w": 56, "h": 64, "shadowR": 12 },
-      "strips": {
-        "idle": { "src": "assets/itch/humanoid2-asset-pack/Basic Humanoid II Animations/Elf Enchanter/ElfEnchanter.png", "from": 0, "count": 4 }
+      "frame": {
+        "w": 16,
+        "h": 16
       },
-      "render": { "artH": 48 }
+      "sheet": {
+        "w": 56,
+        "h": 64,
+        "shadowR": 12
+      },
+      "strips": {
+        "idle": {
+          "src": "assets/itch/humanoid2-asset-pack/Basic Humanoid II Animations/Elf Enchanter/ElfEnchanter.png",
+          "from": 0,
+          "count": 4
+        }
+      },
+      "render": {
+        "artH": 48
+      }
     },
     "hero.warden": {
-      "frame": { "w": 16, "h": 16 },
-      "sheet": { "w": 58, "h": 66, "shadowR": 13 },
-      "strips": {
-        "idle": { "src": "assets/itch/humanoid2-asset-pack/Basic Humanoid II Animations/Adventurous Adolescent/AdventurousAdolescent.png", "from": 0, "count": 4 }
+      "frame": {
+        "w": 16,
+        "h": 16
       },
-      "render": { "artH": 48 }
+      "sheet": {
+        "w": 58,
+        "h": 66,
+        "shadowR": 13
+      },
+      "strips": {
+        "idle": {
+          "src": "assets/itch/humanoid2-asset-pack/Basic Humanoid II Animations/Adventurous Adolescent/AdventurousAdolescent.png",
+          "from": 0,
+          "count": 4
+        }
+      },
+      "render": {
+        "artH": 48
+      }
     },
     "hero.ranger": {
-      "frame": { "w": 16, "h": 16 },
-      "sheet": { "w": 52, "h": 60, "shadowR": 11 },
-      "strips": {
-        "idle": { "src": "assets/itch/humanoid2-asset-pack/Basic Humanoid II Animations/Elf Sharpshooter/ElfSharpshooter.png", "from": 0, "count": 4 }
+      "frame": {
+        "w": 16,
+        "h": 16
       },
-      "render": { "artH": 48 }
+      "sheet": {
+        "w": 52,
+        "h": 60,
+        "shadowR": 11
+      },
+      "strips": {
+        "idle": {
+          "src": "assets/itch/humanoid2-asset-pack/Basic Humanoid II Animations/Elf Sharpshooter/ElfSharpshooter.png",
+          "from": 0,
+          "count": 4
+        }
+      },
+      "render": {
+        "artH": 48
+      }
     },
     "hero.swash": {
-      "frame": { "w": 16, "h": 16 },
-      "sheet": { "w": 54, "h": 62, "shadowR": 12 },
-      "strips": {
-        "idle": { "src": "assets/itch/humanoid-asset-pack/Basic Humanoid Animations/halfling rogue/HalflingRogue.png", "from": 0, "count": 4 }
+      "frame": {
+        "w": 16,
+        "h": 16
       },
-      "render": { "artH": 48 }
+      "sheet": {
+        "w": 54,
+        "h": 62,
+        "shadowR": 12
+      },
+      "strips": {
+        "idle": {
+          "src": "assets/itch/humanoid-asset-pack/Basic Humanoid Animations/halfling rogue/HalflingRogue.png",
+          "from": 0,
+          "count": 4
+        }
+      },
+      "render": {
+        "artH": 48
+      }
     },
     "hero.baseball": {
-      "frame": { "w": 16, "h": 16 },
-      "sheet": { "w": 56, "h": 64, "shadowR": 12 },
-      "strips": {
-        "idle": { "src": "assets/itch/humanoid2-asset-pack/Basic Humanoid II Animations/Boisterous Youth/BoisterousYouth.png", "from": 0, "count": 4 }
+      "frame": {
+        "w": 16,
+        "h": 16
       },
-      "render": { "artH": 48, "head": [8, 3] }
+      "sheet": {
+        "w": 56,
+        "h": 64,
+        "shadowR": 12
+      },
+      "strips": {
+        "idle": {
+          "src": "assets/itch/humanoid2-asset-pack/Basic Humanoid II Animations/Boisterous Youth/BoisterousYouth.png",
+          "from": 0,
+          "count": 4
+        }
+      },
+      "render": {
+        "artH": 48,
+        "head": [
+          8,
+          3
+        ]
+      }
     },
     "hero.werewolf": {
-      "frame": { "w": 192, "h": 192 },
-      "sheet": { "w": 54, "h": 62, "shadowR": 11 },
-      "strips": {
-        "idle": { "src": "assets/itch/aaron-sprites-generation-0/192/aaron_gp0_010.png", "from": 0, "count": 1 }
+      "frame": {
+        "w": 192,
+        "h": 192
       },
-      "render": { "artH": 48, "trim": [38, 38, 120, 112] }
+      "sheet": {
+        "w": 54,
+        "h": 62,
+        "shadowR": 11
+      },
+      "strips": {
+        "idle": {
+          "src": "assets/itch/aaron-sprites-generation-0/192/aaron_gp0_010.png",
+          "from": 0,
+          "count": 1
+        }
+      },
+      "render": {
+        "artH": 48,
+        "trim": [
+          38,
+          38,
+          120,
+          112
+        ]
+      }
     },
     "hero.golem": {
-      "frame": { "w": 16, "h": 16 },
-      "sheet": { "w": 62, "h": 68, "shadowR": 14 },
-      "strips": {
-        "idle": { "src": "assets/itch/magical-asset-pack/basic magical animations/earth elemental/EarthElemental.png", "from": 0, "count": 4 }
+      "frame": {
+        "w": 16,
+        "h": 16
       },
-      "render": { "artH": 48 }
+      "sheet": {
+        "w": 62,
+        "h": 68,
+        "shadowR": 14
+      },
+      "strips": {
+        "idle": {
+          "src": "assets/itch/magical-asset-pack/basic magical animations/earth elemental/EarthElemental.png",
+          "from": 0,
+          "count": 4
+        }
+      },
+      "render": {
+        "artH": 48
+      }
     },
     "hero.gunslinger": {
-      "frame": { "w": 16, "h": 16 },
-      "sheet": { "w": 54, "h": 64, "shadowR": 11 },
-      "strips": {
-        "idle": { "src": "assets/itch/humanoid-asset-pack/Basic Humanoid Animations/halfling slinger/HalflingSlinger.png", "from": 0, "count": 4 }
+      "frame": {
+        "w": 16,
+        "h": 16
       },
-      "render": { "artH": 48 }
+      "sheet": {
+        "w": 54,
+        "h": 64,
+        "shadowR": 11
+      },
+      "strips": {
+        "idle": {
+          "src": "assets/itch/humanoid-asset-pack/Basic Humanoid Animations/halfling slinger/HalflingSlinger.png",
+          "from": 0,
+          "count": 4
+        }
+      },
+      "render": {
+        "artH": 48
+      }
     },
     "hero.toad": {
-      "frame": { "w": 16, "h": 16 },
-      "sheet": { "w": 58, "h": 60, "shadowR": 13 },
-      "strips": {
-        "idle": { "src": "assets/itch/Toad_16x16.png", "from": 0, "count": 4, "sy": 80 },
-        "walk": { "src": "assets/itch/Toad_16x16.png", "from": 0, "count": 4, "sx": 64, "sy": 80 }
+      "frame": {
+        "w": 16,
+        "h": 16
       },
-      "render": { "artH": 48 }
+      "sheet": {
+        "w": 58,
+        "h": 60,
+        "shadowR": 13
+      },
+      "strips": {
+        "idle": {
+          "src": "assets/itch/Toad_16x16.png",
+          "from": 0,
+          "count": 4,
+          "sy": 80
+        },
+        "walk": {
+          "src": "assets/itch/Toad_16x16.png",
+          "from": 0,
+          "count": 4,
+          "sx": 64,
+          "sy": 80
+        }
+      },
+      "render": {
+        "artH": 48
+      }
     },
     "hero.ghost": {
-      "frame": { "w": 16, "h": 16 },
-      "sheet": { "w": 56, "h": 64, "shadowR": 12 },
-      "strips": {
-        "idle": { "src": "assets/itch/undead-asset-pack/Basic Undead Animations/Unraveling Crawler/UnravelingCrawler.png", "from": 0, "count": 4 }
+      "frame": {
+        "w": 16,
+        "h": 16
       },
-      "render": { "artH": 48 },
+      "sheet": {
+        "w": 56,
+        "h": 64,
+        "shadowR": 12
+      },
+      "strips": {
+        "idle": {
+          "src": "assets/itch/undead-asset-pack/Basic Undead Animations/Unraveling Crawler/UnravelingCrawler.png",
+          "from": 0,
+          "count": 4
+        }
+      },
+      "render": {
+        "artH": 48
+      },
       "recolour": "seat"
     },
     "enemy.rat": {
-      "frame": { "w": 16, "h": 16 },
-      "sheet": { "w": 30, "h": 26, "shadowR": 8 },
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "sheet": {
+        "w": 30,
+        "h": 26,
+        "shadowR": 8
+      },
       "frames": 1,
       "facing": "right",
       "strips": {
-        "frames": { "src": "assets/itch/vermin-asset-pack/Basic Vermin Animations/Infected Mouse/InfectedMouse.png", "from": 0, "count": 1 }
+        "frames": {
+          "src": "assets/itch/vermin-asset-pack/Basic Vermin Animations/Infected Mouse/InfectedMouse.png",
+          "from": 0,
+          "count": 1
+        }
       },
-      "render": { "artH": 20, "trim": [2, 6, 11, 10] },
+      "render": {
+        "artH": 20,
+        "trim": [
+          2,
+          6,
+          11,
+          10
+        ]
+      },
       "recolour": "elite"
     },
     "enemy.bat": {
-      "frame": { "w": 16, "h": 16 },
-      "sheet": { "w": 34, "h": 28, "shadowR": 8 },
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "sheet": {
+        "w": 34,
+        "h": 28,
+        "shadowR": 8
+      },
       "frames": 2,
       "facing": "right",
       "strips": {
-        "frames": { "src": "assets/itch/vermin-asset-pack/Basic Vermin Animations/Swooping Bat/SwoopingBat.png", "from": 0, "count": 2 }
+        "frames": {
+          "src": "assets/itch/vermin-asset-pack/Basic Vermin Animations/Swooping Bat/SwoopingBat.png",
+          "from": 0,
+          "count": 2
+        }
       },
-      "render": { "artH": 18, "trim": [0, 4, 16, 9] },
+      "render": {
+        "artH": 18,
+        "trim": [
+          0,
+          4,
+          16,
+          9
+        ]
+      },
       "recolour": "elite"
     },
     "enemy.goblin": {
-      "frame": { "w": 16, "h": 16 },
-      "sheet": { "w": 30, "h": 38, "shadowR": 9 },
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "sheet": {
+        "w": 30,
+        "h": 38,
+        "shadowR": 9
+      },
       "frames": 3,
       "facing": "right",
       "strips": {
-        "frames": { "src": "assets/itch/humanoid-asset-pack/Basic Humanoid Animations/goblin fighter/GoblinFighter.png", "from": 0, "count": 3 }
+        "frames": {
+          "src": "assets/itch/humanoid-asset-pack/Basic Humanoid Animations/goblin fighter/GoblinFighter.png",
+          "from": 0,
+          "count": 3
+        }
       },
-      "render": { "artH": 32, "trim": [0, 0, 15, 16] },
+      "render": {
+        "artH": 32,
+        "trim": [
+          0,
+          0,
+          15,
+          16
+        ]
+      },
       "recolour": "elite"
     },
     "enemy.wolf": {
-      "frame": { "w": 192, "h": 192 },
-      "sheet": { "w": 46, "h": 32, "shadowR": 11 },
+      "frame": {
+        "w": 192,
+        "h": 192
+      },
+      "sheet": {
+        "w": 46,
+        "h": 32,
+        "shadowR": 11
+      },
       "frames": 4,
-      "bob": [0, 1, 0, -1],
+      "bob": [
+        0,
+        1,
+        0,
+        -1
+      ],
       "facing": "right",
       "strips": {
-        "frames": { "src": "assets/itch/aaron-sprites-freebies-5/192/aaron_fb5_003.png", "from": 0, "count": 1 }
+        "frames": {
+          "src": "assets/itch/aaron-sprites-freebies-5/192/aaron_fb5_003.png",
+          "from": 0,
+          "count": 1
+        }
       },
-      "render": { "artH": 32, "trim": [10, 28, 178, 148], "flip": true },
+      "render": {
+        "artH": 32,
+        "trim": [
+          10,
+          28,
+          178,
+          148
+        ],
+        "flip": true
+      },
       "recolour": "elite",
       "pack": {
-        "sheet": { "w": 54, "h": 38, "shadowR": 13 },
+        "sheet": {
+          "w": 54,
+          "h": 38,
+          "shadowR": 13
+        },
         "frames": 4,
-        "bob": [0, 1, 0, -1],
-        "render": { "artH": 38, "trim": [10, 28, 178, 148], "flip": true }
+        "bob": [
+          0,
+          1,
+          0,
+          -1
+        ],
+        "render": {
+          "artH": 38,
+          "trim": [
+            10,
+            28,
+            178,
+            148
+          ],
+          "flip": true
+        }
       }
     },
     "enemy.brute": {
-      "frame": { "w": 16, "h": 16 },
-      "sheet": { "w": 64, "h": 60, "shadowR": 14 },
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "sheet": {
+        "w": 64,
+        "h": 60,
+        "shadowR": 14
+      },
       "frames": 2,
       "facing": "right",
       "strips": {
-        "frames": { "src": "assets/itch/magical-asset-pack/basic magical animations/ice golem/IceGolem.png", "from": 0, "count": 2 }
+        "frames": {
+          "src": "assets/itch/magical-asset-pack/basic magical animations/ice golem/IceGolem.png",
+          "from": 0,
+          "count": 2
+        }
       },
-      "render": { "artH": 48, "trim": [1, 0, 14, 16] },
+      "render": {
+        "artH": 48,
+        "trim": [
+          1,
+          0,
+          14,
+          16
+        ]
+      },
       "recolour": "elite"
     },
     "enemy.cultist": {
-      "frame": { "w": 16, "h": 16 },
-      "sheet": { "w": 32, "h": 46, "shadowR": 9 },
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "sheet": {
+        "w": 32,
+        "h": 46,
+        "shadowR": 9
+      },
       "frames": 2,
       "facing": "right",
       "strips": {
-        "frames": { "src": "assets/itch/undead-asset-pack/Basic Undead Animations/Grave Revenant/GraveRevenant.png", "from": 0, "count": 2 }
+        "frames": {
+          "src": "assets/itch/undead-asset-pack/Basic Undead Animations/Grave Revenant/GraveRevenant.png",
+          "from": 0,
+          "count": 2
+        }
       },
-      "render": { "artH": 44, "trim": [3, 0, 10, 16] },
+      "render": {
+        "artH": 44,
+        "trim": [
+          3,
+          0,
+          10,
+          16
+        ]
+      },
       "recolour": "elite"
     },
     "enemy.wraith": {
-      "frame": { "w": 192, "h": 192 },
-      "sheet": { "w": 92, "h": 112, "shadowR": 20 },
+      "frame": {
+        "w": 192,
+        "h": 192
+      },
+      "sheet": {
+        "w": 92,
+        "h": 112,
+        "shadowR": 20
+      },
       "frames": 2,
-      "bob": [0, -1],
+      "bob": [
+        0,
+        -1
+      ],
       "facing": "right",
       "strips": {
-        "frames": { "src": "assets/itch/aaron-sprites-generation-0/192/aaron_gp0_002.png", "from": 0, "count": 1 }
+        "frames": {
+          "src": "assets/itch/aaron-sprites-generation-0/192/aaron_gp0_002.png",
+          "from": 0,
+          "count": 1
+        }
       },
-      "render": { "artH": 104, "trim": [42, 26, 98, 128] }
+      "render": {
+        "artH": 104,
+        "trim": [
+          42,
+          26,
+          98,
+          128
+        ]
+      }
     },
     "enemy.ryu": {
-      "frame": { "w": 192, "h": 192 },
-      "sheet": { "w": 96, "h": 112, "shadowR": 20 },
+      "frame": {
+        "w": 192,
+        "h": 192
+      },
+      "sheet": {
+        "w": 96,
+        "h": 112,
+        "shadowR": 20
+      },
       "frames": 2,
-      "bob": [0, 1],
+      "bob": [
+        0,
+        1
+      ],
       "facing": "right",
       "strips": {
-        "frames": { "src": "assets/itch/aaron-sprites-freebies-3/192/aaron_fb3_002.png", "from": 0, "count": 1 }
+        "frames": {
+          "src": "assets/itch/aaron-sprites-freebies-3/192/aaron_fb3_002.png",
+          "from": 0,
+          "count": 1
+        }
       },
-      "render": { "artH": 88, "trim": [14, 24, 160, 148], "flip": true }
+      "render": {
+        "artH": 88,
+        "trim": [
+          14,
+          24,
+          160,
+          148
+        ],
+        "flip": true
+      }
     },
     "skin.m02.wolf": {
-      "frame": { "w": 192, "h": 192 },
-      "sheet": { "w": 46, "h": 32, "shadowR": 11 },
+      "frame": {
+        "w": 192,
+        "h": 192
+      },
+      "sheet": {
+        "w": 46,
+        "h": 32,
+        "shadowR": 11
+      },
       "frames": 4,
-      "bob": [0, 1, 0, -1],
+      "bob": [
+        0,
+        1,
+        0,
+        -1
+      ],
       "facing": "right",
       "strips": {
-        "frames": { "src": "assets/itch/aaron-sprites-freebies-3/192/aaron_fb3_004.png", "from": 0, "count": 1 }
+        "frames": {
+          "src": "assets/itch/aaron-sprites-freebies-3/192/aaron_fb3_004.png",
+          "from": 0,
+          "count": 1
+        }
       },
-      "render": { "artH": 32, "trim": [32, 24, 152, 140], "flip": true },
+      "render": {
+        "artH": 32,
+        "trim": [
+          32,
+          24,
+          152,
+          140
+        ],
+        "flip": true
+      },
       "recolour": "elite"
+    },
+    "enemy.baku": {
+      "frame": {
+        "w": 60,
+        "h": 53
+      },
+      "sheet": {
+        "w": 30,
+        "h": 26,
+        "shadowR": 8
+      },
+      "frames": 1,
+      "facing": "right",
+      "strips": {
+        "frames": {
+          "src": "assets/itch/sprites/yokai/baku_dream_eater_with_a_short_trunk_and_small_tusks.png",
+          "from": 0,
+          "count": 1
+        }
+      },
+      "render": {
+        "artH": 20,
+        "trim": [
+          0,
+          0,
+          60,
+          53
+        ],
+        "flip": true
+      },
+      "recolour": "elite"
+    },
+    "enemy.kitsunebi": {
+      "frame": {
+        "w": 48,
+        "h": 60
+      },
+      "sheet": {
+        "w": 34,
+        "h": 28,
+        "shadowR": 8
+      },
+      "frames": 2,
+      "bob": [
+        0,
+        -1
+      ],
+      "facing": "right",
+      "strips": {
+        "frames": {
+          "src": "assets/itch/sprites/yokai/kitsunebi_row_of_floating_orange_fox_fires.png",
+          "from": 0,
+          "count": 1
+        }
+      },
+      "render": {
+        "artH": 24,
+        "trim": [
+          0,
+          0,
+          48,
+          60
+        ]
+      },
+      "recolour": "elite"
+    },
+    "enemy.nue": {
+      "frame": {
+        "w": 62,
+        "h": 63
+      },
+      "sheet": {
+        "w": 30,
+        "h": 38,
+        "shadowR": 9
+      },
+      "frames": 3,
+      "bob": [
+        -1,
+        0,
+        1
+      ],
+      "facing": "right",
+      "strips": {
+        "frames": {
+          "src": "assets/itch/sprites/yokai/nue_chimera_with_a_monkey_face_a_tiger_body_and_a_snake_tail.png",
+          "from": 0,
+          "count": 1
+        }
+      },
+      "render": {
+        "artH": 30,
+        "trim": [
+          0,
+          0,
+          62,
+          63
+        ],
+        "flip": true
+      },
+      "recolour": "elite"
+    },
+    "enemy.dorotabo": {
+      "frame": {
+        "w": 64,
+        "h": 32
+      },
+      "sheet": {
+        "w": 64,
+        "h": 60,
+        "shadowR": 14
+      },
+      "frames": 2,
+      "facing": "right",
+      "strips": {
+        "frames": {
+          "src": "assets/itch/dorotabo-mud.png",
+          "from": 2,
+          "count": 2,
+          "sy": 192
+        }
+      },
+      "render": {
+        "artH": 48,
+        "trim": [
+          23,
+          12,
+          21,
+          19
+        ]
+      },
+      "recolour": "elite"
+    },
+    "enemy.amabie": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "sheet": {
+        "w": 32,
+        "h": 46,
+        "shadowR": 9
+      },
+      "frames": 2,
+      "bob": [
+        0,
+        -1
+      ],
+      "facing": "right",
+      "strips": {
+        "frames": {
+          "src": "assets/itch/16bit-amabie1.png",
+          "from": 0,
+          "count": 1
+        }
+      },
+      "render": {
+        "artH": 36,
+        "trim": [
+          1,
+          0,
+          14,
+          16
+        ]
+      },
+      "recolour": "elite"
+    },
+    "enemy.shark": {
+      "frame": {
+        "w": 61,
+        "h": 92
+      },
+      "sheet": {
+        "w": 96,
+        "h": 112,
+        "shadowR": 20
+      },
+      "frames": 2,
+      "bob": [
+        0,
+        -1
+      ],
+      "facing": "right",
+      "strips": {
+        "frames": {
+          "src": "assets/itch/image - 2025-04-10T104122.414 (1).png",
+          "from": 0,
+          "count": 1,
+          "sx": 183,
+          "sy": 92
+        }
+      },
+      "render": {
+        "artH": 56,
+        "trim": [
+          4,
+          15,
+          52,
+          41
+        ],
+        "flip": true
+      }
+    },
+    "skin.m03.rat": {
+      "frame": {
+        "w": 61,
+        "h": 92
+      },
+      "sheet": {
+        "w": 30,
+        "h": 26,
+        "shadowR": 8
+      },
+      "frames": 1,
+      "bob": [
+        0
+      ],
+      "facing": "right",
+      "strips": {
+        "frames": {
+          "src": "assets/itch/image - 2025-04-10T104122.414 (1).png",
+          "from": 0,
+          "count": 1,
+          "sx": 183,
+          "sy": 0
+        }
+      },
+      "render": {
+        "artH": 22,
+        "trim": [
+          4,
+          13,
+          31,
+          26
+        ]
+      },
+      "recolour": "elite"
+    },
+    "skin.m03.bat": {
+      "frame": {
+        "w": 61,
+        "h": 92
+      },
+      "sheet": {
+        "w": 34,
+        "h": 28,
+        "shadowR": 8
+      },
+      "frames": 2,
+      "bob": [
+        0,
+        -1
+      ],
+      "facing": "right",
+      "strips": {
+        "frames": {
+          "src": "assets/itch/image - 2025-04-10T104122.414 (1).png",
+          "from": 0,
+          "count": 1,
+          "sx": 122,
+          "sy": 276
+        }
+      },
+      "render": {
+        "artH": 20,
+        "trim": [
+          4,
+          12,
+          32,
+          26
+        ]
+      },
+      "recolour": "elite"
+    },
+    "skin.m03.goblin": {
+      "frame": {
+        "w": 48,
+        "h": 48
+      },
+      "sheet": {
+        "w": 30,
+        "h": 38,
+        "shadowR": 9
+      },
+      "frames": 3,
+      "bob": [
+        0,
+        0,
+        0
+      ],
+      "facing": "right",
+      "strips": {
+        "frames": {
+          "src": "assets/itch/2/Walk.png",
+          "from": 0,
+          "count": 3
+        }
+      },
+      "render": {
+        "artH": 30,
+        "trim": [
+          2,
+          11,
+          37,
+          37
+        ],
+        "flip": true
+      },
+      "recolour": "elite"
+    },
+    "skin.m03.wolf": {
+      "frame": {
+        "w": 61,
+        "h": 92
+      },
+      "sheet": {
+        "w": 46,
+        "h": 32,
+        "shadowR": 11
+      },
+      "frames": 4,
+      "bob": [
+        0,
+        1,
+        0,
+        -1
+      ],
+      "facing": "right",
+      "strips": {
+        "frames": {
+          "src": "assets/itch/image - 2025-04-10T104122.414 (1).png",
+          "from": 0,
+          "count": 1,
+          "sx": 61,
+          "sy": 0
+        }
+      },
+      "render": {
+        "artH": 30,
+        "trim": [
+          5,
+          14,
+          41,
+          34
+        ],
+        "flip": true
+      },
+      "recolour": "elite"
+    },
+    "skin.m03.brute": {
+      "frame": {
+        "w": 61,
+        "h": 92
+      },
+      "sheet": {
+        "w": 64,
+        "h": 60,
+        "shadowR": 14
+      },
+      "frames": 2,
+      "bob": [
+        0,
+        1
+      ],
+      "facing": "right",
+      "strips": {
+        "frames": {
+          "src": "assets/itch/image - 2025-04-10T104122.414 (1).png",
+          "from": 0,
+          "count": 1,
+          "sx": 244,
+          "sy": 92
+        }
+      },
+      "render": {
+        "artH": 44,
+        "trim": [
+          5,
+          18,
+          30,
+          29
+        ],
+        "flip": true
+      },
+      "recolour": "elite"
+    },
+    "skin.m03.cultist": {
+      "frame": {
+        "w": 61,
+        "h": 92
+      },
+      "sheet": {
+        "w": 32,
+        "h": 46,
+        "shadowR": 9
+      },
+      "frames": 2,
+      "bob": [
+        0,
+        -1
+      ],
+      "facing": "right",
+      "strips": {
+        "frames": {
+          "src": "assets/itch/image - 2025-04-10T104122.414 (1).png",
+          "from": 0,
+          "count": 1,
+          "sx": 0,
+          "sy": 184
+        }
+      },
+      "render": {
+        "artH": 32,
+        "trim": [
+          11,
+          15,
+          19,
+          32
+        ],
+        "flip": true
+      },
+      "recolour": "elite"
+    },
+    "fx.snow": {
+      "frame": {
+        "w": 10,
+        "h": 10
+      },
+      "strips": {
+        "frames": {
+          "src": "assets/itch/fx/jp_amb_snow_frames/jp_amb_snow_00.png",
+          "from": 0,
+          "count": 1,
+          "sx": 4,
+          "sy": 100
+        }
+      }
+    },
+    "fx.petal": {
+      "frame": {
+        "w": 10,
+        "h": 9
+      },
+      "tint": "petal",
+      "strips": {
+        "frames": {
+          "src": "assets/itch/fx/jp_amb_sakura_frames/jp_amb_sakura_00.png",
+          "from": 0,
+          "count": 1,
+          "sx": 33,
+          "sy": 109
+        }
+      }
+    },
+    "fx.bubble": {
+      "frame": {
+        "w": 5,
+        "h": 5
+      },
+      "strips": {
+        "frames": {
+          "src": "assets/itch/atlantis-tileset/RPGMAKER-100/char_bubbles.png",
+          "from": 0,
+          "count": 1,
+          "sx": 5,
+          "sy": 99
+        }
+      }
+    },
+    "terrain.ground.m01": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "prefill": "#5a8267",
+      "strips": {
+        "mossA": {
+          "src": "assets/itch/raven-fantasy-pixel-art-tileset-green-forest/All Tileset/16x16.png",
+          "from": 0,
+          "count": 5,
+          "sx": 128,
+          "sy": 0
+        },
+        "mossB": {
+          "src": "assets/itch/raven-fantasy-pixel-art-tileset-green-forest/All Tileset/16x16.png",
+          "from": 0,
+          "count": 5,
+          "sx": 128,
+          "sy": 16
+        }
+      },
+      "recipe": {
+        "tile": 256,
+        "pitch": 16,
+        "seed": 8231,
+        "base": [
+          "mossA",
+          0
+        ],
+        "scatter": [
+          [
+            "mossA",
+            3,
+            0.08
+          ],
+          [
+            "mossA",
+            4,
+            0.05
+          ],
+          [
+            "mossB",
+            0,
+            0.12
+          ]
+        ]
+      }
+    },
+    "terrain.ground.m02": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "prefill": "#7aca69",
+      "strips": {
+        "rowA": {
+          "src": "assets/itch/serenevillage/16x16_original/Serene Village - Outside.png",
+          "from": 0,
+          "count": 4,
+          "sx": 16,
+          "sy": 0
+        },
+        "rowB": {
+          "src": "assets/itch/serenevillage/16x16_original/Serene Village - Outside.png",
+          "from": 0,
+          "count": 2,
+          "sx": 0,
+          "sy": 16
+        },
+        "rowC": {
+          "src": "assets/itch/serenevillage/16x16_original/Serene Village - Outside.png",
+          "from": 0,
+          "count": 5,
+          "sx": 0,
+          "sy": 32
+        }
+      },
+      "recipe": {
+        "tile": 256,
+        "pitch": 16,
+        "seed": 9157,
+        "base": [
+          "rowB",
+          0
+        ],
+        "scatter": [
+          [
+            "rowA",
+            0,
+            0.04
+          ],
+          [
+            "rowA",
+            2,
+            0.03
+          ],
+          [
+            "rowA",
+            3,
+            0.04
+          ],
+          [
+            "rowC",
+            1,
+            0.05
+          ],
+          [
+            "rowC",
+            3,
+            0.04
+          ]
+        ]
+      }
+    },
+    "terrain.ground.m03": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "prefill": "#5d7384",
+      "strips": {
+        "stoneA": {
+          "src": "assets/itch/atlantis-tileset/RPGMAKER-100/tf_A5_atlantisA.png",
+          "from": 0,
+          "count": 7,
+          "sx": 16,
+          "sy": 0
+        },
+        "stoneB": {
+          "src": "assets/itch/atlantis-tileset/RPGMAKER-100/tf_A5_atlantisA.png",
+          "from": 0,
+          "count": 4,
+          "sx": 0,
+          "sy": 16
+        },
+        "mossA": {
+          "src": "assets/itch/atlantis-tileset/RPGMAKER-100/tf_A5_atlantisA.png",
+          "from": 0,
+          "count": 6,
+          "sx": 0,
+          "sy": 224
+        }
+      },
+      "recipe": {
+        "tile": 256,
+        "pitch": 16,
+        "seed": 10477,
+        "base": [
+          "stoneA",
+          1
+        ],
+        "scatter": [
+          [
+            "stoneA",
+            0,
+            0.03
+          ],
+          [
+            "stoneA",
+            3,
+            0.03
+          ],
+          [
+            "stoneA",
+            5,
+            0.04
+          ],
+          [
+            "stoneB",
+            0,
+            0.05
+          ],
+          [
+            "stoneB",
+            2,
+            0.05
+          ],
+          [
+            "mossA",
+            1,
+            0.04
+          ],
+          [
+            "mossA",
+            4,
+            0.03
+          ]
+        ]
+      }
+    },
+    "terrain.pine.m01": {
+      "frame": {
+        "w": 48,
+        "h": 86
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/raven-fantasy-pixel-art-tileset-green-forest/All Tileset/16x16.png",
+          "from": 0,
+          "count": 1,
+          "sx": 0,
+          "sy": 74
+        }
+      },
+      "place": {
+        "strip": "art",
+        "scale": 1
+      }
+    },
+    "terrain.dead.m01": {
+      "frame": {
+        "w": 44,
+        "h": 61
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/raven-fantasy-pixel-art-tileset-green-forest/All Tileset/16x16.png",
+          "from": 0,
+          "count": 1,
+          "sx": 66,
+          "sy": 16
+        }
+      },
+      "place": {
+        "strip": "art",
+        "scale": 1
+      }
+    },
+    "terrain.boulder.m01": {
+      "frame": {
+        "w": 14,
+        "h": 12
+      },
+      "strips": {
+        "rockA": {
+          "src": "assets/itch/raven-fantasy-pixel-art-tileset-green-forest/All Tileset/16x16.png",
+          "from": 0,
+          "count": 1,
+          "sx": 66,
+          "sy": 2
+        },
+        "rockB": {
+          "src": "assets/itch/raven-fantasy-pixel-art-tileset-green-forest/All Tileset/16x16.png",
+          "from": 0,
+          "count": 1,
+          "sx": 80,
+          "sy": 1
+        }
+      },
+      "place": {
+        "strip": "rockA",
+        "scale": 2
+      }
+    },
+    "terrain.hut.m01": {
+      "frame": {
+        "w": 64,
+        "h": 63
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/raven-fantasy-pixel-art-tileset-green-forest/All Tileset/16x16.png",
+          "from": 0,
+          "count": 1,
+          "sx": 96,
+          "sy": 112
+        }
+      },
+      "place": {
+        "strip": "art",
+        "scale": 1
+      }
+    },
+    "icon.wand": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x5.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.bow": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x14.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.bombs": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x11.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.snowball": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x59.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.heart": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x44.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.gem": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x40.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.coffee": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x57.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.boots": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x13.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.axe": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x134.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.blades": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x99.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.gatling": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x52.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.ringLightning": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x130.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.boulder": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x66.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.webs": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x107.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.shield": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x68.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.sword": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x112.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.pyre": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x82.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.blight": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x160.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.inferno": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x38.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.blueFlame": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x38.png",
+          "from": 0,
+          "count": 1
+        }
+      },
+      "tint": "#5fb8ff"
+    },
+    "icon.gutFeast": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x114.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.avalanche": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x127.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.skip": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x163.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.banish": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x164.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.tempest": {
+      "frame": {
+        "w": 32,
+        "h": 32
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/icons/icon_sengoku_ranged_01_05.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.napalm": {
+      "frame": {
+        "w": 32,
+        "h": 32
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/icons/icon_sengoku_ranged_01_04.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.cannonball": {
+      "frame": {
+        "w": 32,
+        "h": 32
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/icons/icon_sengoku_tool_01_05.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "pickup.gem": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x40.png",
+          "from": 0,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          24,
+          26
+        ]
+      },
+      "notes": "world XP gem; per-level tint = GEM_PAL.stops[1] ladder (items.js gemSprite)"
+    },
+    "pickup.heart": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x44.png",
+          "from": 0,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          22,
+          20
+        ]
+      },
+      "notes": "world heal heart; per-level tint = HEART_PAL.low ladder (items.js heartSprite)"
+    },
+    "icon.garlic": {
+      "frame": {
+        "w": 32,
+        "h": 32
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/Free - Raven Fantasy Icons/Separated Files/32x32/fb440.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.missile": {
+      "frame": {
+        "w": 32,
+        "h": 32
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/Free - Raven Fantasy Icons/Separated Files/32x32/fb829.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.laser": {
+      "frame": {
+        "w": 32,
+        "h": 32
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/Free - Raven Fantasy Icons/Separated Files/32x32/fb1424.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.wolfpack": {
+      "frame": {
+        "w": 32,
+        "h": 32
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/Free - Raven Fantasy Icons/Separated Files/32x32/fb2173.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.bat": {
+      "frame": {
+        "w": 32,
+        "h": 32
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/Free - Raven Fantasy Icons/Separated Files/32x32/fb1527.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.sigil": {
+      "frame": {
+        "w": 32,
+        "h": 32
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/Free - Raven Fantasy Icons/Separated Files/32x32/fb1336.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "icon.reroll": {
+      "frame": {
+        "w": 32,
+        "h": 32
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/Free - Raven Fantasy Icons/Separated Files/32x32/fb1222.png",
+          "from": 0,
+          "count": 1
+        }
+      }
+    },
+    "world.bomb": {
+      "frame": {
+        "w": 97,
+        "h": 97
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/fx/jp_proj_horoku.png",
+          "from": 4,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          30,
+          34
+        ]
+      },
+      "notes": "Sunder Bombs + napalm variant (items.js bombSprite/bombNapalm; variant = tint a8462e); willYEE Sengoku horoku cannonball-and-rope cell, viewed mid-loop (D-F5)"
+    },
+    "world.blade": {
+      "frame": {
+        "w": 115,
+        "h": 115
+      },
+      "tint": "#cfd8ea",
+      "strips": {
+        "art": {
+          "src": "assets/itch/fx/jp_proj_shuriken.png",
+          "from": 4,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          30,
+          30
+        ]
+      },
+      "notes": "orbiting Throwing Blades (items.js bladeSprite) — Sengoku thrown shuriken, steel luma-ladder tint; engine spins it (blade rotates at draw, shuriken spin is the same motion)"
+    },
+    "fx.explosion": {
+      "frame": {
+        "w": 80,
+        "h": 80
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/explosion-animations-pack/explosion pack 1/Explosions pack/explosion-1-c/spritesheet.png",
+          "from": 3,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          128,
+          128
+        ]
+      },
+      "notes": "Sunder/missile-class AOE flash (items.js explosionSprite, drawn additively, radius-scaled at runtime) — ansimuz CC0 explosion-1-c peak frame; hot palette kept (no tint)"
+    },
+    "fx.blastStar": {
+      "frame": {
+        "w": 48,
+        "h": 48
+      },
+      "tint": "#e2eefc",
+      "strips": {
+        "art": {
+          "src": "assets/itch/explosion-animations-pack/explosion pack 1/Explosions pack/explosion-1-g/spritesheet.png",
+          "from": 2,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          128,
+          128
+        ]
+      },
+      "notes": "Homing Missile terminal blast star (items.js missileBlastSprite) — ansimuz X-shock frame, steel-white luma ladder = the 29.12 hard-edged identity vs the round bomb fireball; smoke ring stays procedural under it"
+    },
+    "fx.frostBurst": {
+      "frame": {
+        "w": 88,
+        "h": 88
+      },
+      "tint": "#bfe9f7",
+      "strips": {
+        "art": {
+          "src": "assets/itch/gothicvania-magic-pack-9/Magic Pack 9 files/spritesheets/Dark-Bolt.png",
+          "from": 5,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          64,
+          64
+        ]
+      },
+      "notes": "snowball/avalanche impact burst (items.js frostBurstSprite, additive) — magic9 Dark-Bolt energy splat re-toned cold through the shared luma ladder"
+    },
+    "fx.spark": {
+      "frame": {
+        "w": 32,
+        "h": 32
+      },
+      "tint": "#cfe6ff",
+      "strips": {
+        "art": {
+          "src": "assets/itch/gothicvania-magic-pack-9/Magic Pack 9 files/spritesheets/spark.png",
+          "from": 2,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          20,
+          20
+        ]
+      },
+      "notes": "Chain-Lightning strike point (items.js sparkSprite, additive) — magic9 spark star, electric-blue ladder"
+    },
+    "fx.flame": {
+      "frame": {
+        "w": 64,
+        "h": 64
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/gothicvania-magic-pack-9/Magic Pack 9 files/spritesheets/Fire-bomb.png",
+          "from": 9,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          24,
+          24
+        ]
+      },
+      "notes": "Pyre Lance flame stream blob (items.js flameSprite, additive, grow-then-fade at draw) — magic9 Fire-bomb full-dome frame, hot palette kept"
+    },
+    "fx.reflectRing": {
+      "frame": {
+        "w": 192,
+        "h": 256
+      },
+      "tint": "#dff2ff",
+      "strips": {
+        "art": {
+          "src": "assets/itch/fx/jp_ward_barrier.png",
+          "from": 10,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          48,
+          48
+        ]
+      },
+      "notes": "Mirror Shield reflect-hit flash (items.js reflectFlashSprite, additive) — Sengoku ward-barrier ring pair, mirror-pale ladder (the 29.10 dff2ff pip identity)"
+    },
+    "bg.m02.far1": {
+      "frame": {
+        "w": 670,
+        "h": 223
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/backgrounds/bg_sengoku_far_02_00.png",
+          "from": 0,
+          "count": 1
+        }
+      },
+      "notes": "m02 backdrop far ridge (sky.js packM02Ridges) — Sengoku snow-mountain scene, flat parallax replacing the procedural fuji layer (menu + in-game horizon)"
+    },
+    "bg.m02.far2": {
+      "frame": {
+        "w": 751,
+        "h": 330
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/backgrounds/bg_sengoku_far_03_00.png",
+          "from": 0,
+          "count": 1
+        }
+      },
+      "notes": "m02 backdrop second peak (mirrored in sky.js)"
+    },
+    "bg.m02.torii": {
+      "frame": {
+        "w": 345,
+        "h": 299
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/backgrounds/bg_sengoku_mid_01_00.png",
+          "from": 0,
+          "count": 1
+        }
+      },
+      "notes": "m02 near layer: torii + sakura (sky.js packM02Ridges)"
+    },
+    "bg.m02.castle": {
+      "frame": {
+        "w": 375,
+        "h": 350
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/backgrounds/bg_sengoku_mid_02_00.png",
+          "from": 0,
+          "count": 1
+        }
+      },
+      "notes": "m02 near layer: castle keep (sky.js packM02Ridges)"
+    },
+    "bg.m02.buddha": {
+      "frame": {
+        "w": 333,
+        "h": 350
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/backgrounds/bg_sengoku_mid_03_00.png",
+          "from": 0,
+          "count": 1
+        }
+      },
+      "notes": "m02 near layer: seated buddha (sky.js packM02Ridges)"
+    },
+    "world.bomb.napalm": {
+      "frame": {
+        "w": 97,
+        "h": 97
+      },
+      "tint": "#a8462e",
+      "strips": {
+        "art": {
+          "src": "assets/itch/fx/jp_proj_horoku.png",
+          "from": 4,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          30,
+          34
+        ]
+      },
+      "notes": "Napalm synergy bomb variant (items.js bombNapalmSprite): reuses the world.bomb cell; the crimson tint IS the slot (blueFlame precedent)"
     }
   }
 }

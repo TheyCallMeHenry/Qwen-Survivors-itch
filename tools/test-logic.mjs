@@ -1021,7 +1021,7 @@ const slots0 = (row) => row.filter((f) => f !== null).length;
   ok(aliveCap(120, m1) === 73 && aliveCap(120, m2) === 91.25 && batchSize(300, m2) === 8 && near(spawnInterval(100, m2), spawnInterval(100) / 1.25), 'spawner: per-level diff scales cap/batch/interval (32.3: /9 ramp)');
 }
 
-// 13.3 — m02 roster: per-level stat tables (A4) + m02 weights (slot re-skins, A1)
+// 13.3 — m02 roster: per-level stat tables (A4) + m02 weights (33.4.8: renamed Higan types)
 {
   const e1 = new Enemies();
   const e2 = new Enemies();
@@ -1031,7 +1031,15 @@ const slots0 = (row) => row.filter((f) => f !== null).length;
   ok(rat0.hp === 24 && rat0.dmg === 8, 'diff 1.0: stats unchanged (rat 24/8)');
   ok(rat2b.hp === 30 && rat2b.dmg === 10, 'diff 1.25: rat hp/dmg ×1.25 (30/10)');
   const brt2 = e2.spawn('brute', 0, 0);
-  ok(brt2.hp === 420 && brt2.dmg === 31.25, 'diff 1.25: brute slot (oni) 336→420 hp, 25→31.25 dmg');
+  ok(brt2.hp === 420 && brt2.dmg === 31.25, 'diff 1.25: brute slot 336→420 hp, 25→31.25 dmg');
+  // 33.4.8 (D-F8): Higan's five re-skin slots became renamed types. Gameplay law: every new
+  // row must be the byte-exact stat block of the slot it replaces, and its ×diff spawn equal.
+  const rowEq = (a, b) => JSON.stringify(CFG.enemies[a]) === JSON.stringify(CFG.enemies[b]);
+  ok(rowEq('rat', 'baku') && rowEq('bat', 'kitsunebi') && rowEq('goblin', 'nue') && rowEq('brute', 'dorotabo') && rowEq('cultist', 'amabie'),
+    '33.4.8: renamed Higan rows = byte-exact old slot stat blocks (art-only swap, D-F2)');
+  const dot2 = e2.spawn('dorotabo', 0, 0);
+  ok(dot2.hp === 420 && dot2.dmg === 31.25 && dot2.xp === 5 && dot2.score === 60 && dot2.r === 22,
+    '33.4.8: dorotabo spawn = old brute slot exactly (×1.25 hp/dmg; xp/score/r unchanged)');
   const ryu = e2.spawn('ryu', 0, 0);
   ok(ryu.boss && ryu.hp === 4680 && ryu.dmg === 35, 'Ryū boss ×1.25 (4680 hp / 35 dmg — 31.19 base 3744)');
   ok(e1.spawn('ryu', 0, 0).hp === 3744, 'Ryū base stats = Wraith base (pre-diff; 31.19 ×1.2 boss HP)');
@@ -1039,16 +1047,19 @@ const slots0 = (row) => row.filter((f) => f !== null).length;
   ok(m1.boss.name === 'THE WRAITH' && m2.boss.name === 'RYŪ', 'boss banner names per level');
   const w2 = Object.keys(m2.weights(300));
   ok(w2.length === 6 && w2.every((k) => CFG.enemies[k]), 'm02 weights: 6 slot keys ⊆ enemies');
-  ok(JSON.stringify(m2.weights(120)) === JSON.stringify(m1.weights(120)), 'm02 weights = m01 role curve (re-skins, A1)');
+  ok(JSON.stringify(w2) === JSON.stringify(['baku', 'kitsunebi', 'nue', 'wolf', 'dorotabo', 'amabie']),
+    '33.4.8 (D-F8): m02 weights keys = the renamed Higan roster (wolf keeps the kitsune skin)');
+  ok(JSON.stringify(Object.values(m2.weights(120))) === JSON.stringify(Object.values(m1.weights(120))),
+    'm02 weights = m01 role curve VALUES (keys renamed, spawn math unchanged)');
   let earlyOk = true;
   {
     const rng = mulberry32(7);
     for (let i = 0; i < 400; i++) {
       const t = pickType(5, rng, m2);
-      if (t !== 'rat' && t !== 'bat') earlyOk = false;
+      if (t !== 'baku' && t !== 'kitsunebi') earlyOk = false;
     }
   }
-  ok(earlyOk, 'm02 pickType(t=5): only tanuki/hō-ōi slots');
+  ok(earlyOk, 'm02 pickType(t=5): only baku/kitsunebi (early Higan types)');
   const seen = new Set();
   {
     const rng = mulberry32(8);
@@ -1057,7 +1068,7 @@ const slots0 = (row) => row.filter((f) => f !== null).length;
       if (t) seen.add(t);
     }
   }
-  ok(seen.size === 6, 'm02 pickType(t=250): all six slot skins appear');
+  ok(seen.size === 6 && w2.every((k) => seen.has(k)), 'm02 pickType(t=250): all six renamed Higan types appear');
 }
 
 // 13.4 — m03 (The Drowned City) layout
@@ -1351,8 +1362,8 @@ const slots0 = (row) => row.filter((f) => f !== null).length;
 
 // --- 11.2 host-authoritative sync: snapshot codec + per-player ownership ---
 {
-  ok(WEAPON_KEYS.length === 19 && PASSIVE_KEYS.length === 8 && SYNERGY_KEYS.length === 15 && ENEMY_KEYS.length === 9,
-    '11.2: key tables follow CFG order/counts (29.14 rebaseline: 19 weapons · 8 passives · 15 synergies)');
+  ok(WEAPON_KEYS.length === 19 && PASSIVE_KEYS.length === 8 && SYNERGY_KEYS.length === 15 && ENEMY_KEYS.length === 14,
+    '11.2: key tables follow CFG order/counts (33.4.8 rebaseline: +5 renamed Higan types · 29.14: 19 weapons · 8 passives · 15 synergies)');
 
   const p = new Player({});
   p.reset(10, 20);
@@ -1545,7 +1556,7 @@ const slots0 = (row) => row.filter((f) => f !== null).length;
     applyEnemySnap(eClient, wire);
     ok(eClient.elite === true, '32.3: applyEnemySnap restores e.elite for the client tell');
     ok(unpackState(stateMsg(1, 1, 0, 0, [], [wire], [])) !== null, '32.3: elite-flagged snapshot passes unpackState');
-    ok(ENEMY_KEYS.length === 9 && !ENEMY_KEYS.includes('elite'), '32.3: ENEMY_KEYS stays types-only (elite block filtered)');
+    ok(ENEMY_KEYS.length === 14 && !ENEMY_KEYS.includes('elite'), '32.3: ENEMY_KEYS stays types-only (elite block filtered; 33.4.8: +5 Higan types)');
   } finally {
     Math.random = mSave;
   }

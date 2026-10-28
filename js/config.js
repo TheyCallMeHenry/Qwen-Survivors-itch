@@ -595,6 +595,18 @@ export const CFG = {
     wraith:  { hp: 3744, speed: [55, 65],   dmg: 28, xp: 50, r: 30, score: 5000, boss: true, fps: 4 },
     ryu:     { hp: 3744, speed: [55, 65],   dmg: 28, xp: 50, r: 30, score: 5000, boss: true, fps: 4 },
     shark:   { hp: 3744, speed: [55, 65],   dmg: 28, xp: 50, r: 30, score: 5000, boss: true, fps: 4 },
+    // 33.4.8 (D-F8 roster-name match, 2026-10-27): Higan's five re-skins became their own
+    // renamed types — baku/kitsunebi/nue/dorotabo/amabie — because the packed art draws
+    // those creatures (sources pinned in assets/itch/sprites.json; D-F5 review on record
+    // in js/art/characters.js). Each row below is the EXACT stat block of the slot it
+    // replaces (rat/bat/goblin/brute/cultist), so gameplay is untouched (D-F2); only the
+    // m02 weights in world/levels.js use these keys — m01/m03 keep the keys above whose
+    // art already matches their names. The kitsune (wolf slot) and Ryū stay as they are.
+    baku:      { hp: 24,   speed: [110, 150], dmg: 8,  xp: 1,  r: 11, score: 10, fps: 4 },
+    kitsunebi: { hp: 17,   speed: [150, 185], dmg: 6,  xp: 1,  r: 11, score: 10, fly: true, weave: true, fps: 8 },
+    nue:       { hp: 50,   speed: [85, 105],  dmg: 12, xp: 2,  r: 13, score: 20, fps: 6 },
+    dorotabo:  { hp: 336,  speed: [62, 78],   dmg: 25, xp: 5,  r: 22, score: 60, fps: 3 },
+    amabie:    { hp: 66,   speed: [75, 95],   dmg: 10, xp: 3,  r: 13, score: 30, ranged: true, fps: 4 },
     // 32.3 (user approved 2026-10-26): elite modifier — opt-in pressure only, never a type key
     // (ENEMY_KEYS + art/stat loops filter it). Non-boss spawns roll at frac(t): linear ramp
     // 5% at t=180 s → 15% at t=900 s, then hold. Elites: hp ×1.5, contact dmg ×1.3,

@@ -1,6 +1,8 @@
 // Pickups, projectiles and card icons — pre-rendered sprites.
 
 import { makeCanvas, glowSprite, shadowSprite, poly, roundRectPath, formShade } from './base.js';
+import { loadPack, onArtReady, sliceStrip, paletteSwap, lumaTintMap } from './load.js';
+import { CFG } from '../config.js';
 import { TAU } from '../utils/math.js';
 
 // Per-level pickup tints (13.10, A5): m01 = original, M02 gold-pink, M03 cyan.
@@ -26,9 +28,25 @@ export function gemHeartFor(levelKey) {
   };
 }
 
+// World XP gem (24×26 — the exact boot-asserted footprint). 33.4.6: packed from
+// pickup.gem (rrfreelance blue-diamond cell) with the per-level identity tint (13.10,
+// D-F2: colors unchanged — GEM_PAL stops[1] drives the shared luma ladder) + the same
+// glow underlay. The procedural draw below stays as the Node/failed-image fallback
+// (test-boot boots headless), painted over in place when the pack art decodes.
 function gemSprite(pal = GEM_PAL.m01) {
   const c = makeCanvas(24, 26);
   const g = c.getContext('2d');
+  const paintPacked = () => {
+    const pk = loadPack();
+    if (!pk) return;
+    const paint = () => {
+      const gg = c.getContext('2d');
+      gg.clearRect(0, 0, 24, 26);
+      gg.drawImage(glowSprite(11, pal.glow, 0.35), 0, -1);
+      paintArt(gg, packCellArt(pk, 'pickup.gem', pal.stops[1]), 22, 24, 12, 13);
+    };
+    if (pk.ready) paint(); else onArtReady(pk, paint);
+  };
   g.drawImage(glowSprite(11, pal.glow, 0.35), 0, -1);
   const grad = g.createLinearGradient(0, 2, 0, 24);
   grad.addColorStop(0, pal.stops[0]);
@@ -47,12 +65,26 @@ function gemSprite(pal = GEM_PAL.m01) {
   g.lineWidth = 1;
   poly(g, [[12, 1], [21, 12], [12, 24], [3, 12]]);
   g.stroke();
+  paintPacked();
   return c;
 }
 
+// World heal heart (22×20 — the exact boot-asserted footprint). 33.4.6: packed from
+// pickup.heart (rrfreelance red-heart cell); per-level tint = HEART_PAL.top ladder
+// (22.3 cool-gems/warm-hearts discrimination kept). Procedural draw = Node fallback.
 function heartSprite(pal = HEART_PAL.m01) {
   const c = makeCanvas(22, 20);
   const g = c.getContext('2d');
+  const paintPacked = () => {
+    const pk = loadPack();
+    if (!pk) return;
+    const paint = () => {
+      const gg = c.getContext('2d');
+      gg.clearRect(0, 0, 22, 20);
+      paintArt(gg, packCellArt(pk, 'pickup.heart', pal.top), 22, 20, 11, 10);
+    };
+    if (pk.ready) paint(); else onArtReady(pk, paint);
+  };
   const path = () => {
     g.beginPath();
     g.moveTo(11, 18.5);
@@ -73,6 +105,7 @@ function heartSprite(pal = HEART_PAL.m01) {
   g.stroke();
   g.fillStyle = 'rgba(255,220,228,0.85)';
   g.beginPath(); g.ellipse(6.5, 6.5, 2.6, 1.8, -0.6, 0, TAU); g.fill();
+  paintPacked();
   return c;
 }
 
@@ -154,6 +187,9 @@ function bladeSprite() {
   g.strokeStyle = 'rgba(94,234,212,0.8)';
   g.lineWidth = 1.4;
   g.stroke();
+  // A6: packed blade ← Sengoku thrown shuriken (world.blade; the engine already spins
+  // blades at draw — the shuriken spin reads identically). Teal glow underlay re-painted.
+  packOver(c, 'world.blade', 30, 30, 15, 15, (g2) => g2.drawImage(glowSprite(14, '94,234,212', 0.32), 0, 0));
   return c;
 }
 
@@ -223,6 +259,10 @@ function bombSprite() {
   g.beginPath(); g.arc(15, 12, 4, 0, TAU); g.fill();
   g.fillStyle = 'rgba(232,240,255,0.5)';
   g.beginPath(); g.ellipse(11, 14, 2.6, 1.7, -0.6, 0, TAU); g.fill();
+  // A6: Sunder bomb ← Sengoku horoku cannonball-and-fuse cell (no tint — the source IS
+  // the black round bomb + rope fuse this builder was approximating). Arc/shadow draw
+  // path in combat unchanged; 30×34 footprint kept.
+  packOver(c, 'world.bomb', 30, 34, 15, 17);
   return c;
 }
 
@@ -317,6 +357,9 @@ function frostBurstSprite() {
     g.lineTo(32 + Math.cos(a) * 26, 32 + Math.sin(a) * 26);
     g.stroke();
   }
+  // A6: snowball/avalanche impact ← magic9 Dark-Bolt splat re-toned cold (fx.frostBurst,
+  // manifest ladder #bfe9f7). Additive + damage-radius scaling draw unchanged.
+  packOver(c, 'fx.frostBurst', 64, 64, 32, 32);
   return c;
 }
 
@@ -339,6 +382,8 @@ function sparkSprite() {
     g.lineTo(10 + Math.cos(a) * 9, 10 + Math.sin(a) * 9);
     g.stroke();
   }
+  // A6: Chain-Lightning strike point ← magic9 spark star (electric-blue ladder).
+  packOver(c, 'fx.spark', 20, 20, 10, 10);
   return c;
 }
 
@@ -353,6 +398,9 @@ function flameSprite() {
   grad.addColorStop(1, 'rgba(255,60,20,0)');
   g.fillStyle = grad;
   g.fillRect(0, 0, 24, 24);
+  // A6: Pyre flame stream ← magic9 Fire-bomb dome frame (hot, additive; the runtime
+  // grow-then-fade ramp in combat.draw is untouched).
+  packOver(c, 'fx.flame', 24, 24, 12, 12);
   return c;
 }
 
@@ -368,6 +416,9 @@ function explosionSprite() {
   grad.addColorStop(1, 'rgba(255,60,30,0)');
   g.fillStyle = grad;
   g.fillRect(0, 0, 128, 128);
+  // A6: sunder-class AOE flash ← ansimuz CC0 explosion-1-c peak frame (hot palette kept;
+  // additive + radius-scaled draw path unchanged, 23.2 ≥1.0× ramp untouched).
+  packOver(c, 'fx.explosion', 128, 128, 64, 64);
   return c;
 }
 
@@ -465,6 +516,16 @@ export function missileBlastSprite() {
   // steel hub
   g.fillStyle = 'rgba(255,255,255,0.9)';
   g.beginPath(); g.arc(64, 64, 9, 0, TAU); g.fill();
+  // A6: the X-shock star becomes ansimuz explosion-1-g re-toned steel-white (the 29.12
+  // hard-edged-vs-round identity vs the bomb fireball is carried by the different SHAPE);
+  // the gunmetal smoke RINGS are the blast's other identity half → kept procedural under
+  // the packed star (an `under` re-paint, not a packable cell).
+  packOver(c, 'fx.blastStar', 96, 96, 64, 64, (g2) => {
+    g2.strokeStyle = 'rgba(146,158,174,0.42)'; g2.lineWidth = 11;
+    g2.beginPath(); g2.arc(64, 64, 54, 0, TAU); g2.stroke();
+    g2.strokeStyle = 'rgba(58,68,82,0.4)'; g2.lineWidth = 4;
+    g2.beginPath(); g2.arc(64, 64, 47, 0, TAU); g2.stroke();
+  });
   return c;
 }
 
@@ -492,6 +553,9 @@ export function reflectFlashSprite() {
   g.lineWidth = 2.2; g.lineCap = 'round';
   poly(g, [[7, 14], [13, 8], [19, 14]], false); g.stroke();
   poly(g, [[29, 34], [35, 40], [41, 34]], false); g.stroke();
+  // A6: Mirror Shield reflect flash ← Sengoku ward-barrier rings (mirror-pale #dff2ff
+  // ladder = the 29.10 pip identity). Additive blit + expand-fade draw unchanged.
+  packOver(c, 'fx.reflectRing', 48, 48, 24, 24);
   return c;
 }
 
@@ -736,6 +800,9 @@ function bombNapalmSprite() {
   // top-left rim highlight (light convention)
   g.fillStyle = 'rgba(255,190,150,0.5)';
   g.beginPath(); g.ellipse(11, 14, 2.6, 1.7, -0.6, 0, TAU); g.fill();
+  // A6: napalm variant = the SAME world.bomb cell under its crimson card identity
+  // (#a8462e = this builder's casing palette; manifest tint IS the slot, blueFlame law).
+  packOver(c, 'world.bomb.napalm', 30, 34, 15, 17);
   return c;
 }
 
@@ -783,12 +850,74 @@ const PLATE = {
   // 18.x: level-up screen actions (Phase 18) — soul-blue plates
   action: { bgA: '#14202c', bgB: '#0a121c', line: 'rgba(140,190,255,0.55)', hi: 'rgba(140,190,255,0.14)' },
 };
+// ── 33.4.6 packed icon/pickup art (A5) ─────────────────────────────────────────
+// Shared machinery for drawing ONE manifest cell (icon.* / pickup.* slot) onto a
+// canvas: slice the single-cell strip → optional entry.tint recolour via the shared
+// luma ladder → trim the cell's padding to its opaque content box → nearest-neighbour
+// fit into a box on the target canvas. Why trim+fit at paint time instead of declared
+// rects: pack cells ship with per-icon padding; measuring the content keeps every
+// motif the same visual size without hand-authored trims per cell (the frame geometry
+// itself is gated on-disk by tools/test-art.mjs). Callers gate: in Node loadPack() is
+// null and no paint runs (drawn fallback / plate stays), and packCellArt throws only on
+// a manifest slot that does not exist — a wiring bug, which test-art proves cannot ship.
+function packCellArt(pk, slot, tintHex) {
+  const entry = pk.manifest.sprites[slot];
+  if (!entry) throw new Error('missing manifest slot: ' + slot);
+  const [f] = sliceStrip(pk.images, entry, 'art');
+  return tintHex ? paletteSwap(f, lumaTintMap(f, tintHex)) : f;
+}
+
+// Same cell, tint read from the manifest entry (data-side element recolour, rule 5 —
+// world/FX slots declare their ladder hex in sprites.json; test-art pins the hexes).
+function packSlot(pk, slot) {
+  return packCellArt(pk, slot, pk.manifest.sprites[slot].tint);
+}
+
+// 33.4.7 (A6) shared packed-repaint for world/FX sprites. Same deferred model as the
+// gem/heart bakes (33.4.6): the procedural draw above is the Node/failed-image fallback
+// (headless boot builds real pixels at the exact footprint), and the pack's single cell
+// repaints THAT SAME canvas in place once pixels decode — the engine never sees a new
+// object, and footprint, fit geometry and draw-call count never change (D-F2 perf law).
+// `under` optionally re-paints non-image layers (e.g. glow/ring underlays) under the
+// packed art. FX canvases are consumed by 'lighter' blits: pack cells are transparent-
+// background, so the additive glow pass semantics are identical to the procedural ones.
+function packOver(c, slot, fitW, fitH, cx, cy, under) {
+  const pk = loadPack();
+  if (!pk) return;
+  const paint = () => {
+    const g = c.getContext('2d');
+    g.clearRect(0, 0, c.width, c.height);
+    if (under) under(g);
+    paintArt(g, packSlot(pk, slot), fitW, fitH, cx, cy);
+  };
+  if (pk.ready) paint(); else onArtReady(pk, paint);
+}
+
+// Opaque-pixel bbox of a sliced cell: [x, y, w, h]; null when fully transparent.
+function contentBox(f) {
+  const d = f.getContext('2d').getImageData(0, 0, f.width, f.height).data;
+  let x0 = Infinity, y0 = Infinity, x1 = -1, y1 = -1;
+  for (let y = 0; y < f.height; y++) for (let x = 0; x < f.width; x++)
+    if (d[(y * f.width + x) * 4 + 3] > 8) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  return x1 < 0 ? null : [x0, y0, x1 - x0 + 1, y1 - y0 + 1];
+}
+
+// Paint the trimmed art centred in a fitW×fitH zone centred at (cx, cy) on g.
+function paintArt(g, f, fitW, fitH, cx, cy) {
+  const box = contentBox(f);
+  if (!box) return;
+  const [x, y, w, h] = box;
+  const s = Math.min(fitW / w, fitH / h);
+  const dw = Math.max(1, Math.round(w * s)), dh = Math.max(1, Math.round(h * s));
+  g.imageSmoothingEnabled = false;
+  g.drawImage(f, x, y, w, h, Math.round(cx - dw / 2), Math.round(cy - dh / 2), dw, dh);
+}
+
 export function buildIcons() {
   const icons = {};
+  const pk = loadPack(); // null in Node: packed icon slots keep plate-only canvases (boot asserts footprints only); test-art pins the manifest
   // Category plate + soft glow behind the silhouette (build-time only).
-  const make = (kind, fn) => {
-    const c = makeCanvas(72, 72);
-    const g = c.getContext('2d');
+  const paintPlate = (g, kind) => {
     const p = PLATE[kind] || PLATE.weapon;
     roundRectPath(g, 4, 4, 64, 64, 15);
     const bg = g.createLinearGradient(0, 4, 0, 68);
@@ -801,8 +930,26 @@ export function buildIcons() {
     roundRectPath(g, 6, 6, 60, 60, 13);
     g.fillStyle = hl; g.fill();
     g.drawImage(glowSprite(26, kind === 'synergy' ? '190,140,255' : kind === 'passive' ? '245,198,107' : '120,150,220', 0.14), 10, 10);
-    fn(g);
+  };
+  const make = (kind, fn) => {
+    const c = makeCanvas(72, 72);
+    const g = c.getContext('2d');
+    paintPlate(g, kind);
+    if (fn) fn(g);
     return c;
+  };
+  // 33.4.6: pack-sourced silhouette. The cell art is painted over the plate at
+  // art-ready (deferred model in load.js) — before that, or when the image failed,
+  // the canvas keeps its plate. fit zone: 52×52 centred (plate border stays visible).
+  const packDraw = (kind, slot) => (g) => {
+    if (!pk) return;
+    const paint = () => {
+      const gg = g.canvas.getContext('2d');
+      gg.clearRect(0, 0, 72, 72);
+      paintPlate(gg, kind);
+      paintArt(gg, packCellArt(pk, slot), 52, 52, 36, 36);
+    };
+    if (pk.ready) paint(); else onArtReady(pk, paint);
   };
 
   // ---- shared drawing helpers (build-time only) --------------------------
@@ -837,171 +984,15 @@ export function buildIcons() {
     g.bezierCurveTo(cx - r, cy - r * 0.2, x - r * 0.9 + Math.sin(lean) * r, y + h * 0.3, x, y);
     g.closePath();
   };
-  // crescent blade: outer arc radius R, inner radius r, centered on origin
-  const crescent = (g, R, r, span = 1.05) => {
-    g.beginPath();
-    g.arc(0, 0, R, -span, span);
-    g.arc(0, 0, r, span * 1.25, -span * 1.25, true);
-    g.closePath();
-  };
-  // classic heart path fitting a `w`×`h` box at (x,y): bottom tip, lobes at top
-  const heartPath = (g, x, y, w, h) => {
-    const cx = x + w / 2;
-    g.beginPath();
-    g.moveTo(cx, y + h);
-    g.bezierCurveTo(x - w * 0.12, y + h * 0.56, x - w * 0.07, y + h * 0.02, cx - w * 0.24, y + h * 0.07);
-    g.bezierCurveTo(x + w * 0.33, y + h * 0.1, cx, y + h * 0.26, cx, y + h * 0.36);
-    g.bezierCurveTo(cx, y + h * 0.26, x + w * 0.67, y + h * 0.1, cx + w * 0.24, y + h * 0.07);
-    g.bezierCurveTo(x + w * 1.07, y + h * 0.02, x + w * 1.12, y + h * 0.56, cx, y + h);
-    g.closePath();
-  };
 
   // ================= WEAPONS ==============================================
-  icons.wand = make('weapon', (g) => {
-    // Runed wand angled up-right: leather grip, gold ferrule, moonstone orb in a cradle
-    const shaft = g.createLinearGradient(18, 56, 44, 24);
-    shaft.addColorStop(0, '#3d2e1c'); shaft.addColorStop(0.5, '#7a5f40'); shaft.addColorStop(1, '#a9855a');
-    g.strokeStyle = shaft; g.lineWidth = 6; g.lineCap = 'round';
-    seg(g, [[18, 56], [44, 24]]);
-    // leather wrap on the grip
-    g.strokeStyle = 'rgba(30,20,10,0.55)'; g.lineWidth = 1.3;
-    for (const t of [0.1, 0.24, 0.38]) {
-      const x = 18 + (44 - 18) * t, y = 56 - (56 - 24) * t;
-      seg(g, [[x - 3, y - 2], [x + 3, y + 2]]);
-    }
-    // gold ferrule where the orb cradle begins
-    g.strokeStyle = '#c9a35c'; g.lineWidth = 3.4;
-    seg(g, [[41, 27.5], [45, 22.5]]);
-    // moonstone orb: halo → body → limb → specular
-    const halo = g.createRadialGradient(50, 19, 2, 50, 19, 16);
-    halo.addColorStop(0, 'rgba(140,255,232,0.5)'); halo.addColorStop(1, 'rgba(94,234,212,0)');
-    g.fillStyle = halo; g.beginPath(); g.arc(50, 19, 16, 0, TAU); g.fill();
-    const orb = g.createRadialGradient(46, 15, 1.5, 50, 19, 11);
-    orb.addColorStop(0, '#eafffb'); orb.addColorStop(0.55, '#7cf0da'); orb.addColorStop(1, '#2a9d8b');
-    g.fillStyle = orb; g.beginPath(); g.arc(50, 19, 10.5, 0, TAU); g.fill();
-    g.strokeStyle = 'rgba(14,70,62,0.5)'; g.lineWidth = 1.4; g.beginPath(); g.arc(50, 19, 10.5, 0, TAU); g.stroke();
-    dot(g, 46.5, 15, 2.6, 'rgba(255,255,255,0.92)');
-    // three-prong cradle hugging the orb's lower-left
-    g.strokeStyle = '#e8c66a'; g.lineWidth = 2.2; g.lineCap = 'round';
-    for (const a of [Math.PI * 0.62, Math.PI * 0.87, Math.PI * 1.12]) {
-      g.beginPath();
-      g.moveTo(50 + Math.cos(a) * 10.5, 19 + Math.sin(a) * 10.5);
-      g.lineTo(50 + Math.cos(a) * 14.5, 19 + Math.sin(a) * 14.5);
-      g.stroke();
-    }
-    glint(g, 63, 11, 3, 'rgba(180,255,235,0.9)');
-    glint(g, 37, 9, 2.2, 'rgba(180,255,235,0.7)');
-    dot(g, 60, 33, 1.6, 'rgba(180,255,235,0.8)');
-  });
+  icons.wand = make('weapon', packDraw('weapon', 'icon.wand'));
 
-  icons.garlic = make('weapon', (g) => {
-    // Radiant bulb: pulsing aura rings, veined cloves, knobby stalk
-    for (const [r, a] of [[29, 0.4], [33.5, 0.22]]) {
-      g.strokeStyle = `rgba(170,130,235,${a})`; g.lineWidth = r > 30 ? 1.6 : 2.2;
-      g.beginPath(); g.arc(36, 42, r, 0, TAU); g.stroke();
-    }
-    const bulb = () => {
-      g.beginPath();
-      g.moveTo(36, 20);
-      g.bezierCurveTo(51, 26, 56, 44, 47, 54);
-      g.bezierCurveTo(41, 60, 31, 60, 25, 54);
-      g.bezierCurveTo(16, 44, 21, 26, 36, 20);
-      g.closePath();
-    };
-    const grad = g.createRadialGradient(30, 30, 2, 36, 40, 22);
-    grad.addColorStop(0, '#fdfbff'); grad.addColorStop(0.55, '#d9c7f2'); grad.addColorStop(1, '#9a7cc9');
-    bulb(); g.fillStyle = grad; g.fill();
-    formShade(g, 18, 16, 36, 44, { shade: 0.24 });
-    bulb(); g.strokeStyle = 'rgba(90,60,150,0.55)'; g.lineWidth = 1.5; g.stroke();
-    // clove seams radiating from the stalk point
-    g.strokeStyle = 'rgba(120,88,180,0.75)'; g.lineWidth = 1.4;
-    for (const dx of [-10, -3.5, 3.5, 10]) {
-      g.beginPath(); g.moveTo(36 + dx * 0.28, 23);
-      g.quadraticCurveTo(36 + dx * 1.15, 41, 36 + dx * 0.55, 57); g.stroke();
-    }
-    // stalk + two leaf shoots
-    g.strokeStyle = '#6f9c58'; g.lineWidth = 2.6; g.lineCap = 'round';
-    seg(g, [[36, 20], [35, 13]]);
-    g.strokeStyle = '#84b56b'; g.lineWidth = 2.2;
-    g.beginPath(); g.moveTo(35, 13); g.quadraticCurveTo(30, 8, 24, 7); g.stroke();
-    g.beginPath(); g.moveTo(35, 13); g.quadraticCurveTo(41, 9, 47, 10); g.stroke();
-    dot(g, 24, 7, 1.6, '#a9d48a'); dot(g, 47, 10, 1.6, '#a9d48a');
-  });
+  icons.garlic = make('weapon', packDraw('weapon', 'icon.garlic'));
 
-  icons.axe = make('weapon', (g) => {
-    // 29.11 complete rework (user: the old one was unrecognizable as an axe):
-    // an upright textbook axe — vertical haft, big flared wedge head with a
-    // STRAIGHT bright cutting edge and a flat poll opposite it — canted ~11° for
-    // action. The T-silhouette is the whole card read; ghost-teal glow + return
-    // arcs say Spectral (this axe flies out AND comes back).
-    // return arcs behind everything: the boomerang path
-    g.strokeStyle = 'rgba(150,240,222,0.22)'; g.lineWidth = 3.4; g.lineCap = 'round';
-    g.beginPath(); g.arc(40, 36, 31, Math.PI * 0.62, Math.PI * 0.98); g.stroke();
-    g.beginPath(); g.arc(40, 36, 31, Math.PI * 1.62, Math.PI * 1.98); g.stroke();
-    g.save();
-    g.translate(36, 38); g.rotate(0.19); g.translate(-36, -36);
-    // ghost glow behind the head
-    g.drawImage(glowSprite(19, '120,230,210', 0.32), 32, 4);
-    // haft + pommel (vertical in local space; the whole frame is canted by the rotate)
-    const haft = g.createLinearGradient(32.5, 0, 39.5, 0);
-    haft.addColorStop(0, '#8a6a48'); haft.addColorStop(0.5, '#6e5137'); haft.addColorStop(1, '#3a2b1b');
-    g.strokeStyle = haft; g.lineWidth = 7; g.lineCap = 'round';
-    seg(g, [[36, 64], [36, 26]]);
-    g.strokeStyle = 'rgba(18,12,6,0.55)'; g.lineWidth = 1.4; // grip wraps
-    seg(g, [[32.5, 56], [39.5, 57.5]]); seg(g, [[32.5, 49], [39.5, 50.5]]);
-    dot(g, 36, 65.5, 3.2, '#241a10');
-    // head: strong FLARE is the axe signature — narrow eye (12 px) opening into a
-    // 35 px-tall fan with a sharp top horn and a dropped beard tip; a flat
-    // head-to-eye ratio is what made earlier attempts read as a mallet.
-    const steel = g.createLinearGradient(24, 0, 62, 0);
-    steel.addColorStop(0, '#5f7ba0'); steel.addColorStop(0.55, '#c6d8ee'); steel.addColorStop(1, '#eef6ff');
-    g.fillStyle = steel;
-    g.beginPath();
-    g.moveTo(33, 16);              // top of the eye (narrow)
-    g.lineTo(55, 5);               // top horn — long sharp flare
-    g.lineTo(59, 12);              // cutting edge top
-    g.lineTo(57, 28);              // straight cutting edge
-    g.lineTo(45, 40);              // beard tip — dropped sharp flare
-    g.lineTo(33, 28);              // bottom of the eye
-    g.closePath();
-    g.fill();
-    // short dark poll stub behind the eye (blade dwarfs it = axe, never a hammer)
-    g.fillStyle = '#46587a';
-    poly(g, [[26, 17], [33, 16], [33, 28], [26, 27]]); g.fill();
-    // one dark outline around the whole head keeps the silhouette crisp
-    g.strokeStyle = 'rgba(10,18,30,0.85)'; g.lineWidth = 1.6; g.lineJoin = 'miter';
-    g.beginPath();
-    g.moveTo(26, 17); g.lineTo(33, 16); g.lineTo(55, 5); g.lineTo(59, 12); g.lineTo(57, 28);
-    g.lineTo(45, 40); g.lineTo(33, 28); g.lineTo(26, 27);
-    g.closePath(); g.stroke();
-    // bright cutting-edge bevel on the straight edge (the definitive axe cue)
-    g.strokeStyle = 'rgba(210,255,242,0.95)'; g.lineWidth = 3; g.lineCap = 'butt';
-    g.beginPath(); g.moveTo(58.4, 13); g.lineTo(56.4, 26.5); g.stroke();
-    // shine along the top flare
-    g.strokeStyle = 'rgba(255,255,255,0.5)'; g.lineWidth = 1.2;
-    g.beginPath(); g.moveTo(35, 14.5); g.lineTo(52, 7.5); g.stroke();
-    formShade(g, 26, 5, 33, 35, { shade: 0.22 });
-    g.restore();
-  });
+  icons.axe = make('weapon', packDraw('weapon', 'icon.axe'));
 
-  icons.blades = make('weapon', (g) => {
-    // Orbit ring + three crescent blades flung tangentially over a small hub
-    g.strokeStyle = 'rgba(94,234,212,0.35)'; g.lineWidth = 1.8;
-    g.beginPath(); g.arc(36, 38, 26, 0, TAU); g.stroke();
-    g.fillStyle = 'rgba(94,234,212,0.25)';
-    g.beginPath(); g.arc(36, 38, 7, 0, TAU); g.fill();
-    dot(g, 36, 38, 3.4, 'rgba(220,255,246,0.8)');
-    const steel = () => { const s = g.createLinearGradient(-9, -9, 9, 9); s.addColorStop(0, '#f2f8ff'); s.addColorStop(0.6, '#a9bfe4'); s.addColorStop(1, '#6d84b5'); return s; };
-    // crescents face outward and sweep clockwise; narrow span = sharper cutting horns
-    for (const [cx, cy, rot] of [[36, 27, 0], [24.5, 45.5, 2.1], [48, 46, -2.1]]) {
-      g.save(); g.translate(cx, cy); g.rotate(rot);
-      crescent(g, 15, 6.6, 0.78);
-      g.fillStyle = steel(); g.fill();
-      g.strokeStyle = 'rgba(94,234,212,0.85)'; g.lineWidth = 1.4; g.stroke();
-      dot(g, 12, 0, 1.6, '#eafffb'); // tang tip on the outer arc
-      g.restore();
-    }
-  });
+  icons.blades = make('weapon', packDraw('weapon', 'icon.blades'));
 
   icons.fangs = make('weapon', (g) => {
     // Twin revolvers crossed in an X: muzzles high-out, wooden grips crossed low-center.
@@ -1049,275 +1040,22 @@ export function buildIcons() {
     glint(g, 60, 22, 2.4, 'rgba(255,236,170,0.7)');
   });
 
-  icons.bombs = make('weapon', (g) => {
-    // Sunder Bomb: cast-iron shell, glowing sunder crack, lit fuse with spark
-    g.strokeStyle = '#c9a35c'; g.lineWidth = 3; g.lineCap = 'round';
-    g.beginPath(); g.moveTo(40, 20); g.quadraticCurveTo(48, 12, 55, 12); g.stroke();
-    const fz = g.createRadialGradient(56, 12, 0.5, 56, 12, 4.5);
-    fz.addColorStop(0, '#fffbe8'); fz.addColorStop(0.5, '#ffd75e'); fz.addColorStop(1, 'rgba(255,150,40,0)');
-    g.fillStyle = fz; g.beginPath(); g.arc(56, 12, 4.5, 0, TAU); g.fill();
-    // neck + body
-    g.fillStyle = '#39404f';
-    roundRectPath(g, 32, 18, 9, 8, 2.5); g.fill();
-    const grad = g.createRadialGradient(28, 32, 3, 36, 40, 21);
-    grad.addColorStop(0, '#7b869c'); grad.addColorStop(0.45, '#353b4d'); grad.addColorStop(1, '#0e1017');
-    g.fillStyle = grad; g.beginPath(); g.arc(36, 40, 20, 0, TAU); g.fill();
-    formShade(g, 16, 20, 40, 40, { shade: 0.3 });
-    g.strokeStyle = 'rgba(9,10,16,0.8)'; g.lineWidth = 1.5;
-    g.beginPath(); g.arc(36, 40, 20, 0, TAU); g.stroke();
-    // iron banding seam
-    g.strokeStyle = 'rgba(140,152,175,0.4)'; g.lineWidth = 1.4;
-    g.beginPath(); g.arc(36, 40, 15.5, Math.PI * 0.15, Math.PI * 0.85); g.stroke();
-    // sunder crack glowing magma-hot
-    const crack = [[27, 31], [33, 38], [29, 44], [36, 51]];
-    g.strokeStyle = 'rgba(255,120,40,0.5)'; g.lineWidth = 4; g.lineJoin = 'round';
-    seg(g, crack); 
-    g.strokeStyle = '#ffb347'; g.lineWidth = 1.8; seg(g, crack);
-    g.strokeStyle = '#fff2c8'; g.lineWidth = 0.8; seg(g, crack);
-    dot(g, 26, 56, 1.6, 'rgba(255,190,90,0.85)'); dot(g, 47, 53, 1.3, 'rgba(255,190,90,0.7)');
-  });
+  icons.bombs = make('weapon', packDraw('weapon', 'icon.bombs'));
 
-  icons.pyre = make('weapon', (g) => {
-    // Pyre Lance: great flame tongue splitting into three licks with a rising ember column
-    const glow = g.createRadialGradient(36, 40, 2, 36, 40, 28);
-    glow.addColorStop(0, 'rgba(255,214,120,0.5)'); glow.addColorStop(1, 'rgba(255,90,30,0)');
-    g.fillStyle = glow; g.beginPath(); g.arc(36, 40, 28, 0, TAU); g.fill();
-    const layer = (h, lean, fill, tipX, tipY) => { g.fillStyle = fill; flameShape(g, tipX, tipY, h, lean); g.fill(); };
-    layer(28, -0.85, 'rgba(255,110,40,0.9)', 21, 32);
-    layer(25, 0.85, 'rgba(255,110,40,0.9)', 51, 36);
-    layer(44, 0, '#ff9a3c', 36, 12);
-    layer(30, 0, '#ffc85e', 36, 24);
-    layer(17, 0, '#fff2c4', 36, 36);
-    // ember column rising upper-right
-    for (const [x, y, r] of [[54, 14, 1.8], [60, 22, 1.4], [57, 33, 1.1], [20, 14, 1.3]]) {
-      dot(g, x, y, r, 'rgba(255,200,110,0.9)');
-    }
-  });
+  icons.pyre = make('weapon', packDraw('weapon', 'icon.pyre'));
 
-  icons.snowball = make('weapon', (g) => {
-    // Frost cannon angled up-right: banded tube, ice shell riding the muzzle, frost puffs
-    g.save(); g.translate(32, 44); g.rotate(-0.62);
-    const tube = g.createLinearGradient(0, -9, 0, 9);
-    tube.addColorStop(0, '#b9d6e8'); tube.addColorStop(0.5, '#67859f'); tube.addColorStop(1, '#2c3e52');
-    g.fillStyle = tube; roundRectPath(g, -24, -9.5, 42, 19, 6); g.fill();
-    // frost-rimed bands
-    g.fillStyle = 'rgba(180,225,250,0.55)';
-    roundRectPath(g, -14, -9, 4.5, 18, 2); g.fill();
-    roundRectPath(g, 0, -9, 4.5, 18, 2); g.fill();
-    g.fillStyle = '#1d2b3a'; roundRectPath(g, 14, -11.5, 7, 23, 3); g.fill(); // muzzle ring
-    g.fillStyle = '#465c72'; roundRectPath(g, -28, -6, 9, 12, 3.5); g.fill(); // breech block
-    g.restore();
-    // dark bore opening under the shell so the muzzle reads as a muzzle
-    dot(g, 46.2, 33.8, 6.2, 'rgba(8,16,26,0.9)');
-    // packed ice shell riding the muzzle
-    const ball = g.createRadialGradient(43, 27, 1, 46, 30, 11.5);
-    ball.addColorStop(0, '#ffffff'); ball.addColorStop(0.55, '#cfe8fa'); ball.addColorStop(1, '#7ea9cc');
-    g.fillStyle = ball; g.beginPath(); g.arc(46, 30, 10.5, 0, TAU); g.fill();
-    g.strokeStyle = 'rgba(120,180,220,0.6)'; g.lineWidth = 1.3;
-    g.beginPath(); g.arc(46, 30, 10.5, 0, TAU); g.stroke();
-    for (const [x, y] of [[-0.9, -0.3], [0.4, -0.9], [-0.3, 0.8]]) { // crack facets
-      g.beginPath(); g.moveTo(46, 30); g.lineTo(46 + x * 10, 30 + y * 10); g.stroke();
-    }
-    dot(g, 42, 26, 2.4, 'rgba(255,255,255,0.95)');
-    // snowflake puffs
-    for (const [x, y, r] of [[22, 13, 3.4], [58, 12, 3], [26, 5], [57, 36, 2.6]]) {
-      g.strokeStyle = 'rgba(200,235,255,0.8)'; g.lineWidth = 1.4;
-      for (let i = 0; i < 3; i++) { const a = (i / 3) * Math.PI + 0.35; g.beginPath(); g.moveTo(x, y); g.lineTo(x - Math.cos(a) * r, y - Math.sin(a) * r); g.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); g.stroke(); }
-    }
-  });
+  icons.snowball = make('weapon', packDraw('weapon', 'icon.snowball'));
 
-  icons.ringLightning = make('weapon', (g) => {
-    // Signet ring: gold band, lightning bolt refracted inside a storm sapphire
-    g.strokeStyle = '#8a6a3a'; g.lineWidth = 7.5;
-    g.beginPath(); g.arc(36, 46, 17, 0, TAU); g.stroke();
-    const band = g.createLinearGradient(24, 40, 50, 58);
-    band.addColorStop(0, '#f0d489'); band.addColorStop(0.55, '#c9a35c'); band.addColorStop(1, '#7d5f30');
-    g.strokeStyle = band; g.lineWidth = 5;
-    g.beginPath(); g.arc(36, 46, 17, 0, TAU); g.stroke();
-    // gem setting: hex collar + domed sapphire
-    g.fillStyle = '#6e5228';
-    poly(g, [[36, 12], [49, 20], [49, 32], [36, 40], [23, 32], [23, 20]]); g.fill();
-    const gem = g.createRadialGradient(32, 21, 1, 36, 26, 13);
-    gem.addColorStop(0, '#eef7ff'); gem.addColorStop(0.5, '#6fa9ff'); gem.addColorStop(1, '#24408f');
-    g.fillStyle = gem;
-    poly(g, [[36, 15], [46.5, 21.5], [46.5, 31.5], [36, 37.5], [25.5, 31.5], [25.5, 21.5]]); g.fill();
-    // bolt refracted inside the gem
-    boltShape(g, 30, 17, 20, 12);
-    g.fillStyle = '#fdf6c8'; g.fill();
-    // prongs + band highlight
-    g.strokeStyle = '#e8c66a'; g.lineWidth = 2.4; g.lineCap = 'round';
-    seg(g, [[25, 19], [20.5, 14.5]]); seg(g, [[47, 19], [51.5, 14.5]]);
-    g.strokeStyle = 'rgba(255,248,210,0.6)'; g.lineWidth = 1.8;
-    g.beginPath(); g.arc(36, 46, 19.5, Math.PI * 1.08, Math.PI * 1.5); g.stroke();
-    glint(g, 36, 8, 2.6, 'rgba(220,240,255,0.9)'); dot(g, 55, 34, 1.5, 'rgba(200,225,255,0.7)');
-  });
+  icons.ringLightning = make('weapon', packDraw('weapon', 'icon.ringLightning'));
 
-  icons.bow = make('weapon', (g) => {
-    // Recurve longbow drawn: wooden limbs curving back, taut string, nocked arrow
-    const limb = g.createLinearGradient(0, 8, 0, 64);
-    limb.addColorStop(0, '#c2955a'); limb.addColorStop(0.5, '#8f6a3c'); limb.addColorStop(1, '#5c4123');
-    g.strokeStyle = limb; g.lineWidth = 5.5; g.lineCap = 'round';
-    g.beginPath(); g.arc(24, 36, 25, -Math.PI * 0.44, Math.PI * 0.44); g.stroke();
-    // recurve tips flicking forward
-    g.lineWidth = 4;
-    const aTop = [-Math.PI * 0.44, Math.PI * 0.44];
-    for (const a of aTop) {
-      const ex = 24 + 25 * Math.cos(a), ey = 36 + 25 * Math.sin(a);
-      g.beginPath(); g.moveTo(ex, ey);
-      g.quadraticCurveTo(ex + 6, ey + (a < 0 ? -6 : 6), ex + 12, ey + (a < 0 ? -7 : 7));
-      g.stroke();
-    }
-    // string pinched back at the grip
-    const nx = 18, ny = 36;
-    for (const a of aTop) {
-      const ex = 24 + 25 * Math.cos(a), ey = 36 + 25 * Math.sin(a);
-      g.strokeStyle = 'rgba(235,240,252,0.9)'; g.lineWidth = 1.8;
-      g.beginPath(); g.moveTo(ex + 12, ey + (a < 0 ? -7 : 7)); g.lineTo(nx, ny); g.stroke();
-    }
-    // arrow shaft → pierce pad, nock fletch at the pinch
-    const shaftG = g.createLinearGradient(22, 36, 50, 36);
-    shaftG.addColorStop(0, '#8f6a3c'); shaftG.addColorStop(1, '#d9c08e');
-    g.strokeStyle = shaftG; g.lineWidth = 3.4;
-    seg(g, [[22, 36], [50, 36]]);
-    g.fillStyle = '#eef4ff';
-    poly(g, [[61, 36], [49, 31], [49, 41]]); g.fill(); // broadhead
-    g.strokeStyle = 'rgba(120,90,50,0.8)'; g.lineWidth = 1; seg(g, [[49, 31], [55, 36], [49, 41]]);
-    g.strokeStyle = '#e8b45a'; g.lineWidth = 2;
-    for (const dy of [-3.5, 0, 3.5]) { g.beginPath(); g.moveTo(nx, ny + dy); g.lineTo(nx + 6, ny + dy * 1.6 - (dy < 0 ? 1 : dy > 0 ? -1 : 0)); g.stroke(); }
-    dot(g, nx, ny, 1.8, '#d9c08e');
-  });
+  icons.bow = make('weapon', packDraw('weapon', 'icon.bow'));
 
   // ================= PASSIVES =============================================
-  icons.boots = make('passive', (g) => {
-    // Striding winged boot facing right: tall shaft, forward toe, lug sole, gold ankle
-    // strap, cream feather wing set at the back of the ankle, wind streaks behind.
-    // Dark outline + lighter leather keep the profile off the amber plate at 72px.
-    const OL = 'rgba(16,9,2,0.85)';
-    const streak = (y, x0, len, w) => {
-      g.lineWidth = w; g.beginPath(); g.moveTo(x0, y); g.lineTo(x0 + len, y); g.stroke();
-    };
-    g.strokeStyle = 'rgba(245,198,107,0.55)'; g.lineCap = 'round';
-    streak(24, 7, 13, 2.6); streak(31, 5, 12, 2.2); streak(40, 7, 11, 1.8);
-    // sole (dark, slight toe spring) + heel lug
-    g.fillStyle = '#241609';
-    g.beginPath();
-    g.moveTo(24, 47); g.lineTo(55, 47);
-    g.quadraticCurveTo(60, 47, 60, 43.5); g.lineTo(60, 42);
-    g.lineTo(58, 42); g.lineTo(57, 46.5);
-    g.lineTo(24, 49); g.closePath(); g.fill();
-    roundRectPath(g, 23, 46, 36, 6.5, 3); g.fillStyle = '#241609'; g.fill();
-    // boot body: shaft + vamp + toe in one outlined silhouette
-    const leather = g.createLinearGradient(16, 14, 56, 50);
-    leather.addColorStop(0, '#e0a868'); leather.addColorStop(0.5, '#a9713d'); leather.addColorStop(1, '#71441f');
-    g.fillStyle = leather;
-    g.beginPath();
-    g.moveTo(27, 14);                    // cuff back
-    g.lineTo(44, 12.5);                  // cuff front
-    g.lineTo(46, 33);                    // shaft front descends
-    g.quadraticCurveTo(53, 34, 56, 39);  // instep to toe
-    g.quadraticCurveTo(59, 42, 58.5, 46.5); // toe box down
-    g.lineTo(25, 47.5);                  // sole line back
-    g.lineTo(25.5, 30);                  // heel column
-    g.closePath(); g.fill();
-    g.strokeStyle = OL; g.lineWidth = 2.2; g.lineJoin = 'round'; g.stroke();
-    formShade(g, 27, 14, 20, 33, { shade: 0.22 });
-    // welt stitch + gold ankle strap with buckle
-    g.strokeStyle = 'rgba(60,35,12,0.6)'; g.lineWidth = 1.2;
-    seg(g, [[27, 44], [56, 43]]);
-    g.strokeStyle = '#f0cf72'; g.lineWidth = 3;
-    g.beginPath(); g.moveTo(27, 30); g.lineTo(45, 31.4); g.stroke();
-    dot(g, 41, 31.2, 2.2, '#ffe27e');
-    // cuff fold
-    g.strokeStyle = '#7c5230'; g.lineWidth = 3; g.lineCap = 'round';
-    seg(g, [[26.5, 17], [44.5, 15.5]]);
-    // feathered wing at the back ankle: three swept-back feathers, outlined
-    const feather = (x, y, len, lift) => {
-      g.beginPath();
-      g.moveTo(x, y);
-      g.quadraticCurveTo(x - len * 0.55, y - lift, x - len, y - lift * 0.7);
-      g.quadraticCurveTo(x - len * 0.5, y + 4, x, y + 4.5);
-      g.closePath();
-      g.fillStyle = 'rgba(255,247,224,0.97)'; g.fill();
-      g.strokeStyle = 'rgba(120,90,40,0.5)'; g.lineWidth = 1; g.stroke();
-    };
-    feather(27, 14, 18, 9); feather(26, 21, 21, 6); feather(27, 28, 15, 3);
-    // dust kick ahead of the toe
-    dot(g, 63, 51, 2.2, 'rgba(245,198,107,0.7)'); dot(g, 58, 55, 1.5, 'rgba(245,198,107,0.5)');
-  });
+  icons.boots = make('passive', packDraw('passive', 'icon.boots'));
 
-  icons.heart = make('passive', (g) => {
-    // Herbalist heart: glossy berry heart with oak leaves behind and a fresh sprout tip
-    // leaves peeking above the lobes
-    const leaf = (x, y, rot) => {
-      g.save(); g.translate(x, y); g.rotate(rot);
-      const lg = g.createLinearGradient(0, -12, 0, 4);
-      lg.addColorStop(0, '#8fce6e'); lg.addColorStop(1, '#3e7a3c');
-      g.fillStyle = lg;
-      g.beginPath();
-      g.moveTo(0, 4);
-      g.quadraticCurveTo(-9, -2, -2.5, -11);
-      g.quadraticCurveTo(0, -13.5, 2.5, -11);
-      g.quadraticCurveTo(9, -2, 0, 4);
-      g.closePath(); g.fill();
-      g.strokeStyle = 'rgba(30,60,28,0.55)'; g.lineWidth = 1; // central vein
-      g.beginPath(); g.moveTo(0, 2); g.quadraticCurveTo(0, -6, 0, -11); g.stroke();
-      g.restore();
-    };
-    leaf(24, 26, -0.75); leaf(48, 26, 0.75);
-    seg(g, [[36, 18], [36, 11]]); // stem
-    dot(g, 36, 10.5, 1.8, '#a9d48a');
-    // classic heart silhouette via cubic lobes (stable at this size)
-    const hp = () => {
-      g.beginPath();
-      g.moveTo(36, 60);
-      g.bezierCurveTo(11, 43, 10.5, 22.5, 21, 19.5);
-      g.bezierCurveTo(28.5, 17.5, 36, 24, 36, 28.5);
-      g.bezierCurveTo(36, 24, 43.5, 17.5, 51, 19.5);
-      g.bezierCurveTo(61.5, 22.5, 61, 43, 36, 60);
-      g.closePath();
-    };
-    hp();
-    const grad = g.createLinearGradient(14, 20, 14, 60);
-    grad.addColorStop(0, '#ff9aa8'); grad.addColorStop(0.5, '#ef3f5c'); grad.addColorStop(1, '#a91e39');
-    g.fillStyle = grad; g.fill();
-    formShade(g, 14, 20, 42, 40, { shade: 0.24, rim: 'rgba(255,190,205,0.4)' });
-    hp(); g.strokeStyle = 'rgba(110,12,36,0.6)'; g.lineWidth = 1.5; g.stroke();
-    // key-light gloss + a second small shine
-    g.fillStyle = 'rgba(255,235,240,0.8)';
-    g.beginPath(); g.ellipse(24, 29, 5.6, 3.4, -0.55, 0, TAU); g.fill();
-    dot(g, 31, 25, 1.6, 'rgba(255,255,255,0.85)');
-  });
+  icons.heart = make('passive', packDraw('passive', 'icon.heart'));
 
-  icons.sword = make('passive', (g) => {
-    // Rune-etched broadsword point-up: fullered blade, gold crossguard, wrapped grip, pommel gem
-    const steel = g.createLinearGradient(26, 52, 48, 10);
-    steel.addColorStop(0, '#7f93bd'); steel.addColorStop(0.5, '#e4edff'); steel.addColorStop(1, '#aebfe6');
-    poly(g, [[33, 52], [39, 52], [42, 24], [36, 11], [30, 24]]);
-    g.fillStyle = steel; g.fill();
-    formShade(g, 30, 11, 12, 41, { shade: 0.24 });
-    // fuller groove + glowing runes in it
-    g.strokeStyle = 'rgba(60,75,110,0.55)'; g.lineWidth = 2;
-    seg(g, [[36, 50], [36, 20]]);
-    g.strokeStyle = '#ffd75e'; g.lineWidth = 1.5; g.lineCap = 'round';
-    for (const y of [25, 32, 39]) { seg(g, [[33.5, y], [36, y + 3], [38.5, y]]); }
-    // edge lights along both bevels
-    g.strokeStyle = 'rgba(240,248,255,0.75)'; g.lineWidth = 1.2;
-    g.beginPath(); g.moveTo(36, 11); g.lineTo(30, 24); g.stroke();
-    // crossguard wings + pommel
-    const gold = g.createLinearGradient(22, 50, 50, 55);
-    gold.addColorStop(0, '#f0d489'); gold.addColorStop(0.6, '#c9a35c'); gold.addColorStop(1, '#8a6a3a');
-    g.fillStyle = gold;
-    poly(g, [[22, 50], [50, 50], [47, 56], [25, 56]]); g.fill();
-    dot(g, 23.5, 50.5, 2.4, '#ffd75e'); dot(g, 48.5, 50.5, 2.4, '#ffd75e');
-    // grip wrap
-    const grip = g.createLinearGradient(36, 56, 36, 64);
-    grip.addColorStop(0, '#7a5c33'); grip.addColorStop(1, '#4a3419');
-    g.fillStyle = grip; roundRectPath(g, 33, 55.5, 6, 8.5, 2.5); g.fill();
-    g.strokeStyle = 'rgba(20,14,6,0.55)'; g.lineWidth = 1;
-    seg(g, [[33.2, 58], [38.8, 59]]); seg(g, [[33.2, 61], [38.8, 62]]);
-    // pommel gem ringed in gold
-    dot(g, 36, 65.5, 4, '#c9a35c'); dot(g, 36, 65.5, 2.4, '#7fb8ff');
-  });
+  icons.sword = make('passive', packDraw('passive', 'icon.sword'));
 
   icons.magnet = make('passive', (g) => {
     // Horseshoe magnet tilted right: red body, silver poles, field lines + pulled iron filings
@@ -1347,49 +1085,9 @@ export function buildIcons() {
     }
   });
 
-  icons.sigil = make('passive', (g) => {
-    // Moon sigil: waxing crescent inside a double rune ring with tick marks + orbit sparks
-    g.strokeStyle = 'rgba(245,198,107,0.55)'; g.lineWidth = 2.2;
-    g.beginPath(); g.arc(36, 36, 27, 0, TAU); g.stroke();
-    g.strokeStyle = 'rgba(245,198,107,0.3)'; g.lineWidth = 1.4;
-    g.beginPath(); g.arc(36, 36, 23, 0, TAU); g.stroke();
-    for (let i = 0; i < 8; i++) { // rune ticks between the two rings
-      const a = (i / 8) * TAU + 0.35;
-      seg(g, [[36 + Math.cos(a) * 22.6, 36 + Math.sin(a) * 22.6], [36 + Math.cos(a) * 27.4, 36 + Math.sin(a) * 27.4]]);
-    }
-    // crescent moon: blue-lit disc bitten by plate-colored disc
-    const grad = g.createRadialGradient(30, 30, 2, 35, 36, 19);
-    grad.addColorStop(0, '#fbfdff'); grad.addColorStop(0.6, '#a8cff8'); grad.addColorStop(1, '#4a76b5');
-    g.fillStyle = grad; g.beginPath(); g.arc(35, 36, 17.5, 0, TAU); g.fill();
-    g.fillStyle = PLATE.passive.bgB;
-    g.beginPath(); g.arc(44.5, 29.5, 14.5, 0, TAU); g.fill();
-    // crater dimples on the lit sliver + a bright star at the horns
-    dot(g, 26, 38, 1.6, 'rgba(70,110,170,0.5)'); dot(g, 28, 45, 1.2, 'rgba(70,110,170,0.45)');
-    glint(g, 48, 46, 2.6, 'rgba(255,240,200,0.9)'); dot(g, 52, 26, 1.3, 'rgba(255,240,200,0.6)');
-  });
+  icons.sigil = make('passive', packDraw('passive', 'icon.sigil'));
 
-  icons.gem = make('passive', (g) => {
-    // Soul shard: pentagon crystal, three shaded facets, ridge lights, inner glow + rising motes
-    const grad = g.createLinearGradient(18, 12, 54, 60);
-    grad.addColorStop(0, '#3af5d4'); grad.addColorStop(0.5, '#0fb89b'); grad.addColorStop(1, '#0a6f60');
-    poly(g, [[36, 11], [55, 33], [48, 59], [24, 59], [17, 33]]);
-    g.fillStyle = grad; g.fill();
-    // facets: lit upper-left, dark upper-right, mid body
-    g.fillStyle = 'rgba(235,255,250,0.55)'; poly(g, [[36, 11], [17, 33], [36, 40]]); g.fill();
-    g.fillStyle = 'rgba(4,52,44,0.5)'; poly(g, [[36, 11], [55, 33], [36, 40]]); g.fill();
-    g.fillStyle = 'rgba(10,90,78,0.35)'; poly(g, [[17, 33], [24, 59], [48, 59], [55, 33], [36, 40]]); g.fill();
-    // ridge highlights along every facet seam
-    g.strokeStyle = 'rgba(240,255,250,0.7)'; g.lineWidth = 1.4;
-    seg(g, [[17, 33], [36, 40], [55, 33]]); seg(g, [[36, 11], [36, 40]]);
-    // outer edge stroke keeps the silhouette crisp
-    poly(g, [[36, 11], [55, 33], [48, 59], [24, 59], [17, 33]]);
-    g.strokeStyle = 'rgba(6,60,50,0.7)'; g.lineWidth = 1.5; g.stroke();
-    // inner soul light pulsing from the core + rising motes
-    const inner = g.createRadialGradient(36, 48, 0.5, 36, 49, 7);
-    inner.addColorStop(0, 'rgba(220,255,248,0.95)'); inner.addColorStop(1, 'rgba(94,234,212,0)');
-    g.fillStyle = inner; g.beginPath(); g.arc(36, 49, 7, 0, TAU); g.fill();
-    dot(g, 36, 22, 1.5, 'rgba(225,255,250,0.85)'); dot(g, 30, 48, 1.2, 'rgba(225,255,250,0.6)');
-  });
+  icons.gem = make('passive', packDraw('passive', 'icon.gem'));
 
   icons.dash = make('passive', (g) => {
     // Phantom Step: two ghost afterimages dissolving into motion streaks behind a runner
@@ -1419,127 +1117,13 @@ export function buildIcons() {
   });
 
   // ================= SYNERGIES ============================================
-  icons.blight = make('synergy', (g) => {
-    // Blight Hex: skull fused into a violet hex rune, toxic drips below, sickly eye sockets
-    const hx = [[36, 10], [56, 21.5], [56, 44.5], [36, 56], [16, 44.5], [16, 21.5]];
-    const grad = g.createLinearGradient(16, 10, 56, 56);
-    grad.addColorStop(0, '#d4b3ff'); grad.addColorStop(0.55, '#8a5fd6'); grad.addColorStop(1, '#43286f');
-    poly(g, hx); g.fillStyle = grad; g.fill();
-    formShade(g, 16, 10, 40, 46, { shade: 0.26, rim: 'rgba(225,195,255,0.4)' });
-    poly(g, hx); g.strokeStyle = 'rgba(30,14,58,0.7)'; g.lineWidth = 1.6; g.stroke();
-    // inner hex hairline
-    g.strokeStyle = 'rgba(230,210,255,0.4)'; g.lineWidth = 1.2;
-    poly(g, hx.map(([x, y]) => [36 + (x - 36) * 0.82, 33 + (y - 33) * 0.82])); g.stroke();
-    // skull: dome merged with the hex, dark sockets, nasal, jaw teeth
-    const bone = g.createLinearGradient(24, 16, 48, 44);
-    bone.addColorStop(0, '#f5ecff'); bone.addColorStop(0.7, '#c9b3e8'); bone.addColorStop(1, '#8f6fbf');
-    g.fillStyle = bone;
-    g.beginPath();
-    g.moveTo(24, 32);
-    g.bezierCurveTo(24, 18, 48, 18, 48, 32);
-    g.bezierCurveTo(48, 39, 44, 42, 42, 45);
-    g.lineTo(30, 45);
-    g.bezierCurveTo(28, 42, 24, 39, 24, 32);
-    g.closePath(); g.fill();
-    // sockets glow toxic green from deep inside
-    for (const ex of [30.5, 41.5]) {
-      const socket = g.createRadialGradient(ex, 31, 0.5, ex, 31, 5);
-      socket.addColorStop(0, '#c9ff8a'); socket.addColorStop(0.6, 'rgba(120,200,70,0.6)'); socket.addColorStop(1, 'rgba(20,40,10,0)');
-      g.fillStyle = socket; g.beginPath(); g.arc(ex, 31, 5, 0, TAU); g.fill();
-      dot(g, ex, 31, 2.6, '#1c1230');
-    }
-    poly(g, [[36, 34], [38, 39], [34, 39]]); g.fillStyle = '#1c1230'; g.fill(); // nasal cavity
-    g.strokeStyle = 'rgba(28,18,48,0.8)'; g.lineWidth = 1.4;
-    for (const tx of [32, 36, 40]) seg(g, [[tx, 45], [tx, 49]]); // teeth
-    g.fillStyle = '#b9f28a';
-    for (const [x, y, r] of [[27, 58, 2.6], [36, 61, 3.2], [45, 57, 2.2]]) { dot(g, x, y, r, '#b9f28a'); }
-    dot(g, 52, 50, 1.4, 'rgba(185,242,138,0.7)'); // drifting spore
-  });
+  icons.blight = make('synergy', packDraw('synergy', 'icon.blight'));
 
-  icons.tempest = make('synergy', (g) => {
-    // Tempest Blades: storm cloud low-left with three blade-bolts slashing up-right
-    const cloud = g.createLinearGradient(10, 40, 34, 62);
-    cloud.addColorStop(0, '#8f9bbd'); cloud.addColorStop(1, '#4d5878');
-    for (const [x, y, r] of [[18, 50, 8], [28, 47, 9.5], [38, 52, 7]]) { g.fillStyle = cloud; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill(); }
-    roundRectPath(g, 11, 50, 30, 9, 4.5); g.fillStyle = cloud; g.fill();
-    // underlit rim where the bolts flash the cloud from below
-    g.strokeStyle = 'rgba(255,233,168,0.5)'; g.lineWidth = 2;
-    g.beginPath(); g.moveTo(14, 57); g.lineTo(38, 57); g.stroke();
-    // three lightning blades: straight bolt shafts with a crescent edge
-    const bladeBolt = (x, y, rot) => {
-      g.save(); g.translate(x, y); g.rotate(rot);
-      boltShape(g, -6, -20, 40, 12);
-      const bg = g.createLinearGradient(0, -20, 0, 20);
-      bg.addColorStop(0, '#fffbe8'); bg.addColorStop(0.55, '#ffe06a'); bg.addColorStop(1, '#ffaa3c');
-      g.fillStyle = bg; g.fill();
-      g.strokeStyle = 'rgba(255,247,230,0.8)'; g.lineWidth = 1; g.stroke();
-      g.restore();
-    };
-    bladeBolt(30, 34, 0.6); bladeBolt(41, 32, 0.85); bladeBolt(50, 37, 1.15);
-    // scattered charge sparks
-    dot(g, 55, 22, 1.6, 'rgba(255,233,168,0.9)'); dot(g, 46, 16, 1.3, 'rgba(255,233,168,0.75)');
-    glint(g, 18, 34, 2.2, 'rgba(200,220,255,0.6)');
-  });
+  icons.tempest = make('synergy', packDraw('synergy', 'icon.tempest'));
 
-  icons.inferno = make('synergy', (g) => {
-    // Inferno Rounds: bullet fired up-right trailing a torn ribbon of flame, sparks in the wake
-    // flame ribbon behind the projectile
-    const ribbon = g.createLinearGradient(12, 56, 48, 20);
-    ribbon.addColorStop(0, 'rgba(255,90,30,0)'); ribbon.addColorStop(0.45, 'rgba(255,120,40,0.75)'); ribbon.addColorStop(1, '#ffc85e');
-    g.fillStyle = ribbon;
-    g.beginPath();
-    g.moveTo(12, 60);
-    g.bezierCurveTo(22, 48, 30, 44, 40, 35); // reaches the casing's heel
-    g.bezierCurveTo(33, 44, 30, 48, 27, 55);
-    g.bezierCurveTo(23, 61, 16, 63, 12, 60);
-    g.closePath(); g.fill();
-    for (const [x, y, h] of [[20, 40, 14], [30, 50, 11], [38, 36, 10]]) {
-      flameShape(g, x, y, h, -0.5); g.fillStyle = 'rgba(255,150,60,0.85)'; g.fill();
-    }
-    // the round flying up-right: molten ogive nose leads, brass casing trails into the wake
-    g.save(); g.translate(44, 28); g.rotate(0.72); // nose (local -y) points up-right
-    const brass = g.createLinearGradient(-5, 6, 5, 0);
-    brass.addColorStop(0, '#8f6a2c'); brass.addColorStop(0.45, '#d3a44a'); brass.addColorStop(1, '#ffe9a8');
-    g.fillStyle = brass; roundRectPath(g, -5, -6, 10, 12, 2); g.fill(); // casing
-    g.strokeStyle = 'rgba(40,20,4,0.6)'; g.lineWidth = 1.2; roundRectPath(g, -5, -6, 10, 12, 2); g.stroke();
-    dot(g, 0, 4.6, 1.6, 'rgba(70,45,12,0.8)'); // primer
-    g.beginPath(); g.moveTo(-5, -6); g.quadraticCurveTo(-5, -20, 0, -22); g.quadraticCurveTo(5, -20, 5, -6); g.closePath();
-    const nose = g.createLinearGradient(0, -22, 0, -6);
-    nose.addColorStop(0, '#fff8e8'); nose.addColorStop(0.5, '#ffb45e'); nose.addColorStop(1, '#ff6a2a');
-    g.fillStyle = nose; g.fill();
-    g.strokeStyle = 'rgba(120,50,10,0.55)'; g.lineWidth = 1; g.stroke();
-    g.restore();
-    // heat glint on the leading nose tip + ember wake
-    glint(g, 56, 15, 3.2, 'rgba(255,247,230,0.95)', 1.8);
-    for (const [x, y, r] of [[14, 30, 1.6], [24, 22, 1.2], [58, 44, 1.5], [10, 46, 1.2]]) {
-      dot(g, x, y, r, 'rgba(255,200,110,0.9)');
-    }
-  });
+  icons.inferno = make('synergy', packDraw('synergy', 'icon.inferno'));
 
-  icons.napalm = make('synergy', (g) => {
-    // Napalm Detonation: bomb splitting open, pressurized fire jets arcing out both sides
-    g.strokeStyle = '#c9a35c'; g.lineWidth = 2.6; g.lineCap = 'round';
-    g.beginPath(); g.moveTo(40, 22); g.quadraticCurveTo(48, 14, 54, 15); g.stroke();
-    dot(g, 55, 15, 2.4, '#ffd75e');
-    const grad = g.createRadialGradient(27, 30, 2, 34, 42, 19);
-    grad.addColorStop(0, '#6b768c'); grad.addColorStop(0.5, '#2d3343'); grad.addColorStop(1, '#101219');
-    g.fillStyle = grad; g.beginPath(); g.arc(34, 42, 17, 0, TAU); g.fill();
-    // split seam: glowing interior where the shell tears open
-    const tear = [[26, 36], [33, 42], [29, 48]];
-    g.strokeStyle = 'rgba(255,140,40,0.55)'; g.lineWidth = 5; seg(g, tear);
-    g.strokeStyle = '#ffc85e'; g.lineWidth = 2; seg(g, tear);
-    g.fillStyle = '#39404f'; g.beginPath(); g.arc(31, 27, 5.5, 0, TAU); g.fill(); // neck ring
-    // three pressurized jets sweeping outward
-    const jet = (x, y, h, lean) => { flameShape(g, x, y, h, lean); };
-    jet(18, 46, 30, -0.9); g.fillStyle = 'rgba(255,110,40,0.85)'; g.fill();
-    jet(46, 50, 26, 0.7); g.fillStyle = 'rgba(255,110,40,0.85)'; g.fill();
-    jet(34, 16, 20, 0); g.fillStyle = '#ff9a3c'; g.fill();
-    jet(34, 22, 12, 0); g.fillStyle = '#ffc85e'; g.fill();
-    // sticky droplets flung outward
-    for (const [x, y, r] of [[12, 60, 2], [58, 58, 1.7], [60, 34, 1.4], [10, 30, 1.5]]) {
-      dot(g, x, y, r, 'rgba(255,170,70,0.9)');
-    }
-  });
+  icons.napalm = make('synergy', packDraw('synergy', 'icon.napalm'));
 
   icons.phoenix = make('synergy', (g) => {
     // Phoenix Heart: flame-plumed heart rising, split flame wings sweeping up from behind it
@@ -1655,33 +1239,7 @@ export function buildIcons() {
     g.beginPath(); g.arc(36, 37, 29, 0, TAU); g.stroke();
   });
 
-  icons.blueFlame = make('synergy', (g) => {
-    // Blue Flame: cold-fire torch — great blue flame with an ice core; a snowflake melts at its base
-    const glow = g.createRadialGradient(36, 40, 2, 36, 40, 27);
-    glow.addColorStop(0, 'rgba(180,230,255,0.55)'); glow.addColorStop(1, 'rgba(40,90,230,0)');
-    g.fillStyle = glow; g.beginPath(); g.arc(36, 40, 27, 0, TAU); g.fill();
-    flameShape(g, 25, 30, 30, -0.35); g.fillStyle = 'rgba(90,160,255,0.8)'; g.fill();
-    flameShape(g, 47, 32, 28, 0.35); g.fillStyle = 'rgba(90,160,255,0.8)'; g.fill();
-    flameShape(g, 36, 12, 42, 0); g.fillStyle = '#7ab8ff'; g.fill();
-    flameShape(g, 36, 24, 27, 0); g.fillStyle = '#b9dcff'; g.fill();
-    flameShape(g, 36, 35, 15, 0); g.fillStyle = '#eaf7ff'; g.fill();
-    // ice crystal frozen inside the hottest part of the flame
-    g.save(); g.translate(36, 40);
-    g.strokeStyle = 'rgba(240,250,255,0.95)'; g.lineWidth = 1.8; g.lineCap = 'round';
-    for (let i = 0; i < 3; i++) {
-      const a = (i / 3) * Math.PI + 0.35;
-      seg(g, [[-Math.cos(a) * 7, -Math.sin(a) * 7], [Math.cos(a) * 7, Math.sin(a) * 7]]);
-      for (const s of [1, -1]) { // branch arms
-        const bx = Math.cos(a) * 4.6 * s, by = Math.sin(a) * 4.6 * s;
-        seg(g, [[bx, by], [bx + Math.cos(a + 1.1) * 2.4, by + Math.sin(a + 1.1) * 2.4]]);
-      }
-    }
-    g.restore();
-    // melting drip falling from the snowflake side + cold sparks
-    g.fillStyle = 'rgba(160,215,255,0.9)';
-    g.beginPath(); g.moveTo(23, 50); g.quadraticCurveTo(21, 55, 23.5, 57); g.quadraticCurveTo(26, 55, 24, 50); g.closePath(); g.fill();
-    for (const [x, y, r] of [[17, 28, 1.4], [56, 24, 1.6], [58, 44, 1.2]]) dot(g, x, y, r, 'rgba(200,235,255,0.9)');
-  });
+  icons.blueFlame = make('synergy', packDraw('synergy', 'icon.blueFlame'));
 
   icons.stormVolley = make('synergy', (g) => {
     // Storm Volley: storm cloud dispensing a volley of bullets that are lightning bolts
@@ -1756,265 +1314,26 @@ export function buildIcons() {
   });
 
   // ================= ACTIONS (Phase 18, D84) =================================
-  icons.skip = make('action', (g) => {
-    // Double forward chevron in motion, an XP gem breaking away up-right with sparks
-    g.lineCap = 'round'; g.lineJoin = 'round';
-    // trailing motion dashes behind the chevrons
-    g.strokeStyle = 'rgba(140,190,255,0.35)'; g.lineWidth = 3.4;
-    seg(g, [[7, 26], [15, 26]]); seg(g, [[5, 36], [14, 36]]); seg(g, [[7, 46], [15, 46]]);
-    // two bold outlined chevrons
-    const chevron = (ox, w, stroke, lw) => {
-      g.strokeStyle = stroke; g.lineWidth = lw;
-      g.beginPath();
-      g.moveTo(ox, 16); g.lineTo(ox + w, 36); g.lineTo(ox, 56);
-      g.stroke();
-    };
-    chevron(16, 3.2, 'rgba(6,14,26,1)', 15); // dark backing outline
-    chevron(16, 3.2, 'rgba(205,228,255,0.95)', 10.5);
-    chevron(33, 3.2, 'rgba(6,14,26,1)', 15);
-    chevron(33, 3.2, 'rgba(140,190,255,0.95)', 10.5);
-    // XP gem breaking ahead, top-right
-    const gg = g.createLinearGradient(48, 6, 62, 20);
-    gg.addColorStop(0, '#cfe6ff'); gg.addColorStop(1, '#4f7fd6');
-    g.fillStyle = gg;
-    poly(g, [[55, 6], [62, 13], [55, 20], [48, 13]]);
-    g.fill();
-    g.strokeStyle = 'rgba(205,228,255,0.85)'; g.lineWidth = 1.4;
-    poly(g, [[55, 6], [62, 13], [55, 20], [48, 13]]);
-    g.stroke();
-    glint(g, 52, 26, 2.2, 'rgba(205,228,255,0.8)');
-  });
+  icons.skip = make('action', packDraw('action', 'icon.skip'));
 
-  icons.reroll = make('action', (g) => {
-    // Twin-headed cycle arrow (open at the breaks) around a central spark
-    g.lineCap = 'round';
-    const ring = g.createLinearGradient(14, 14, 58, 58);
-    ring.addColorStop(0, '#d5e8ff'); ring.addColorStop(1, '#6f9ae0');
-    g.strokeStyle = ring; g.lineWidth = 8.5;
-    g.beginPath(); g.arc(36, 36, 21, -Math.PI * 0.32, Math.PI * 0.72); g.stroke();
-    g.beginPath(); g.arc(36, 36, 21, Math.PI * 0.68, Math.PI * 1.72); g.stroke();
-    // arrowheads at both open ends, pointing along travel
-    const head = (cx, cy, a) => {
-      g.save(); g.translate(cx, cy); g.rotate(a);
-      g.fillStyle = '#e6f1ff';
-      poly(g, [[0, -8.5], [12, 0], [0, 8.5]]);
-      g.fill();
-      g.restore();
-    };
-    head(36 + Math.cos(-Math.PI * 0.32) * 21, 36 + Math.sin(-Math.PI * 0.32) * 21, Math.PI * 0.18); // upper-right end
-    head(36 + Math.cos(Math.PI * 0.68) * 21, 36 + Math.sin(Math.PI * 0.68) * 21, Math.PI * 1.18); // lower-left end
-    // center spark: four short rays
-    g.strokeStyle = 'rgba(205,228,255,0.9)'; g.lineWidth = 3;
-    seg(g, [[36, 27], [36, 31]]); seg(g, [[36, 41], [36, 45]]);
-    seg(g, [[27, 36], [31, 36]]); seg(g, [[41, 36], [45, 36]]);
-    glint(g, 43, 29, 2.4, 'rgba(230,241,255,0.9)');
-  });
+  icons.reroll = make('action', packDraw('action', 'icon.reroll'));
 
-  icons.banish = make('action', (g) => {
-    // Upright card struck through with a bold X, wisps dissolving off to the right
-    g.save(); g.translate(26, 36); g.rotate(-0.07);
-    const cardG = g.createLinearGradient(-15, -22, 15, 22);
-    cardG.addColorStop(0, '#dfe9f7'); cardG.addColorStop(1, '#8b9dbb');
-    g.fillStyle = cardG;
-    roundRectPath(g, -15, -22, 30, 44, 4);
-    g.fill();
-    g.strokeStyle = 'rgba(10,18,30,0.9)'; g.lineWidth = 2;
-    roundRectPath(g, -15, -22, 30, 44, 4);
-    g.stroke();
-    // faint inner motif so it reads as a card, not a blank tile
-    g.strokeStyle = 'rgba(35,50,75,0.55)'; g.lineWidth = 2;
-    seg(g, [[-9, -14], [9, -14]]); seg(g, [[-9, 14], [4, 14]]);
-    // the striking X — dark backing then red
-    g.lineCap = 'round';
-    g.strokeStyle = 'rgba(8,12,22,1)'; g.lineWidth = 12;
-    seg(g, [[-19, -20], [19, 20]]); seg(g, [[19, -20], [-19, 20]]);
-    g.strokeStyle = '#ff6b6b'; g.lineWidth = 7.5;
-    seg(g, [[-19, -20], [19, 20]]); seg(g, [[19, -20], [-19, 20]]);
-    g.restore();
-    // dissolving wisps drifting right
-    g.strokeStyle = 'rgba(140,190,255,0.65)'; g.lineWidth = 2.6;
-    seg(g, [[50, 22], [60, 20]]); seg(g, [[52, 32], [64, 32]]); seg(g, [[50, 42], [60, 44]]);
-    glint(g, 63, 26, 2, 'rgba(205,228,255,0.85)');
-  });
+  icons.banish = make('action', packDraw('action', 'icon.banish'));
 
   // ================= PHASE 21 — WEAPONS (9) ==============================
-  icons.missile = make('weapon', (g) => {
-    // 31.4 Homing Missile: an airborne missile in flame trailing a lock-on reticle over
-    // its nose — reads as "tracks and detonates", not a barrel (the old Tank Cannon
-    // barrel is retired; 31.15: icon key `missile` matches the card name).
-    g.save();
-    g.translate(30, 38); g.rotate(-0.72); // flying up-right
-    // exhaust plume behind the body
-    const fl = g.createLinearGradient(-30, 0, -13, 0);
-    fl.addColorStop(0, 'rgba(255,140,40,0)'); fl.addColorStop(0.6, 'rgba(255,170,70,0.7)'); fl.addColorStop(1, 'rgba(255,235,160,0.95)');
-    g.fillStyle = fl;
-    poly(g, [[-30, 0], [-13, -6.5], [-13, 6.5]]);
-    // swept tail fins
-    g.fillStyle = '#8f3226';
-    poly(g, [[-13, -4], [-20, -11.5], [-7, -4]]);
-    poly(g, [[-13, 4], [-20, 11.5], [-7, 4]]);
-    g.fill();
-    // steel body + copper band + red warhead
-    const st = g.createLinearGradient(0, -7, 0, 7);
-    st.addColorStop(0, '#cfd8e3'); st.addColorStop(0.5, '#778493'); st.addColorStop(1, '#333c47');
-    g.fillStyle = st;
-    roundRectPath(g, -13, -6.5, 28, 13, 4); g.fill();
-    g.fillStyle = '#c8863f'; g.fillRect(9, -6.5, 3, 13);
-    g.fillStyle = '#c0492f';
-    g.beginPath(); g.moveTo(14, -6.5); g.quadraticCurveTo(27, 0, 14, 6.5); g.closePath(); g.fill();
-    g.restore();
-    // lock-on reticle (four corner brackets + pip) around the nose point — the homing cue
-    const bx = 50, by = 20, s = 10, o = 4;
-    g.strokeStyle = '#8fd3ff'; g.lineWidth = 2.4; g.lineCap = 'round';
-    for (const [sx, sy] of [[1, -1], [-1, -1], [1, 1], [-1, 1]])
-      seg(g, [[bx + sx * s, by + sy * (s - o)], [bx + sx * s, by + sy * s], [bx + sx * (s - o), by + sy * s]]);
-    glint(g, bx, by, 2.6, 'rgba(180,220,255,0.85)');
-  });
+  icons.missile = make('weapon', packDraw('weapon', 'icon.missile'));
 
-  icons.laser = make('weapon', (g) => {
-    // Emitter block bottom-left, searing beam across the plate + hot core
-    g.save();
-    g.globalCompositeOperation = 'lighter';
-    g.strokeStyle = 'rgba(255,90,120,0.5)'; g.lineWidth = 9; g.lineCap = 'round';
-    seg(g, [[22, 52], [58, 14]]);
-    g.strokeStyle = 'rgba(255,150,170,0.9)'; g.lineWidth = 3.4;
-    seg(g, [[22, 52], [58, 14]]);
-    g.strokeStyle = '#fff0f3'; g.lineWidth = 1.4;
-    seg(g, [[22, 52], [58, 14]]);
-    g.restore();
-    // emitter: dark housing + lens glow
-    g.fillStyle = '#2b323d'; poly(g, [[12, 46], [30, 46], [30, 62], [12, 62]]); g.fill();
-    g.strokeStyle = '#59647a'; g.lineWidth = 1.4; g.stroke();
-    dot(g, 26, 50, 4.4, 'rgba(255,110,130,0.95)');
-    dot(g, 26, 50, 2, '#fff');
-    // scorched mote at the far end
-    glint(g, 58, 14, 4.5, 'rgba(255,140,150,0.8)', 1.6);
-  });
+  icons.laser = make('weapon', packDraw('weapon', 'icon.laser'));
 
-  icons.wolfpack = make('weapon', (g) => {
-    // 29.9 complete rework: THE PACK — three snarling wolf heads in the exact
-    // in-game coat identities (dark grey + dark brown back row, light brown alpha
-    // front), amber eyes (the enemy wolf's are red), bared fangs, heavy outlines
-    // so the three silhouettes never merge; a violet crescent ties them to the
-    // Werewolf hero (pack bond).
-    const head = (cx, cy, s, fur, shade) => {
-      // angular snarling head, facing left (base art at (16,18)-(58,60), centre (37,39))
-      g.save();
-      g.translate(cx, cy); g.scale(s, s); g.translate(-37, -39);
-      g.fillStyle = fur;
-      poly(g, [[24, 18], [30, 30], [44, 26], [56, 34], [52, 44], [58, 50], [46, 52], [40, 60], [26, 56], [16, 40], [18, 26]]);
-      g.fill();
-      g.fillStyle = shade; // ear + jaw plane
-      poly(g, [[18, 26], [24, 18], [30, 30], [22, 34]]); g.fill();
-      poly(g, [[40, 60], [46, 52], [52, 44], [58, 50], [48, 56]]); g.fill();
-      // bared fangs off the snarl line
-      g.fillStyle = '#f4f7fa';
-      poly(g, [[48.5, 51], [50.5, 55.5], [52, 50.8]]); g.fill();
-      poly(g, [[43.5, 52.5], [45, 56], [46.4, 52.3]]); g.fill();
-      // amber eye + nose
-      dot(g, 36, 36, 2.4, '#ffb648'); dot(g, 36, 36, 1, '#20160a');
-      dot(g, 56.5, 47, 1.7, '#141a22');
-      // heavy silhouette outline (three distinct heads at 1×)
-      g.strokeStyle = 'rgba(8,12,18,0.9)'; g.lineWidth = 3.4; g.lineJoin = 'round';
-      poly(g, [[24, 18], [30, 30], [44, 26], [56, 34], [52, 44], [58, 50], [46, 52], [40, 60], [26, 56], [16, 40], [18, 26]]);
-      g.closePath(); g.stroke();
-      g.restore();
-    };
-    // violet crescent between the back-row heads (Werewolf pack bond)
-    g.fillStyle = 'rgba(192,132,252,0.6)';
-    g.beginPath(); g.arc(36, 17, 6.5, 0, TAU); g.fill();
-    g.fillStyle = PLATE.weapon.bgA;
-    g.beginPath(); g.arc(39, 15.5, 5.5, 0, TAU); g.fill();
-    glint(g, 29, 12, 2.4, 'rgba(220,180,255,0.8)');
-    // back row (smaller, darker), then the alpha wolf front and largest
-    head(21, 27, 0.55, '#4a505a', '#31363e');   // 2nd wolf — dark grey
-    head(51, 27, 0.55, '#5b3d24', '#3c2714');   // 3rd wolf — dark brown
-    head(36, 48, 0.72, '#b08256', '#7c5a36');   // 1st wolf — light brown
-  });
+  icons.wolfpack = make('weapon', packDraw('weapon', 'icon.wolfpack'));
 
-  icons.boulder = make('weapon', (g) => {
-    // Rolling stone: faceted rock + crack + speed streaks behind
-    g.strokeStyle = 'rgba(160,175,195,0.5)'; g.lineWidth = 2.4; g.lineCap = 'round';
-    seg(g, [[8, 30], [18, 30]]); seg(g, [[6, 42], [16, 42]]); seg(g, [[10, 54], [20, 54]]);
-    const rg = g.createRadialGradient(40, 34, 4, 44, 40, 22);
-    rg.addColorStop(0, '#c8d0da'); rg.addColorStop(0.6, '#8b97a6'); rg.addColorStop(1, '#525d6b');
-    g.fillStyle = rg;
-    poly(g, [[40, 16], [56, 22], [64, 38], [56, 56], [38, 60], [26, 48], [28, 26]]);
-    g.fill();
-    g.strokeStyle = 'rgba(24,30,38,0.7)'; g.lineWidth = 1.6; g.stroke();
-    g.strokeStyle = 'rgba(40,48,58,0.8)'; g.lineWidth = 1.8; // crack
-    seg(g, [[36, 24], [44, 36], [38, 46], [48, 54]]);
-    g.strokeStyle = 'rgba(235,242,250,0.5)'; g.lineWidth = 1.2; // top highlight edge
-    seg(g, [[40, 16], [56, 22]]);
-  });
+  icons.boulder = make('weapon', packDraw('weapon', 'icon.boulder'));
 
-  icons.webs = make('weapon', (g) => {
-    // Spider silk: radial spokes + two ring arcs, dew drop glints
-    g.strokeStyle = 'rgba(225,235,245,0.85)'; g.lineWidth = 1.6; g.lineCap = 'round';
-    const cx = 38, cy = 36;
-    for (let k = 0; k < 8; k++) {
-      const a = (k / 8) * TAU;
-      seg(g, [[cx, cy], [cx + Math.cos(a) * 22, cy + Math.sin(a) * 22]]);
-    }
-    g.lineWidth = 1.2;
-    for (const r of [9, 16]) {
-      g.beginPath();
-      for (let k = 0; k <= 8; k++) {
-        const a = (k / 8) * TAU;
-        const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
-        k ? g.lineTo(x, y) : g.moveTo(x, y);
-      }
-      g.stroke();
-    }
-    dot(g, cx, cy, 2.4, 'rgba(210,225,240,0.9)');
-    glint(g, 20, 20, 2.6, 'rgba(240,248,255,0.8)');
-    dot(g, 52, 50, 1.8, 'rgba(240,248,255,0.8)');
-  });
+  icons.webs = make('weapon', packDraw('weapon', 'icon.webs'));
 
-  icons.gatling = make('weapon', (g) => {
-    // Rotary fan of three barrels + muzzle sparks + ammo belt hint
-    const st = g.createLinearGradient(14, 50, 54, 26);
-    st.addColorStop(0, '#333b45'); st.addColorStop(1, '#79848f');
-    g.strokeStyle = st; g.lineWidth = 5; g.lineCap = 'round';
-    seg(g, [[16, 52], [52, 20]]);
-    seg(g, [[14, 56], [52, 30]]);
-    seg(g, [[20, 58], [54, 40]]);
-    g.strokeStyle = '#c9a35c'; g.lineWidth = 3; // hub
-    dot(g, 17, 54.5, 4, '#4a5560');
-    dot(g, 17, 54.5, 2, '#c9a35c');
-    // muzzle sparks
-    g.save();
-    g.globalCompositeOperation = 'lighter';
-    glint(g, 54, 20, 4, 'rgba(255,220,130,0.9)', 1.6);
-    glint(g, 54, 40, 3, 'rgba(255,190,110,0.8)', 1.4);
-    g.restore();
-    // ammo belt: linked rounds along the base
-    g.fillStyle = '#b8863f';
-    for (let k = 0; k < 4; k++) dot(g, 22 + k * 8, 64, 2.4, '#b8863f');
-    g.strokeStyle = 'rgba(90,66,30,0.8)'; g.lineWidth = 1;
-    seg(g, [[22, 64], [46, 64]]);
-  });
+  icons.gatling = make('weapon', packDraw('weapon', 'icon.gatling'));
 
-  icons.bat = make('weapon', (g) => {
-    // Ash baseball bat diagonal + stitched ball + swing arc
-    const wd = g.createLinearGradient(20, 56, 52, 18);
-    wd.addColorStop(0, '#7a5230'); wd.addColorStop(0.5, '#c08a52'); wd.addColorStop(1, '#e0b285');
-    g.strokeStyle = wd; g.lineWidth = 8; g.lineCap = 'round';
-    seg(g, [[22, 54], [44, 28]]);
-    g.lineWidth = 11;
-    seg(g, [[44, 28], [52, 18]]); // barrel swell
-    g.strokeStyle = '#3d2a18'; g.lineWidth = 5; // grip + knob
-    seg(g, [[18, 58], [24, 52]]);
-    dot(g, 17, 59, 3, '#3d2a18');
-    // swing arc
-    g.strokeStyle = 'rgba(245,217,168,0.55)'; g.lineWidth = 2.4;
-    g.beginPath(); g.arc(20, 52, 40, -1.45, -0.5); g.stroke();
-    // ball with stitches
-    dot(g, 15, 20, 6, '#f4f6f8');
-    g.strokeStyle = '#d43c3c'; g.lineWidth = 1.2;
-    g.beginPath(); g.arc(15, 20, 4.4, -2.2, -0.7); g.stroke();
-    g.beginPath(); g.arc(15, 20, 4.4, 0.9, 2.4); g.stroke();
-  });
+  icons.bat = make('weapon', packDraw('weapon', 'icon.bat'));
 
   icons.tongue = make('weapon', (g) => {
     // Frog head low-left, long snaking tongue to a lashed sticky tip
@@ -2034,52 +1353,10 @@ export function buildIcons() {
     dot(g, 50, 10, 1.4, 'rgba(255,190,200,0.8)');
   });
 
-  icons.cannonball = make('weapon', (g) => {
-    // Iron cannonball with ricochet trail over the plate
-    const tg = g.createLinearGradient(30, 24, 50, 48);
-    tg.addColorStop(0, '#5a6472'); tg.addColorStop(0.55, '#2c333d'); tg.addColorStop(1, '#161b22');
-    g.fillStyle = tg;
-    g.beginPath(); g.arc(44, 36, 16, 0, TAU); g.fill();
-    g.strokeStyle = 'rgba(10,13,18,0.9)'; g.lineWidth = 1.6;
-    g.beginPath(); g.arc(44, 36, 16, 0, TAU); g.stroke();
-    g.fillStyle = 'rgba(220,232,245,0.85)'; // specular crescent
-    g.beginPath(); g.arc(38, 28, 5, 0, TAU); g.fill();
-    g.fillStyle = 'rgba(170,185,205,0.55)';
-    for (let k = 0; k < 3; k++) dot(g, 10 + k * 8, 58 - k * 7, 3 - k * 0.7, 'rgba(170,185,205,0.45)');
-    g.strokeStyle = 'rgba(200,215,235,0.6)'; g.lineWidth = 2; g.lineCap = 'round'; // bounce line
-    seg(g, [[8, 62], [26, 50]]);
-  });
+  icons.cannonball = make('weapon', packDraw('weapon', 'icon.cannonball'));
 
   // ================= PHASE 21 — RUN ITEMS (passive plate) ================
-  icons.shield = make('passive', (g) => {
-    // Kite shield with a mirror split + deflecting glint
-    const sg = g.createLinearGradient(20, 14, 52, 60);
-    sg.addColorStop(0, '#dfe8f5'); sg.addColorStop(0.5, '#9fb4cf'); sg.addColorStop(1, '#5a708d');
-    g.fillStyle = sg;
-    g.beginPath();
-    g.moveTo(36, 12); g.lineTo(58, 20); g.lineTo(54, 44);
-    g.bezierCurveTo(50, 54, 42, 60, 36, 62);
-    g.bezierCurveTo(30, 60, 22, 54, 18, 44);
-    g.lineTo(14, 20); g.closePath();
-    g.fill();
-    g.strokeStyle = 'rgba(20,30,45,0.7)'; g.lineWidth = 1.8; g.stroke();
-    // mirror half: bright diagonal facet
-    g.save();
-    g.beginPath();
-    g.moveTo(36, 12); g.lineTo(58, 20); g.lineTo(54, 44); g.lineTo(36, 62);
-    g.closePath(); g.clip();
-    g.fillStyle = 'rgba(240,248,255,0.5)';
-    g.beginPath();
-    g.moveTo(10, 60); g.lineTo(64, 6); g.lineTo(64, 26); g.lineTo(24, 66);
-    g.closePath(); g.fill();
-    g.restore();
-    // rim boss + deflected bolt glint
-    dot(g, 36, 34, 4.5, '#c9a35c'); dot(g, 36, 34, 2, '#f6e3b8');
-    g.save();
-    g.globalCompositeOperation = 'lighter';
-    glint(g, 58, 52, 4, 'rgba(150,200,255,0.9)', 1.6); // orb ricocheting off
-    g.restore();
-  });
+  icons.shield = make('passive', packDraw('passive', 'icon.shield'));
 
   icons.skates = make('passive', (g) => {
     // Boot + steel blade with ice sparkle trail
@@ -2106,44 +1383,7 @@ export function buildIcons() {
     g.restore();
   });
 
-  icons.coffee = make('passive', (g) => {
-    // 29.14 (user spec): plain white mug with STEAMING BROWN COFFEE — the card the
-    // player recognises instantly; no rune/plate gimmicks, just mug + steam.
-    // steam trails rising off the surface
-    g.strokeStyle = 'rgba(238,224,204,0.34)'; g.lineWidth = 1.8; g.lineCap = 'round';
-    for (const x of [29, 37, 45]) {
-      g.beginPath();
-      g.moveTo(x, 30);
-      g.bezierCurveTo(x - 3, 25.5, x + 3, 21, x - 1, 15);
-      g.stroke();
-    }
-    // handle (right side, drawn before the body so the join reads clean)
-    g.strokeStyle = '#e6ebf2'; g.lineWidth = 4.4;
-    g.beginPath(); g.arc(49, 45, 8.5, -1.25, 1.25); g.stroke();
-    g.strokeStyle = 'rgba(40,48,58,0.45)'; g.lineWidth = 1.2;
-    g.beginPath(); g.arc(49, 45, 10.4, -1.2, 1.2); g.stroke();
-    // mug body: plain white ceramic, slight cylinder shading
-    const mg = g.createLinearGradient(20, 0, 50, 0);
-    mg.addColorStop(0, '#f6f8fb'); mg.addColorStop(0.55, '#e2e7ee'); mg.addColorStop(1, '#aeb8c4');
-    g.fillStyle = mg;
-    g.beginPath();
-    g.moveTo(21, 34); g.lineTo(49, 34);
-    g.lineTo(47, 57); g.quadraticCurveTo(46.5, 60, 43, 60);
-    g.lineTo(27, 60); g.quadraticCurveTo(23.5, 60, 23, 57);
-    g.closePath();
-    g.fill();
-    g.strokeStyle = 'rgba(40,50,62,0.55)'; g.lineWidth = 1.5; g.stroke();
-    // brown coffee surface + rim
-    g.fillStyle = '#3a2412';
-    g.beginPath(); g.ellipse(35, 34.5, 13.2, 4.4, 0, 0, TAU); g.fill();
-    g.fillStyle = 'rgba(140,92,52,0.55)';
-    g.beginPath(); g.ellipse(33, 34, 8, 2.6, 0, 0, TAU); g.fill();
-    g.strokeStyle = '#f8fafc'; g.lineWidth = 2;
-    g.beginPath(); g.ellipse(35, 34.5, 13.6, 4.8, 0, 0, TAU); g.stroke();
-    // soft ceramic highlight
-    g.strokeStyle = 'rgba(255,255,255,0.7)'; g.lineWidth = 1.6;
-    g.beginPath(); g.moveTo(25.5, 39); g.lineTo(25, 54); g.stroke();
-  });
+  icons.coffee = make('passive', packDraw('passive', 'icon.coffee'));
 
   // ================= PHASE 21 — SYNERGIES (5) ============================
   icons.napalmMissile = make('synergy', (g) => {
@@ -2201,45 +1441,9 @@ export function buildIcons() {
     g.restore();
   });
 
-  icons.gutFeast = make('synergy', (g) => {
-    // Tongue-tip snaking into a beating heart
-    g.strokeStyle = '#d95f76'; g.lineWidth = 4; g.lineCap = 'round';
-    g.beginPath();
-    g.moveTo(12, 20);
-    g.bezierCurveTo(28, 22, 26, 44, 38, 44);
-    g.stroke();
-    dot(g, 12, 20, 3.4, '#ff8095');
-    heartPath(g, 34, 34, 24, 22);
-    const hg = g.createLinearGradient(0, 34, 0, 56);
-    hg.addColorStop(0, '#ff7d90'); hg.addColorStop(1, '#c22a4c');
-    g.fillStyle = hg; g.fill();
-    g.strokeStyle = 'rgba(80,10,25,0.6)'; g.lineWidth = 1.4; g.stroke();
-    g.fillStyle = 'rgba(255,225,230,0.75)'; // heartbeat highlight
-    g.beginPath(); g.arc(42, 40, 2.6, 0, TAU); g.fill();
-    // nourish sparkles
-    g.save();
-    g.globalCompositeOperation = 'lighter';
-    glint(g, 60, 28, 3, 'rgba(255,190,200,0.85)');
-    dot(g, 30, 54, 1.6, 'rgba(255,190,200,0.8)');
-    g.restore();
-  });
+  icons.gutFeast = make('synergy', packDraw('synergy', 'icon.gutFeast'));
 
-  icons.avalanche = make('synergy', (g) => {
-    // Snow-capped boulder with tumbling snowflakes ahead of the roll
-    const rg = g.createRadialGradient(36, 34, 4, 40, 40, 22);
-    rg.addColorStop(0, '#c8d0da'); rg.addColorStop(0.6, '#8b97a6'); rg.addColorStop(1, '#525d6b');
-    g.fillStyle = rg;
-    poly(g, [[34, 18], [50, 24], [56, 40], [48, 56], [30, 58], [22, 42], [24, 26]]);
-    g.fill();
-    g.strokeStyle = 'rgba(24,30,38,0.7)'; g.lineWidth = 1.6; g.stroke();
-    g.strokeStyle = 'rgba(240,248,255,0.9)'; g.lineWidth = 2.6; // snow cap ridge
-    seg(g, [[24, 26], [34, 18], [50, 24]]);
-    g.save();
-    g.globalCompositeOperation = 'lighter';
-    // snowflake ticks tumbling ahead of the roll
-    for (const [x, y] of [[58, 30], [60, 44], [50, 58]]) glint(g, x, y, 3, 'rgba(220,240,255,0.9)', 1.4);
-    g.restore();
-  });
+  icons.avalanche = make('synergy', packDraw('synergy', 'icon.avalanche'));
 
   return icons;
 }
@@ -2277,4 +1481,32 @@ export function buildItems() {
     bombVar: { napalm: bombNapalmSprite() },
     snowballVar: { blue: snowballBlueSprite() },
   };
+}
+
+// ── 33.4.8 weather-flake art (user-ordered FULL SWAP, PLAN-FORK goal) ──────────────
+// One packed flake sprite per level foreground kind; entities/particles.js Snow.draw
+// blits these (emitter logic untouched). D-F5 viewings on record: m01 = the X-shaped
+// snowflake cell cut from the willYEE Sengoku snow ambient loop; m02 = a sakura petal
+// clump from the Sengoku sakura loop (that loop art is greyscale per the pack README,
+// so the entry declares tint "petal" and we recolour to CFG.perf.petalColor through the
+// shared luma ladder); m03 = a single bubble ring from the atlantis char_bubbles sheet.
+// Node: no pack → null → Snow keeps its procedural paths (boot unaffected). Canvases are
+// handed out at cell size immediately and painted in place when pixels decode (load.js
+// deferred model). Returns { snow, petal, bubble } canvases.
+export function buildWeatherFrames() {
+  const pk = loadPack();
+  if (!pk) return null;
+  const cut = (slot, tint) => {
+    const entry = pk.manifest.sprites[slot];
+    const c = makeCanvas(entry.frame.w, entry.frame.h);
+    onArtReady(pk, () => {
+      const [f] = sliceStrip(pk.images, entry, 'frames');
+      const src = tint ? paletteSwap(f, lumaTintMap(f, tint)) : f;
+      const g = c.getContext('2d');
+      g.clearRect(0, 0, c.width, c.height);
+      g.drawImage(src, 0, 0);
+    });
+    return c;
+  };
+  return { snow: cut('fx.snow'), petal: cut('fx.petal', CFG.perf.petalColor), bubble: cut('fx.bubble') };
 }

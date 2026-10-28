@@ -28,8 +28,8 @@ Three arenas, chained victory-only unlocks (win a level **3×**, cumulative — 
 | Level | Scale | Unlocks after | Roster |
 | --- | --- | --- | --- |
 | **Evernight Wood** | 4200×3200 | — (always open) | rat, bat, goblin, wolf, brute, cultist · boss **THE WRAITH** (4:00) |
-| **Higan** | 4200×3200 | 3× Evernight Wood | tanuki, hō-ōi, shikome, kitsune, miko, oni · boss **RYŪ** (4:00) |
-| **The Drowned City** | 5145×3920 (1.5× area) | 3× Higan | crab, goldfish, merfolk, stingray, eel, orca · boss **THE GREAT WHITE** (4:00) |
+| **Higan** | 4200×3200 | 3× Evernight Wood | baku, kitsunebi, nue, dorotabō, amabie, kitsune · boss **RYŪ** (4:00) |
+| **The Drowned City** | 5145×3920 (1.5× area) | 3× Higan | drowned crab, clownfish, drowned triton, manta, dolphin, seahorse · boss **THE GREAT WHITE** (4:00) |
 
 Each level also gets its own identity: gem/heart tints, music flavor (M02 temple bell/wind-chime/taiko; M03 muffled deep + bubbles + whale song), foreground (snow / sakura petals / rising bubbles), menu backdrop, and its own high-score list. Pick your arena on the main-menu level select; locked levels show their remaining wins and can't be started until met.
 

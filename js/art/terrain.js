@@ -1,7 +1,14 @@
 // Terrain: grass tiles, ground decals, trees, rocks, village props, mountains, lakes.
 // Standing sprites have their base (feet/bottom) at the bottom-center of the canvas.
+// 33.4.5: in a browser the LEVEL TILESETS themselves (per-level ground tiles + the clean
+// single-cell props each pack carries) come from the imported itch packs via the
+// sprites.json terrain.* entries — see packedGround/packedProp below. Every procedural
+// builder here stays as the headless fallback (Node test stubs, loadPack() = null) and as
+// the source for the props/landmarks no pack has a clean equivalent for (gap list in the
+// manifest notes + PROGRESS Resume Notes).
 
 import { makeCanvas, poly, sideShade, rimLight, flipX, glowSprite } from './base.js';
+import { loadPack, onArtReady, sliceStrip } from './load.js';
 import { mulberry32, TAU, lerp } from '../utils/math.js';
 
 function grassTile2(rng, tone) {
@@ -1031,6 +1038,62 @@ export function koiPondSprite(rng, rx, ry) {
   return c;
 }
 
+// ── 33.4.5 packed-tileset path ─────────────────────────────────────────────────
+// world.js blits each ground tile at its NATURAL size on the CFG.world.tile grid, so a
+// packed ground is a tile-size canvas patchworked from the pack's 16px floor-interior
+// cells (recipe.base fill + weighted recipe.scatter, deterministic per variant; the packs
+// ship autotile sheets but the engine has no autotiler — recipe/notes in the manifest
+// entry record which cells were measured as seamless interiors). Canvases are handed out
+// prefilled (entry.prefill = base-cell colour) and repainted IN PLACE when pixels decode
+// — the load.js deferred model, so the cached terrain never sees an object swap.
+function packedGround(pk, entry) {
+  const T = entry.recipe.tile;
+  const out = [0, 1, 2].map(() => {
+    const c = makeCanvas(T, T);
+    const g = c.getContext('2d');
+    g.fillStyle = entry.prefill;
+    g.fillRect(0, 0, T, T);
+    return c;
+  });
+  onArtReady(pk, () => {
+    const cells = {};
+    for (const s of Object.keys(entry.strips)) cells[s] = sliceStrip(pk.images, entry, s);
+    const p = entry.recipe.pitch;
+    for (let v = 0; v < out.length; v++) {
+      const g = out[v].getContext('2d');
+      const rng = mulberry32(entry.recipe.seed + v * 977);
+      for (let y = 0; y < T; y += p) {
+        for (let x = 0; x < T; x += p) {
+          let t = entry.recipe.base;
+          let r = rng();
+          for (const [s, i, w] of entry.recipe.scatter) {
+            if ((r -= w) < 0) { t = [s, i]; break; }
+          }
+          g.drawImage(cells[t[0]][t[1]], x, y);
+        }
+      }
+    }
+  });
+  return out;
+}
+
+// Place one packed tileset cell into the EXACT canvas size the standing-decor contract
+// (world/levels.js put(k, s, w, h) + world.js/game.js anchoring) expects: bottom-center,
+// integer scale, nearest-neighbour — Y-sort feet placement stays bit-identical. mirror
+// bakes a flipped variant from the same cell (tree/tent variety without a second rect).
+function packedProp(pk, entry, strip, outW, outH, mirror) {
+  const c = makeCanvas(outW, outH);
+  onArtReady(pk, () => {
+    const art = sliceStrip(pk.images, entry, strip)[0];
+    const s = entry.place.scale || 1;
+    const src = mirror ? flipX(art) : art;
+    const g = c.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    g.drawImage(src, Math.floor((outW - src.width * s) / 2), outH - src.height * s, src.width * s, src.height * s);
+  });
+  return c;
+}
+
 export function buildTerrain() {
   const rng = mulberry32(4242);
   const grassTiles = [0, 1, 2].map((i) => grassTile(rng, i));
@@ -1117,6 +1180,34 @@ export function buildTerrain() {
   sprites['dome:0'] = dome;
   sprites['trident:0'] = trident;
   sprites['wreck:0'] = wreck;
+  // 33.4.5: browser path — swap the three level tilesets' ground arrays and the packs'
+  // verified single-cell props for packed art (every rect below was measured from the
+  // sheet's content bbox, black cell-guide lines excluded — D-F5 viewings recorded in
+  // the manifest notes). ground.m01 shares the grassTiles array (return contract), so
+  // in-place element writes cover both. Everything not listed stays procedural = the
+  // tracked gap list (multi-cell pack props, m02/m03 decor, mountain/lake/koi/vignette).
+  const pk = loadPack();
+  if (pk) {
+    const S = pk.manifest.sprites;
+    const groundSwap = (arr, slot) => {
+      if (S[slot]) {
+        const g = packedGround(pk, S[slot]);
+        for (let i = 0; i < 3; i++) arr[i] = g[i];
+      }
+    };
+    groundSwap(grassTiles, 'terrain.ground.m01');
+    groundSwap(m02Tiles, 'terrain.ground.m02');
+    groundSwap(m03Tiles, 'terrain.ground.m03');
+    const propSwap = (key, slot, strip, w, h, mirror) => {
+      if (S[slot]) sprites[key] = packedProp(pk, S[slot], strip, w, h, mirror);
+    };
+    for (let i = 0; i < 4; i++) propSwap(`pine:${i}`, 'terrain.pine.m01', 'art', 64, 88, i >= 2);
+    propSwap('dead', 'terrain.dead.m01', 'art', 44, 92, false);
+    propSwap('boulder:0', 'terrain.boulder.m01', 'rockA', 48, 36, false);
+    propSwap('boulder:1', 'terrain.boulder.m01', 'rockB', 48, 36, true);
+    propSwap('hut:0', 'terrain.hut.m01', 'art', 120, 96, false);
+    propSwap('hut:1', 'terrain.hut.m01', 'art', 120, 96, true);
+  }
   return { grassTiles, decals, pine, pineBig, deadTree, boulders, stump, mushroom, monolith, campfire, huts, well, sprites, ground: { m01: grassTiles, m02: m02Tiles, m03: m03Tiles }, koi, koiF };
 }
 

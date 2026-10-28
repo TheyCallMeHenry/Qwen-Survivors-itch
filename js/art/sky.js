@@ -1,6 +1,7 @@
 // Sky: gradient band, twinkling stars, moon, drifting clouds, distant ridge silhouettes.
 
 import { makeCanvas, glowSprite, poly } from './base.js';
+import { loadPack, onArtReady, sliceStrip } from './load.js';
 import { TAU, mulberry32 } from '../utils/math.js';
 
 function cloudSprite(rng, w) {
@@ -203,6 +204,45 @@ function shimmerSprite() {
   return c;
 }
 
+// 33.4.7 A6 (c): m02 backdrop ← willYEE Sengoku rural-Japan scene cells (CC0; every
+// wired cell VIEWED from a contact sheet, D-F5). These repaint the SAME 2400x200 /
+// 2400x150 parallax canvases the procedural fuji/ridge layers build (world.js and the
+// menu preview consume them unchanged — flat PNG parallax, like the current backdrops).
+// The procedural pair stays as the Node/failed-image fallback; the packed scene paints
+// over in place when pixels decode (load.js deferred model). Landmarks bottom-anchored
+// on the horizon line; far peaks mirrored for a two-peak range. Scene images are large
+// scenery (not 16px sprites), so they use smooth scaling — the same exception class as
+// the guest-dialect tilesets.
+function packM02Ridges(far, near) {
+  const pk = loadPack();
+  if (!pk) return;
+  const cell = (slot) => sliceStrip(pk.images, pk.manifest.sprites[slot], 'art')[0];
+  const paint = () => {
+    const gf = far.getContext('2d');
+    gf.clearRect(0, 0, far.width, far.height);
+    sceneBlit(gf, cell('bg.m02.far1'), 140, 196, false);
+    sceneBlit(gf, cell('bg.m02.far2'), 2260, 172, true);
+    const gn = near.getContext('2d');
+    gn.clearRect(0, 0, near.width, near.height);
+    sceneBlit(gn, cell('bg.m02.torii'), 120, 146, false);
+    sceneBlit(gn, cell('bg.m02.castle'), 860, 148, false);
+    sceneBlit(gn, cell('bg.m02.buddha'), 1680, 146, false);
+  };
+  if (pk.ready) paint(); else onArtReady(pk, paint);
+}
+
+// Fit a scene image into maxH, bottom-aligned at x (right edge when mirrored).
+function sceneBlit(g, img, x, maxH, mirror) {
+  const s = maxH / img.height;
+  const w = Math.round(img.width * s), h = Math.round(img.height * s);
+  const bottom = g.canvas.height;
+  g.imageSmoothingEnabled = true;
+  g.save();
+  if (mirror) { g.translate(x, 0); g.scale(-1, 1); g.drawImage(img, -w, bottom - h, w, h); }
+  else g.drawImage(img, x, bottom - h, w, h);
+  g.restore();
+}
+
 export function buildSky(levelKey = 'm01') {
   if (levelKey === 'm03') {
     const rng = mulberry32(779);
@@ -248,14 +288,14 @@ export function buildSky(levelKey = 'm01') {
         });
       }
     }
+    const far = fujiSprite();
+    const near = ridge(2400, 150, 60, '#33203c', false, rng);
+    packM02Ridges(far, near); // A6: packed Sengoku scene repaints these in place (browser only)
     return {
       clouds,
       stars: starsArr(rng, 80, 0.55),
       moon: moonSprite(),
-      ridges: {
-        far: fujiSprite(),
-        near: ridge(2400, 150, 60, '#33203c', false, rng),
-      },
+      ridges: { far, near },
       star: '#ffe9f0', moonX: 0.72, moonY: 0.16, moonScale: 1.45,
     };
   }

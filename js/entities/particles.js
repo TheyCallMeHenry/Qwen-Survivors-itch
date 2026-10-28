@@ -145,6 +145,9 @@ export class Particles {
 
 // Ambient foreground particles in screen space, parallax 1.25 vs camera.
 // kind: 'snow' (m01) | 'petal' (m02 sakura) | 'bubble' (m03 — small, RISING, D49).
+// 33.4.8 (user-ordered full swap): when game.js wires `spr` (packed flake canvases
+// from art/items.js buildWeatherFrames), draw() blits that art instead of the
+// procedural shapes. Motion/spacing/sizing randomness is untouched — visual only.
 export class Snow {
   constructor(count = CFG.perf.snowCount, kind = 'snow') {
     this.flakes = [];
@@ -179,11 +182,27 @@ export class Snow {
     const petal = this.kind === 'petal';
     const bubble = this.kind === 'bubble';
     const sway = bubble ? 12 : petal ? 34 : 18;
-    if (!bubble) ctx.fillStyle = petal ? CFG.perf.petalColor : '#dfe8ff';
+    // 33.4.8 weather swap — packed flake sprite for this kind when present (visual blit
+    // only; the procedural branches below stay for Node stubs / unloaded art).
+    const spr = this.spr && this.spr[this.kind];
+    if (!spr && !bubble) ctx.fillStyle = petal ? CFG.perf.petalColor : '#dfe8ff';
+    if (spr) ctx.imageSmoothingEnabled = false; // pixel-art flake cells: nearest-neighbour
     for (const f of this.flakes) {
       const sx = mod(f.x + Math.sin(t * 0.7 + f.ph) * sway - cam.x * par, tx) - 40;
       const sy = mod(f.y - cam.y * par, ty) - 40;
       ctx.globalAlpha = f.a;
+      if (spr) {
+        // Sizes mirror the old procedural geometry's spread (snow dot Ø=2·sz, petal
+        // Ø≈3·sz, bubble ring Ø=2·sz) so the emitter's randomness reads identically.
+        const w = Math.max(2, Math.round(f.sz * (petal ? 3 : bubble ? 2 : 4)));
+        const h = Math.max(2, Math.round(f.sz * (petal ? 2.7 : bubble ? 2 : 4)));
+        if (petal) {
+          ctx.save(); ctx.translate(sx, sy); ctx.rotate(Math.sin(t * 1.4 + f.ph) * 1.2);
+          ctx.drawImage(spr, -w / 2, -h / 2, w, h);
+          ctx.restore();
+        } else ctx.drawImage(spr, sx - w / 2, sy - h / 2, w, h);
+        continue;
+      }
       ctx.beginPath();
       if (petal) ctx.ellipse(sx, sy, f.sz * 1.5, f.sz * 0.75, Math.sin(t * 1.4 + f.ph) * 1.2, 0, TAU);
       else if (bubble) {
@@ -205,6 +224,7 @@ export class Snow {
       else ctx.arc(sx, sy, f.sz, 0, TAU);
       ctx.fill();
     }
+    if (spr) ctx.imageSmoothingEnabled = true;
     ctx.globalAlpha = 1;
   }
 }

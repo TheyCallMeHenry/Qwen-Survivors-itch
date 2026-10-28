@@ -38,13 +38,14 @@ export const LEVELS = {
     audio: 'higan',
     unlock: { level: 'm01', wins: 3 },
     palette: { skyTop: '#241226', skyHorizon: '#e8909c', ground: '#1e2a19', mm: '#191016', light: '24,10,16' }, // dusk pink + full moon (A5)
-    weights: (t) => ({   // same role curve as m01 (slot re-skins, A1) — difficulty via diff (A4); 32.3 (user approved 2026-10-26): wolf 120→80, cultist 90→60
-      rat: 5,
-      bat: t > 30 ? 3 : 0.5,
-      goblin: t > 60 ? 4 : 0,
-      wolf: t > 80 ? 3 : 0,
-      brute: t > 150 ? 2 : 0,
-      cultist: t > 60 ? 2.5 : 0,
+    weights: (t) => ({   // 33.4.8 (D-F8): keys renamed to the drawn creatures; the slot ORDER and every value
+      // are the m01 role curve unchanged (pickType rng consumption identical) — difficulty via diff (A4)
+      baku: 5,                      // was "rat" slot — packed baku (Nasha)
+      kitsunebi: t > 30 ? 3 : 0.5, // was "bat" slot — floating fox fires (Nasha)
+      nue: t > 60 ? 4 : 0,         // was "goblin" slot — packed nue chimera (Nasha)
+      wolf: t > 80 ? 3 : 0,        // kitsune — F46 flame-fox skin, name/art already match (33.4.4)
+      dorotabo: t > 150 ? 2 : 0,   // was "brute" slot — animated mud-man (Dorotabō)
+      amabie: t > 60 ? 2.5 : 0,    // was "cultist" slot — packed amabie (RAPIDPUNCHES)
     }),
     boss: { key: 'ryu', at: 240, name: 'RYŪ' },
     layout: layoutM02,
