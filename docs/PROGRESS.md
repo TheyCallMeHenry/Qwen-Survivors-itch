@@ -16,11 +16,11 @@ Rules for every future edit — this file is loaded at every session start; its 
 
 ## Status — 2026-10-26 (FORK)
 
-- **This repo is the itch.io-art fork** of Qwen-Survivors (sibling of the parent repo, created 2026-10-26 by full git clone at published `f2277cd`). Parent phases 0–32 below are inherited history; the fork's own work is **Phase 33 — itch art swap**. Active step: 33.4 QA/decisions — all build sub-phases .1–.8 DONE in working tree (uncommitted); exceptions documented on the 33.4 row; browser served-URL QA = parent+user next. All founding decisions + law: `docs/fork-asset-research-2026-10-26.md`; swap plan + pipeline: `docs/PLAN-FORK.md`.
+- **This repo is the itch.io-art fork** of Qwen-Survivors (sibling of the parent repo, created 2026-10-26 by full git clone at published `f2277cd`). Parent phases 0–32 below are inherited history; the fork's own work is **Phase 33 — itch art swap**. Active phase: **Phase 35** (phone r8 batch — rows above; C1 then C2 pending). Phase 33 build sub-phases .1–.8 all DONE + committed (`223d6f1`); exceptions documented on the 33.4 rows. All founding decisions + law: `docs/fork-asset-research-2026-10-26.md`; swap plan + pipeline: `docs/PLAN-FORK.md`.
 - **Gates baseline (this fork, 2026-10-26 session 47, post-A7b):** check **35/35** · logic **1610/1610** (1582→1602 D-F7→1610 A7a) · art **PASS** (91 manifest entries; 34/34 packed icons + 13 kept-drawn, 9 world/FX bakes + 13 kept-procedural, 5 backdrop cells, 5 pixel facing probes; negative case verified firing at 33.4.1) · boot **PASS runs=4**.
-- **Git (fork):** GitHub remote `github-itch` = **public repo `TheyCallMeHenry/Qwen-Survivors-itch`**; `dev` = `223d6f1` pushed (Phase 33 full-swap build) — **`main` held at `07b712b` by user order 2026-10-26 ("Push to Dev, not main")**, drift = 2 commits (633796b assets + 223d6f1 swap build); Pages still serves `07b712b` (Phase 34): https://theycallmehenry.github.io/Qwen-Survivors-itch/ — publish of Phase 33 = ff-merge `dev`→`main` + push on explicit user ask only. `origin` = parent folder `D:/Apps/Qwen-Survivors` (shared history, push there only on ask). Drift check at session start: `git --no-optional-locks status --short` + `git --no-pager log --oneline main..dev`.
+- **Git (fork):** remote `github-itch` = public repo `TheyCallMeHenry/Qwen-Survivors-itch`; **`dev` = `bcb8425` pushed (current)**; **`main` held at `07b712b` per user ("Push to Dev, not main")** → Pages serves the older Phase-34 build: https://theycallmehenry.github.io/Qwen-Survivors-itch/ (Phase-33/35 publish = ff-merge main on explicit ask). `origin` = parent folder `D:/Apps/Qwen-Survivors` (push there only on ask). Drift check at session start: `git --no-optional-locks status --short` + `git --no-pager log --oneline main..dev`.
 - **itch MCP + vision:** full tool set active (store search / license notes / downloads-with-credits / contact sheets — verified live 2026-10-26); user's local itch library empty. Sub-agent vision capability proven same session.
-- **Server:** fork serve port is **47894** (D-F6); parent's 47893 unaffected — both may run at once. Not started in this session.
+- **Server:** fork port **47894** (D-F6; parent's 47893 unaffected). RUNNING detached since this session (pattern: `node unsloth-tmp/spawn-serve.mjs` — spawn+detached+unref; logs `unsloth-tmp/serve.log`): LAN **http://192.168.1.101:47894/** , Tailscale **http://100.67.200.25:47894/** . If down: re-run the launcher and verify with a curl in the NEXT command.
 
 ## Master Checklist
 
@@ -163,22 +163,41 @@ Implementation state (session 39 final): ALL landed — 9 weapons in `CFG.weapon
 - [x] 34.2 bat → ranged (B2, TDD-first +20 → **1602**): wind-up 0.25 s telegraph → swing frame → baseball at nearest foe, ball life = row range ÷ speed (card-reach == honest flight), per-level cd/dmg/kb/arc preserved; HOMERUN keeps its roll → piercing ball ×3 per foe once + rainbow trail on the onFx cosmetic channel (no wire change). Reach-floor law (user): non-melee ≥500 px — bat ladder 600→840 (user floor 600), axeSpeed 430→490 (throw ~512, timing untouched); CLASSIFICATION (user): sustained beams = melee → laser len + pyre stream stay; garlic/blades/cannonball melee by definition.
 - [ ] 34.3 OPEN: publish of Phase-34 tree on user ask + phone re-test; ryū art identity (aaron_fb3_002 = red MECH, not the F46 gold dragon A3 logged) — user visual call.
 
+### Phase 35 — Phone-playtest round r8 (user reports from :47894 build, 2026-10-26)
+- [ ] 35.1 wand card icon shows an arrow — wrong glyph (A5 pick) → replace with magic-bolt/staff cell (C2).
+- [ ] 35.2 XP gems don't contrast m01 ground — raise pop (outline/tint/glow, CFG data) (C2).
+- [ ] 35.3+35.4 ALL effects/impacts/explosions → itch assets, incl. engine-drawn ones (shield ring, skates marks, hit-sparks, lightning arcs, laser beam, kept blobs/tracers) via engine art-hook seam — user-ordered D-F2 amendment (C1).
+- [ ] 35.5 small enemy sprites +30% visual size (art+shadow scale only; hitboxes/stats untouched) (C2).
+
 ## Resume Notes — 2026-10-26 (live state only; rewritten each session per Format contract)
 
-**PUBLISHED + LIVE (Pages = Phase 34 only):** https://theycallmehenry.github.io/Qwen-Survivors-itch/ — `main` held at `07b712b` by user order; **`dev` = `223d6f1` pushed** (Phase 33 full-swap build + `633796b` imports). Phase-33 testing = LAN :47894 until an explicit publish ask (ff-merge main).
-Gates (parent run on committed tree): 35/35 · 1610/1610 · art PASS 91 · boot runs=4. Working tree CLEAN, zero dev↔remote drift.
+**State (end session 47):** Phase 33 fully built & committed: `dev`=`bcb8425` pushed (`223d6f1` swap build · `633796b` imports · record/env syncs); `main` deliberately held at `07b712b` (user order) → Pages = Phase-34 build; phone tests the NEW build on :47894 (URLs in Status server bullet). Gates on the committed tree (parent runs): 35/35 · 1610/1610 · art PASS 91 · boot runs=4. Working tree = only this doc-sync (uncommitted until user said commit → included).
+Law set: full-swap goal (PLAN-FORK), D-F8 (names↔roster↔art; free-first, $5 hard cap), D-F9 (Phase-35 orders incl. engine art-hooks + +30% art scale).
 
-**NEXT:**
-1. Test the Phase-33 build: browser QA pass (parent agent-browser: menu + m01/m02/m03 + bat/FX) + LAN :47894 / user eyes → then publish decision.
-2. A6b OPTION (user OK needed): engine-file art-sprite lookups — shield ring, skates marks, hit-sparks, lightning arcs, laser beam.
-3. A7c OPTION: m03 internal keys rat/bat… (sea skins) rename; ōrochi-as-boss rejected (>2× scale); 13 composite icons + kept-props stay unless asked.
-4. OPEN user calls: wire eliteFrames in drawOne?; ryū identity (red MECH vs F46 dragon); Sakura-demo manual claim or skip; phone re-test of Phase-34 fixes (Pages build).
+**OPEN housekeeping:** PROGRESS still 217 lines (>150 target) — next compression = completed Phase 9–32 detail lines → ARCHIVE (mechanical one-shot; active 33–35 rows stay per snapshot semantics).
+
+**EXACT NEXT STEP (do without asking):**
+1. Spawn C1 (Phase 35.3/35.4 — one agent): pack ALL remaining effects/impacts/explosions/glows incl. engine-drawn ones (shield ring, skates marks, hit-sparks, lightning arcs, laser beam, kept blobs/tracers) via art-sprite lookups in combat.js/particles.js/game.js (weather precedent; lookups only, no logic), sources = ansimuz/magic9/frostwindz/bdragon/Sengoku effects under assets/itch/; gates ≥35/≥1610/≥91/4 green → parent re-gate → tick. Then C2 (35.1/35.2/35.5): wand icon swap, gem-contrast tuning (CFG), small-enemy art+shadow ×1.3 (sprites.json art knobs; hitboxes/stats untouched).
+2. After both: user phone re-test → publish (ff-merge main) only on explicit ask.
+3. Standing open calls (user): eliteFrames wiring, ryū identity, Sakura-demo manual claim, A7c m03-key renames.
 
 ## Decisions (binding)
 
 Full texts + row index for **D1–D105** live in `docs/DECISIONS.md` (append-only numbering, revisions carry new numbers; Format contract §5). **Fork laws D-F1…D-F6** (sibling clone · gameplay frozen · free-only · enemy-quantity law · review-before-download · port 47894): `docs/fork-asset-research-2026-10-26.md`; **D-F7** (this session: bat→ranged amendment + non-melee ≥500 px reach floor, sustained beams classified melee): `docs/DECISIONS.md`. Open phases cite: D64 (11.13) · D54 (14) · D69 (21) · Phase 18 shipped under **D84** (supersedes D67 caps/opens). Session 42–43 laws: **D101** Homing Missile lock = HP-first (nearest only breaks exact-HP ties) · **D102** radiogroup keyboard contract (roving tabindex; aria-disabled for locked/taken; research doc) · **D103** identifier naming law (ids must match display names; mapping in config comment) · **D104** hit-stop mechanic completely removed (measured sole in-play freeze source; capped-freeze alternative if punch is wanted back). Binding design laws from session 37: **D91** zero shared/duplicate items in co-op — weapons, synergies AND passives (first picker owns; zero starting passives — restates D66; distinct starter weapons test-guarded) · **D92** landmark colliders always solid · **D93** thematic starter reskin + viewport zoom-block removal. Session-38 rulings: **D94** Swashbuckler→Sunder Bombs, Gunslinger keeps Twin Fangs (revises D93 pairing) · **D95** item cards = passive-pool entries · **D96** Phase-21 approved bundle (`docs/phase21-resolutions-2026-10-20.md` §B–§E = verbatim stat tables). Session-39 fix law: **D97** `Player.reset()` clears `weapons` — solo run start = the starter only (parity with co-op's `_applyChar`); old builds must not survive a restart. Session-40: **D99** continuous-laser rework spec (restatement confirmed by user); **D100** one permanent `dev` work branch replaces date-named branches (`docs/branch-naming-research-2026-10-22.md`). Session-44: **D105** difficulty pass — HP ×1.2 + 5-item equip cap + the five picked levers incl. the ELITE modifier (un-picked levers 2/4/6 recorded on the 32.3 row).
 
 ## Session Log (append-only, newest first; older entries archived verbatim to `docs/ARCHIVE.md`)
+### 2026-10-26 session 47 cont. 10 — Phase 35 opened (phone r8 batch) + cold-resume record sync
+- User r8 batch (5 items, verbatim in USER-INPUT-LOG) → Phase 35 rows + D-F9 (ALL FX incl. engine-drawn via art-hooks — user ordered; +30% enemy art scale visual-only; gem contrast; wand-icon defect from A5's pick).
+- Record synced: Resume = exact next steps (C1→C2), Status/Server/Git bullets made true (dev `bcb8425`, main held, detached :47894 live), D-F9 appended, session's user messages backfilled to USER-INPUT-LOG (D63 after-reason capture AGAIN — fifth strike).
+- No code changed this turn; gates stand from cont. 8's parent run (35 · 1610 · art 91 · boot 4 on `223d6f1`-era tree); re-run before any Phase-35 tick (law). This entry also restores cont. 8/9 lost to a bad-anchor edit.
+
+### 2026-10-26 session 47 cont. 9 — Phase 33 committed + pushed dev-only (user order; main deliberately held)
+- `633796b` + `223d6f1` (full-swap build, 6,598 files) pushed to `github-itch/dev`; `main` stays `07b712b` → Pages still Phase-34. Stale `.git/index.lock` from a user-interrupted run cleared after proving no live git CLI. Detached dev server launched (spawn-serve.mjs pattern after `start ""` hung the tool + nohup died with the session): :47894 serves the dev build, markers verified (new roster keys ×4). Pages source-branch switch impossible via this token (POST 409 / PATCH 404) → recorded in ENV + agent_browser correction there too.
+
+### 2026-10-26 session 47 cont. 8 — A6 world/FX/backdrop — art baseline 91
+- A6: 9 world/FX slots packed (Sengoku bomb/shuriken/barrier + ansimuz dome/star + magic9 frost/spark/flame); 13 kept-procedural listed (micro-tracers, 24.9-pinned boomerang, soft blobs); m02 backdrop ← Sengoku scenes into sky.js parallax (menu + in-game). Node-render QA sheets under unsloth-tmp/qa-a6/.
+- Parent gates green: 35 · 1610 · art 91 · boot runs=4. All Phase-33 build sub-phases .1–.8 done; open: A6b engine-FX hooks (needed user OK → now ordered = Phase 35.4), browser QA, publish awaits ask.
+
 ### 2026-10-26 session 47 cont. 7 — A5+A5b icons (imported Raven Fantasy 6,581f free mid-phase) — art baseline 77
 - A5: 27 packed + gem/heart pickups (rr 26 cells, Sengoku 3; rrfreelance license note in sprites.json). A5b (after I imported the raven-icons pack, gid 1724726, min_price 0): +7 → 34/47; 13 composites kept-drawn with explicit test-art gap list (all 2,192 raven cells scanned+zoom-viewed).
 - Parent gates both rounds: 35 · 1610 · art 70→77 · boot runs=4. Uncommitted (rule 7). Next: A6 FX+QA.
@@ -187,58 +206,6 @@ Full texts + row index for **D1–D105** live in `docs/DECISIONS.md` (append-onl
 - Grounds packed m01 raven forest / m02 limezu serene / m03 atlantis (opacity-measured mosaic cells; world.js untouched; Node fallbacks kept per check/boot).
 - paulthepirateking viewed → no clean torii/pagoda/lantern cells → own-drawn props stand (plan C); kept-procedural gap list on the 33.4.5 row (rule 15).
 - Uncommitted per rule 7; next A5 icons.
-
-### 2026-10-26 session 47 cont. 5 — A7a (m02 yokai rename+pack) + A7b (m03 sea skins + shark + weather) — baseline 1610, art 34
-- A7a: m02 five folklore enemies renamed+packed (D-F8): baku/kitsunebi/nue (Nasha top-down), dorotabo (own 4-dir sheet), amabie; stats byte-identical (rowEq pins); parent gates 35 · 1610 · art 24 · boot 4. sync.js ENEMY_KEYS comment 9→14 (wire index-based, same-build law D103).
-- A7b: m03 drowned skins → real sea life (Ocean Creatures: crab/clownfish/manta/dolphin/seahorse/shark-boss; Underwater#2 triton walk — 4 flip declarations, palette-PNG decoder in test-art); ōrochi rejected (2.5× > guest-scale rule); weather all three → packed (snow/petal ← Sengoku, bubble ← atlantis char_bubbles) via buildWeatherFrames + particles.js Snow.draw blit + 1 wiring line (emitter logic untouched); orphan audit clean (no dead A7a art).
-- Uncommitted (rule 7; user's "commit changes" order covered the imports = `633796b` — A7a/A7b code awaits a future ask). Next: A4 tiles.
-
-### 2026-10-26 session 47 cont. 4 — Phase 34.2 bat→ranged (agent B2) + reach-floor tuning (parent) — baseline 1602
-- B2 (TDD-first, red→green): bat ranged redesign per user spec — wind-up/swing/nearest/baseball, life=range÷speed, HOMERUN ×3-pierce-once + rainbow trail onFx; +20 asserts (1582→1602), P21/boot battery rewritten, cards CFG-derived-truthful.
-- Parent tuning per user floors: bat rows 600/660/720/780/840 (was 240–480; B2's "under peers" test guard rewritten to the user-floor guard); axe 430→490 (≈512 throw); user CLASSIFICATION: sustained beams = melee → laser/pyre untouched. Parent gates all four green on the combined B1+B2+tuning tree.
-- Uncommitted (rule 7); publish decision awaits user phone re-test.
-
-### 2026-10-26 session 47 cont. 3 — phone-playtest defects B1 (wolf facing) + B2 (hero vanish-on-hit) fixed (gates 35/35 · 1582 · art PASS 19+2 probes · boot runs=4)
-- B1: wolf sources measured LEFT-facing (test-art now decodes source PNG pixels — the old check only compared the declared `facing` string). render.flip added to enemy.wolf render+pack + skin.m02.wolf; probe asserts flag == measured source facing, mirror-inversion self-check (fired on pre-fix manifest: 3 FAILs).
-- B2: hurt-flash blank for ALL packed heroes + construction-time enemy defs — game.js/enemies.js baked flashCopy snapshots while packed canvases were still mid-decode; in-place repaints never reached derived copies. Fixed via load.js bakeFlashes (repaints flash canvases in place on art-ready); 5 game.js + 1 enemies.js sites swapped (minimal engine change, root cause cross-layer). base.flashCopy now resets its composite mode (latent source-in leak).
-- Browser smoke (unsloth-tmp/flash-smoke.html + headless Chrome): old-style flash 0 px → bakeFlashes 1683/1602 px; baked wolf + m02-wolf frames measure RIGHT-facing post-fix.
-- OPEN found in passing: enemy.ryu src aaron_fb3_002 is a red MECH, not the F46 gold dragon A3 logged — user visual call. Uncommitted (rule 7).
-### 2026-10-26 session 47 cont. 2 — 33.4.4 bosses (agent A3, parent re-gate 35/35 · 1582 · art PASS 19 · boot runs=4) + publish
-- Packed: wraith←gen-0 ghost-wisp (trim+down 1.23×), ryū←F46 gold dragon (1.68×, new render.flip flag — left-facing source), m02 wolf skin←F46 flame-fox (kitsune). Great white/shark untouched (deferred).
-- A3 audit (pinned by skin asserts): m02/m03 level-skin keys are wholly-procedural builders (buildCharacters replaces packed defs) — 12 keys + shark boss are coverage gaps; no improvised substitutes shipped.
-- Publish per user: content commit `0e6c497` on `dev`; GitHub repo `TheyCallMeHenry/Qwen-Survivors-itch` created (remote `github-itch`), `dev`+`main` pushed, Pages enabled from `main` → https://theycallmehenry.github.io/Qwen-Survivors-itch/ served-verified. Local `main` branch created = dev tip.
-
-### 2026-10-26 session 47 cont. — 33.4.3 enemies packed (agent A2, parent re-gate 35/35 · 1582 · art PASS 16/10+6 · boot runs=4)
-- m01 enemy keys: rat←InfectedMouse, bat←SwoopingBat, goblin←goblin fighter, brute←ice golem, cultist←Grave Revenant, wolf←aaron_fb5_003 (gen-0 wolf failed right-facing invariant); elite gold ladder + 3 paletteSwap pack-wolf coats; m02/m03 level-skins + boss builders untouched (→A3).
-- Loader real-browser fixes from A2's headless-Chrome smoke: sync-XHR responseType illegal + sync image decode impossible → async decode repaints canvases in place (heroes path too); screenshots prove non-blank frames.
-- OPEN: engine `drawOne` never consumes `eliteFrames` (gold tell = diamond only); wiring it is a frame-data call-site change D-F2 froze — user call pending.
-- User decisions this session: props = paulthepirateking B (imported via itch MCP, 18 files) with own-draw C fallback, no D-F3 paid override; publish after A2/A3 + new GH Pages link for the fork (no GitHub remote exists yet).
-
-### 2026-10-26 session 47 — 33.4.2 heroes packed (agent A1 + toad follow-up; parent re-gate 35/35 · 1582 · art PASS 10/10 · boot runs=4)
-- All 9 CFG hero slots + ghost now render from sprites.json; footprints/shadowR byte-stable; run cycles = real walk strips where sources have them (toad), else 4-frame idle + ±1px bob; ghost seat-tint via paletteSwap + CFG.ghostColors. Zero path-drawing hero builders remain; `tools/sprite-preview.mjs` left procedural-only (open item).
-- Toad unblocked mid-agent: itch store search failed ("tiny enemies" empty — non-firing proven by positive control), Brave → vryell.itch.io/tiny-enemies-vol1 (gid 1216442, free, personal+commercial, credit optional, no resale) → imported via itch MCP (12 files, Toad_16x16.png row 5 green band: 4 idle + 4 walk frames, feet on cell bottom).
-- Flag for visual QA: werewolf = aaronsprites single static 192px frame + bob (no source animation).
-- m02 props searched per user order; paid best-fits (kyukei $5, Verdant $12.99, bubbabba $15, pozac $3.99, antahonist $6.99) excluded by D-F3; free options A (mmorwynn EAST sample, isometric) / B (paulthepirateking CC-BY, coverage unverified) / C (own-draw) in `docs/m02-props-research-2026-10-26.md`. rrfreelance ruling recorded: use anyway, user contacts author.
-
-### 2026-10-26 session 46 — 33.1 done: 41-pack vision review (main agent; sub-agent profile had no itch tools) — per-pack findings + coverage matrix + ≤12 recommended set in the research doc; GAPS found: shark boss, baseball costume, m02 tiles unverified (#38 zip). Same session: 33.0 port 47894 shipped (D-F6, AGENTS/ENV/README synced) + round-2 review F42–F55 (gap-fillers F45/F48/F46, electric FX F51/F54; F42/F49 excluded paid) + round-3: 19 packs downloaded (33.3; xzany zip=character-only + butterymilk=preview-only findings) + F56 serenevillage approved+imported, F57 skipped ($3.50, non-Japanese) + 33.2 PLAN-FORK.md written + 33.4.1 loader infra done (load.js/sprites.json/test-art.mjs; gates 35/35 · 1582 · art PASS · boot PASS).
-
-### 2026-10-26 session 45 — fork initialized; asset-review handoff (this repo)
-- Fork cloned from the parent at `f2277cd`; parent rules ported with two amendments (assets law, port scope — AGENTS.md FORK notes). Decisions D-F1…D-F5 + 41-pack shortlist + capability findings + test results: `docs/fork-asset-research-2026-10-26.md`.
-- Gates on the clone: check 34/34, logic 1582/1582 (this session, real outputs); boot test started but user-interrupted — NOT verified here yet.
-- Vision sub-agent proven capable (image probe + correct description); itch MCP full set verified (store search live; credits + contact-sheet paths known).
-- NEXT: 33.1 one vision sub-agent over the 41 links → findings into the research doc → ≤10-bullet report; no downloads before the user's selection.
-
-
-- **2026-10-26 (session 44 cont. 2) — Phase 32 PUBLISHED (user ask).** Content `eda2a51` + records `e142106` committed on `dev`, ff-merged to `main`, both pushed (`dev`=`main`=origin `e142106`); served-build verification per the ENV recipe with fresh cache-busters: config.js `maxItems`/`heartDecayAfter` ×1 each, enemies.js `isElite` ×2, net/sync.js `E_FLAG_ELITE` ×4, index 200. Records amended: D105 decision text, README Phase 32 entry, Status/baseline 1582 + Resume NEXT rewritten as the difficulty feel-playtest checklist. Un-picked levers 2/4/6 stay on the 32.3 row. Only the user's device verdict remains open.
-
-- **2026-10-26 (session 44 cont.) — Phase 32.3: five user-picked difficulty levers via 2 serial agents.** Wolf/cultist front-load, aliveCap 200→280 @/9, heart economy tightened + post-10-min decay at the host-only roll site, dash cooldown ×(1.26) + meta nerf, and the full ELITE modifier (config block, pure `isElite` roll, spawn-baked ×1.5/×1.3/×1.25/×3/×3, gold-pip tell, snapshot flag bit — no SNAP_V bump). Test pins rebaselined where load-bearing + 16 new elite checks: baseline **1582**; co-op keepAlive fixtures refuel on any damage (elite-wipe root-caused). Parent gates: 34/34 · 1582/1582 · boot exit 0. Uncommitted (rule 7).
-
-- **2026-10-26 (session 44) — Phase 32.1–32.2 difficulty pass (3 strictly-serial agents per user request).** Enemy base HP ×1.2 in `CFG.enemies` (test expectations rebaselined to exact products) + `CFG.run.maxItems` = 5 gating new passive-pool keys in `cardOffers` (upgrades/synergies exempt, flat across co-op seats). 32.3: read-only design audit produced 8 ranked levers (agent report in chat), awaiting user picks. New baseline **1566**; parent re-gates after each agent: 34/34 · 1566/1566 · boot exit 0. Uncommitted (rule 7).
-
-- **2026-10-24 (session 43) — performance question CLOSED by device measurement; hit-stop removed (D104); readout menu-semantics fixed (31.18); published `f735565`.** Video-2 full-coverage review (all 117 frames viewed + independent clock channel + held-frame pass): on the user's phone ZERO sim time lost to overload in every window; felt lag = menus + by-design hit-stop (density ~0.53 s per playing second late-run) → user ordered the mechanic completely removed. Then user-ordered glitch sweep: 31.18 root-caused by agent probe (loop steps during menus by design; the parent's timescale=0 idea was REFUTED with evidence) and fixed (game.update returns false off-PLAYING + Loop tallies simN → PerfCounters re-buckets; real-browser verified: menu/pause 0×, run 1.007×); baseline **1561**; flake hunt 10/10 NOT-REPRODUCED (no invented fix). Review doc: `docs/fps-test-video-2-review-2026-10-24.md`. Publish via agent (procedure kept; negative-marker law added to ENV.md). Full entry text → `docs/ARCHIVE.md`.
-
-- **2026-10-23→24 (session 42) — Phase 31 end-to-end via 5 strictly-serial agents + ruling batches + a11y research chain; published `5d832b8` + `669fee7`.** Every step + real gate counts + troubleshooting resolutions live on the Phase-31 checklist rows (single home); decisions D101–D103 → DECISIONS; research/probe/options/review docs → `docs/` (fps-counter-microstutter, fps-test-video-review, cannonball-steering-options, tongue-frequency-probe, radiogroup-a11y). Method notes that stay load-bearing: headless Chrome lies about pacing (headed only); serve+agent-browser must share one tool invocation; boot stub must round-trip attributes. Full entry texts (incl. the two earlier video-review passes) → `docs/ARCHIVE.md`.
-
 
 ## Environment & Known Caveats
 

@@ -13,6 +13,42 @@
 
 ## Entries (newest first)
 
+### 2026-10-26 session 47 — record-sync directive (cold-resume standard, then commit docs)
+- **Received:** 2026-10-26 (after Phase-33 dev push + r8 batch logged)
+- **Classification:** process rule
+- **Context:** after several feature waves; user asks the record to stand alone for a cold session
+- **Verbatim input:**
+```Sync the record so a cold session could resume without asking me anything: decisions, findings, research, tests run and their real results, troubleshooting attempts and resolutions, and the exact next step. Keep it lean — no transcripts and no line references; the code is the implementation record. Commit the updated docs after the doc sync has completed.```
+
+### 2026-10-26 session 47 — phone r8 batch: 5 fixes/orders (Phase 35)
+- **Received:** 2026-10-26 (playing detached :47894 dev build)
+- **Classification:** bug report + feature request + design decision
+- **Context:** first phone test of the full-swap build
+- **Verbatim input:**
+```1. The card icon for the wand weapon is an arrow, not a magic projectile.
+2. The experience shards do not stand out/contrast enough against the ground tiles (in the 1st stage/level). 
+3. All effects, impacts, explosions, etc. need to be updated to itch assets.
+4. Proceed with the A6b engine-fx a rt hooks.
+5. Scale-up the small enemy sprites by 30% their current size.```
+
+### 2026-10-26 session 47 — “Push to Dev, not main”
+- **Classification:** design decision (git flow)
+- **Context:** interrupted my commit+push+publish command
+- **Verbatim input:** ```Push to Dev, not main```
+
+### 2026-10-26 session 47 — commit/push/publish order + full-swap goal correction
+- **Classification:** answer/approval + design decision
+- **Verbatim input:** ```Commit, push, publish to GH Pages``` and ```I think you may have misunderstood the ultimate goal and/or the extent of desired changes: I want practically all game art, visual effects, environments, props, characters, enemies, etc. to be updated to itch.io acquired assets.```
+
+### 2026-10-26 session 47 — budget cap on asset purchases
+- **Classification:** design decision
+- **Verbatim input:** ```~$20 is significantly more than I can afford to pay at this time - limit the budget to $5 or less *total* for all required purchases. With that in mind, seek out different packs (*still strongly preferring cost-free  options*) while keeping total costs under-budget.```
+
+### 2026-10-26 session 47 — roster-name law + gap-pack approval (D-F8)
+- **Classification:** process rule + answer/approval
+- **Verbatim input:** ```Always update memes within codebase to match actual in-game roster. 
+ You have my approval in using the newly designated gap-filling packs.```
+
 ### 2026-10-26 session 46 — review-mode pivot, port approval, +14 packs, full-set approval, tileset candidates (fork)
 - **Received:** 2026-10-26 (mid-Phase-33; binds on receipt)
 - **Classification:** process rule + approvals + new inputs
