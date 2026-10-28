@@ -18,7 +18,7 @@ Rules for every future edit — this file is loaded at every session start; its 
 
 - **This repo is the itch.io-art fork** of Qwen-Survivors (sibling of the parent repo, created 2026-10-26 by full git clone at published `f2277cd`). Parent phases 0–32 below are inherited history; the fork's own work is **Phase 33 — itch art swap**. Active step: 33.4 QA/decisions — all build sub-phases .1–.8 DONE in working tree (uncommitted); exceptions documented on the 33.4 row; browser served-URL QA = parent+user next. All founding decisions + law: `docs/fork-asset-research-2026-10-26.md`; swap plan + pipeline: `docs/PLAN-FORK.md`.
 - **Gates baseline (this fork, 2026-10-26 session 47, post-A7b):** check **35/35** · logic **1610/1610** (1582→1602 D-F7→1610 A7a) · art **PASS** (91 manifest entries; 34/34 packed icons + 13 kept-drawn, 9 world/FX bakes + 13 kept-procedural, 5 backdrop cells, 5 pixel facing probes; negative case verified firing at 33.4.1) · boot **PASS runs=4**.
-- **Git (fork):** GitHub remote `github-itch` = **public repo `TheyCallMeHenry/Qwen-Survivors-itch`** (created 2026-10-26 session 47); `dev` = `main` = `756dccb` pushed & Pages-served-verified (Phase 34 live; markers: bakeFlashes ×2, homerunMul/windup/range-840 ×5, flip keys ×4); **Pages LIVE: https://theycallmehenry.github.io/Qwen-Survivors-itch/** (served markers verified: module main.js, js/art/load.js 200, sprites.json 200, Toad png 200). `origin` = parent folder `D:/Apps/Qwen-Survivors` (shared history, push there only on ask). Drift check at session start: `git --no-optional-locks status --short` + `git --no-pager log --oneline main..dev` (local `main` branch now exists).
+- **Git (fork):** GitHub remote `github-itch` = **public repo `TheyCallMeHenry/Qwen-Survivors-itch`**; `dev` = `223d6f1` pushed (Phase 33 full-swap build) — **`main` held at `07b712b` by user order 2026-10-26 ("Push to Dev, not main")**, drift = 2 commits (633796b assets + 223d6f1 swap build); Pages still serves `07b712b` (Phase 34): https://theycallmehenry.github.io/Qwen-Survivors-itch/ — publish of Phase 33 = ff-merge `dev`→`main` + push on explicit user ask only. `origin` = parent folder `D:/Apps/Qwen-Survivors` (shared history, push there only on ask). Drift check at session start: `git --no-optional-locks status --short` + `git --no-pager log --oneline main..dev`.
 - **itch MCP + vision:** full tool set active (store search / license notes / downloads-with-credits / contact sheets — verified live 2026-10-26); user's local itch library empty. Sub-agent vision capability proven same session.
 - **Server:** fork serve port is **47894** (D-F6); parent's 47893 unaffected — both may run at once. Not started in this session.
 
@@ -165,16 +165,14 @@ Implementation state (session 39 final): ALL landed — 9 weapons in `CFG.weapon
 
 ## Resume Notes — 2026-10-26 (live state only; rewritten each session per Format contract)
 
-**PUBLISHED + LIVE (Phase 34):** https://theycallmehenry.github.io/Qwen-Survivors-itch/ (`github-itch` = TheyCallMeHenry/Qwen-Survivors-itch; `dev`=`main`=`756dccb`, served markers verified). Gates: 35/35 · 1602/1602 · art PASS 19+2 · boot runs=4 (parent run, published tree = working tree, zero drift).
-OPEN: user phone re-test (wolves / hurt heroes / new ranged bat); enemy.ryu renders as a red MECH (aaron_fb3_002) — user pick: keep / swap to real F46 sheet / revert procedural (my pick: swap, manifest-entry-only). werewolf static-frame + toad walk + pack-coat colors = QA items.
+**PUBLISHED + LIVE (Pages = Phase 34 only):** https://theycallmehenry.github.io/Qwen-Survivors-itch/ — `main` held at `07b712b` by user order; **`dev` = `223d6f1` pushed** (Phase 33 full-swap build + `633796b` imports). Phase-33 testing = LAN :47894 until an explicit publish ask (ff-merge main).
+Gates (parent run on committed tree): 35/35 · 1610/1610 · art PASS 91 · boot runs=4. Working tree CLEAN, zero dev↔remote drift.
 
 **NEXT:**
-1. A6 = 33.4.7 FX + visual QA IN FLIGHT (impacts/explosions/lightning/smoke + projectile/glow sheets + m02 menu backdrop candidates; then browser served-URL QA pass → user eyes). Kept-drawn 13 composite icons + A4 prop/landmark keeps + minimap = documented exceptions (rule 15), revisit only on user ask.
-2. A7c optional polish: m03 skin keys still rat/bat/… internally (sea skins) — rename only on user ask; ōrochi-as-boss rejected (>2× scale).
-3. A7c optional polish: ōrochi-as-boss rejected (>2× downscale); m03 skin keys are still rat/bat/… internally (sea skins) — rename only if user wants display-level identity.
-4. OPEN user calls: wire eliteFrames in drawOne?; ryū identity; Sakura-demo claim (manual) or skip.
-3. A5 icons (rrfreelance: use anyway if terms unfound) · A6 FX+QA.
-4. OPEN user calls: wire eliteFrames in drawOne? (frame-data change; gold tell currently diamond-only); ryū identity.
+1. Test the Phase-33 build: browser QA pass (parent agent-browser: menu + m01/m02/m03 + bat/FX) + LAN :47894 / user eyes → then publish decision.
+2. A6b OPTION (user OK needed): engine-file art-sprite lookups — shield ring, skates marks, hit-sparks, lightning arcs, laser beam.
+3. A7c OPTION: m03 internal keys rat/bat… (sea skins) rename; ōrochi-as-boss rejected (>2× scale); 13 composite icons + kept-props stay unless asked.
+4. OPEN user calls: wire eliteFrames in drawOne?; ryū identity (red MECH vs F46 dragon); Sakura-demo manual claim or skip; phone re-test of Phase-34 fixes (Pages build).
 
 ## Decisions (binding)
 
