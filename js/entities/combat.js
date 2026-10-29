@@ -60,6 +60,12 @@ export class Combat {
     this.webImg = null;      // P21: web strand
     this.baseballImg = null; // B3: stitched baseball
     this.baseballVar = null; // B3: { homer: rainbow-halo variant } — 24.2 variant seam
+    // 35.3 (C1): packed engine-FX art hooks — game.js wires items.js bakes here; the
+    // draw paths below blit them where they used to stroke primitives. Lookups only.
+    this.shieldRingImg = null; // 35.3: Mirror Shield standing ring (scaled to 2·row.r)
+    this.garlicRingImg = null; // 35.3: Wraith Garlic ground-pulse ring (2·S.r)
+    this.laserImg = null;      // 35.3: Continuous-Laser beam segment (len×w stretch)
+    this.arcImg = null;        // 35.3: chain-lightning link arc (segment stretch)
     this.explosionImg = null;
     // 24.2: per-type synergy variant sprite maps ({ variantKey: img }); empty/absent →
     // draw falls back to the base *Img above (base path byte-identical, solo invariance).
@@ -1394,19 +1400,29 @@ export class Combat {
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
       ctx.globalAlpha = 0.85 * k;
-      ctx.strokeStyle = 'rgba(255,120,150,0.55)';
-      ctx.lineWidth = b.w * 2;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(ox, oy);
-      ctx.lineTo(ex, ey);
-      ctx.stroke();
-      ctx.strokeStyle = '#ffdde4';
-      ctx.lineWidth = b.w * 0.5;
-      ctx.beginPath();
-      ctx.moveTo(ox, oy);
-      ctx.lineTo(ex, ey);
-      ctx.stroke();
+      // 35.3 (C1): the beam is the packed Dark-Bolt streak (fx.laserBeam, pink ladder
+      // in the manifest) — rotated to the SAME live orbit angle and stretched into the
+      // old two-stroke's len×(w·4) envelope. Unwired (unit contexts) → the old strokes.
+      if (this.laserImg) {
+        ctx.translate(ox, oy);
+        ctx.rotate(ang);
+        const bh = b.w * 4;
+        ctx.drawImage(this.laserImg, 0, -bh / 2, b.len, bh);
+      } else {
+        ctx.strokeStyle = 'rgba(255,120,150,0.55)';
+        ctx.lineWidth = b.w * 2;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(ox, oy);
+        ctx.lineTo(ex, ey);
+        ctx.stroke();
+        ctx.strokeStyle = '#ffdde4';
+        ctx.lineWidth = b.w * 0.5;
+        ctx.beginPath();
+        ctx.moveTo(ox, oy);
+        ctx.lineTo(ex, ey);
+        ctx.stroke();
+      }
       ctx.restore();
     }
     // 30.2: scorch sparks at the laser's contact points — the sear's only visual feedback
@@ -1434,23 +1450,36 @@ export class Combat {
       if (!pl._ringBeams || !pl._ringBeams.length) continue;
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
-      ctx.strokeStyle = 'rgba(210,230,255,0.9)';
-      ctx.lineWidth = 2;
       for (const b of pl._ringBeams) {
         const k = b.t / b.dur;
         ctx.globalAlpha = 1 - k;
         const dx = b.tx - b.x, dy = b.ty - b.y;
         const d = Math.hypot(dx, dy) || 1;
-        const nx = -dy / d, ny = dx / d; // perpendicular jag offsets
-        ctx.beginPath();
-        ctx.moveTo(b.x, b.y);
-        for (let s2 = 1; s2 <= 3; s2++) {
-          const p = s2 / 4;
-          const off = Math.sin((b.seed + s2) * 12.9898) * 9 * (1 - k);
-          ctx.lineTo(b.x + dx * p + nx * off, b.y + dy * p + ny * off);
+        // 35.3 (C1): the link is the packed Frostwindz bolt (fx.lightningArc — its
+        // natural blue-white IS the old rgba(210,230,255) stroke) rotated to the link
+        // and stretched to the segment. The per-frame jitter lived in the stroke; the
+        // fade window + the strike-point sparkImg are untouched. Unwired → old path.
+        if (this.arcImg) {
+          ctx.save();
+          ctx.translate(b.x, b.y);
+          ctx.rotate(Math.atan2(dy, dx));
+          const ah = Math.max(24, d * 0.28);
+          ctx.drawImage(this.arcImg, 0, -ah / 2, d, ah);
+          ctx.restore();
+        } else {
+          ctx.strokeStyle = 'rgba(210,230,255,0.9)';
+          ctx.lineWidth = 2;
+          const nx = -dy / d, ny = dx / d; // perpendicular jag offsets
+          ctx.beginPath();
+          ctx.moveTo(b.x, b.y);
+          for (let s2 = 1; s2 <= 3; s2++) {
+            const p = s2 / 4;
+            const off = Math.sin((b.seed + s2) * 12.9898) * 9 * (1 - k);
+            ctx.lineTo(b.x + dx * p + nx * off, b.y + dy * p + ny * off);
+          }
+          ctx.lineTo(b.tx, b.ty);
+          ctx.stroke();
         }
-        ctx.lineTo(b.tx, b.ty);
-        ctx.stroke();
         const s = 14 * (1 - 0.5 * k);
         ctx.drawImage(this.sparkImg, b.tx - s / 2, b.ty - s / 2, s, s);
       }
@@ -1465,11 +1494,19 @@ export class Combat {
       const S = CFG.weapons.garlic.levels[pl.weapons.garlic - 1];
       const ph = pl._garlicT / C.garlicTick;
       ctx.globalAlpha = 0.10 + 0.05 * Math.sin(ph * TAU);
-      ctx.strokeStyle = '#b9f2a0';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(pl.x, pl.y, S.r * (0.97 + 0.03 * Math.sin(ph * TAU)), 0, TAU);
-      ctx.stroke();
+      // 35.3 (C1): packed Wraith Garlic ring (fx.garlicRing) — the pulse scale rides
+      // the same ±0.03·sin as the old arc radius, so the drawn ring keeps the TRUE
+      // damage radius (23.2 rule). Unwired → the old stroke.
+      if (this.garlicRingImg) {
+        const s = S.r * 2 * (0.97 + 0.03 * Math.sin(ph * TAU));
+        ctx.drawImage(this.garlicRingImg, pl.x - s / 2, pl.y - s / 2, s, s);
+      } else {
+        ctx.strokeStyle = '#b9f2a0';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(pl.x, pl.y, S.r * (0.97 + 0.03 * Math.sin(ph * TAU)), 0, TAU);
+        ctx.stroke();
+      }
       ctx.globalAlpha = 1;
     }
     // 29.10 Mirror Shield ACTIVE indicator — while reflect charges remain the shield
@@ -1485,11 +1522,20 @@ export class Combat {
       const oy = pl.y - pl.def.h * 0.5;
       ctx.save();
       ctx.globalAlpha = 0.14 + 0.06 * Math.sin(t * 2.6);
-      ctx.strokeStyle = '#a8d8ff';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(pl.x, oy, row.r, 0, TAU);
-      ctx.stroke();
+      // 35.3 (C1): packed Mirror Shield ring (fx.shieldRing) blitted at DIAMETER
+      // 2·row.r — the drawn ring keeps the true reflect radius (23.2 rule). The
+      // charge pips stay engine strokes: they encode bank state, not art. Unwired →
+      // the old circle stroke.
+      if (this.shieldRingImg) {
+        const s = row.r * 2;
+        ctx.drawImage(this.shieldRingImg, pl.x - s / 2, oy - s / 2, s, s);
+      } else {
+        ctx.strokeStyle = '#a8d8ff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(pl.x, oy, row.r, 0, TAU);
+        ctx.stroke();
+      }
       const bank = pl._shieldBank;
       if (bank) {
         const mid = Math.PI * 0.5; // pips cluster at the ring's bottom

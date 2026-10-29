@@ -15,7 +15,7 @@
 // gold-diamond tell is untouched (enemies.js, D105) and simply never picks the skins up
 // until a future engine go. 33.4.4: the m01 WRAITH boss is packed from the Aaron gen-0
 // ghost-wisp (#002 — front-facing, flip-invariant like the manifest contract allows) and
-// the RYŪ boss from the F46 gold eastern dragon (fb3_002 — its source faces LEFT, so the
+// the RYŪ boss from the F46 gold eastern dragon (fb3_001 — its source faces LEFT, so the
 // entry declares render.flip and bakeInto mirrors it into the right-facing contract);
 // m02's kitsune (wolf slot) comes from the same F46 pack's flame-fox (fb3_004). All
 // three use the same downscale ≤2× / static+bob paths as the hero/enemy precedent.
@@ -54,12 +54,16 @@ function canvasOf(w, h, draw) {
 // sprites.json is the tuning source; this table is the Node-stub fallback so boot can
 // still construct defs — pixels are unobservable there; test-art pins both sides, so
 // the copies cannot drift unnoticed).
+// Playtest round r8 (35.5, D-F9): the five small-enemy families carry a ×1.3 VISUAL
+// footprint in the manifest (art+shadow only — hitboxes/stats/weights live in
+// CFG.enemies, untouched); the wolf family + bosses stay unscaled. Values below are
+// mirrors of the current manifest tables.
 const NODE_FALLBACK_ENEMY = {
-  rat: [30, 26, 8, 1], bat: [34, 28, 8, 2], goblin: [30, 38, 9, 3],
-  wolf: [46, 32, 11, 4], brute: [64, 60, 14, 2], cultist: [32, 46, 9, 2],
+  rat: [39, 34, 10, 1], bat: [44, 36, 10, 2], goblin: [39, 49, 12, 3],
+  wolf: [46, 32, 11, 4], brute: [83, 78, 18, 2], cultist: [42, 60, 12, 2],
   // 33.4.8 Higan-only types: footprints/frames mirror their manifest entries (= the old slot tables).
-  baku: [30, 26, 8, 1], kitsunebi: [34, 28, 8, 2], nue: [30, 38, 9, 3],
-  dorotabo: [64, 60, 14, 2], amabie: [32, 46, 9, 2],
+  baku: [39, 34, 10, 1], kitsunebi: [44, 36, 10, 2], nue: [39, 49, 12, 3],
+  dorotabo: [83, 78, 18, 2], amabie: [42, 60, 12, 2],
 };
 
 // Paint a packed entry into PRE-EXISTING canvases (the deferred model in load.js:

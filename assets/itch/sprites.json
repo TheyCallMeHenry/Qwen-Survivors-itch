@@ -1,10 +1,425 @@
 {
   "$schema": "qsurv.sprites.v0",
-  "notes": "Frame sources for packed-sprite art. Validated by tools/test-art.mjs (paths + sheet geometry + hero + enemy footprints). Loaded by js/art/load.js in the browser only. One entry per engine slot; strip = horizontal frame range of the source sheet. sheet = the engine footprint the built sheet must keep (test-boot 26.3 / 33.4.3 tables). render.artH = final art height in px (scale derived), render.trim = [x,y,w,h] crop for static battlers, render.head = [cx,top] in source-cell coords for the baseball overlay, recolour 'seat' = CFG.ghostColors paletteSwap ladder. A 'walk' strip (where the pack has real walk frames) feeds run[4]; without it run[4] reuses the idle frames + the ±1px bob derived in heroes.js. Enemy entries (33.4.3): frames = engine frame count (strip frames cycled + integer-px bob offsets where the source is static or shorter); facing 'right' = right-facing contract (every source was viewed before wiring; symmetric front-facing art is flip-invariant and satisfies it; a LEFT-facing source carries render.flip and bakeInto mirrors it); recolour 'elite' = gold skin path via palette.eliteColor + lumaTintMap (enemies.js keeps the gold-diamond tell; eliteFrames are the skin half); enemy.wolf.pack = per-coat wolfpack block (bigger footprint + own bob) tinted from PACK_PALS in characters.js. Boss entries (33.4.4/33.4.8: enemy.wraith, enemy.ryu, enemy.shark) keep the exact engine footprints (92x112/r20, 96x112/r20, 96x112/r20, 2 frames) and declare NO recolour — D105 rolls elite on non-bosses only. Large sprites may use guest-dialect sources downscaled ≤2× (PLAN-FORK §2). 'skin.<level>.<slot>' entries (skin.m02.wolf + the 33.4.8 skin.m03.* Drowned City set) are per-level re-skins of common slots: same footprint/frames as the base slot, own source strip, and the same 'elite' marker. 33.4.8 renamed Higan types (enemy.baku/kitsunebi/nue/dorotabo/amabie) are their OWN full type keys — only m02's weights reference them (world/levels.js) — carrying the exact footprint/frames of the slots they replace: left-facing Nasha stills bake through render.flip like the ryū, the Dorotabō strip is the walk sheet's measured EAST-facing row, and static single-frame sources cycle via bob[]. 33.4.8 m03 sea set (D-F5 viewings recorded in js/art/characters.js + docs): the Ocean Creatures sheet (305x368) is a 61x92-pitch grid — skin.m03.rat/bat/wolf/brute/cultist + the enemy.shark boss cut its cells via that grid pitch + measured content-rect trims (crab/clownfish/manta/dolphin/seahorse/great-white); skin.m03.goblin is Underwater Enemies pack #2's real 3-frame walk row (48x48 pitch). 'fx.snow'/'fx.petal'/'fx.bubble' (weather flake sources, blitted by entities/particles.js Snow.draw — emitter logic untouched): single-cell cuts from the Sengoku ambient-loop frames (X-snowflake; greyscale sakura petal clump declared tint \"petal\" = builder recolours to CFG.perf.petalColor) and the atlantis char_bubbles ring sheet. No sheet/render fields on fx entries — the builder slices the cell at native size. 33.4.5 TERRAIN entries (level tilesets; js/art/terrain.js packedGround/packedProp): 'terrain.ground.<level>' carries frame 16 + one strip per source ROW slice + a recipe {tile:256, pitch:16, seed, base:[strip,idx], scatter:[[strip,idx,weight],…]} — a deterministic patchwork of that pack's VERIFIED floor-interior cells at world.js's native tile size (the packs ship RPG-Maker autotile blocks, but the engine has no autotiler: Wang/transition rules stay unused, only seamless interior cells are consumed, and only fully-opaque cells are referenced); prefill = base-cell colour for the pre-art-ready frames. 'terrain.<prop>.<level>' cuts verified single cells (frame = measured content bbox, black cell-guide rows excluded) + place {strip, scale}; terrain.js bakes them into the exact decor-contract canvases (bottom-center, integer scale; mirror flag flips the same cell). Sources: m01 = clockworkraven 'Raven Fantasy Green Forest' All Tileset/16x16.png (26x15 free-form grid; grass cells c8/c11/c12 r0 + c8 r1; tree bbox (0,74,48,86), dead tree (64,16,48,61→44-crop), rocks (66,5)/(81,2), tent (96,112,64,63); NO autotile rules — free-form sheet). m02 = limezu Serene Village Outside.png (16px 8-col grid; r0-r2 c0-c4 grass/lawn variants). m03 = finalbossblues ATLANTIS RPGMAKER-100 (16px variant; tf_A5_atlantisA A5 flat grid: r0-r1 blue-grey city cobblestone, r14 mossy algae stone; the A2 48x48 autotile water blocks are NOT used — no autotiler). GAP LIST (kept procedural, rule 15): m01 pineBig/stump/mushroom/monolith/campfire/well + all ground decals; m02 all standing props (paulthepirateking Japanese-themed set VIEWED: walls/roofs/fences/rocks/small trees only — NO clean torii/pagoda/lantern single cells, so the own-drawn builders (plan C) stay; serenevillage props are tiny trees/flowers/signposts + indoor demo rows); m03 all standing props (atlantis sheets contain no matching kelp/coral/ruin props); mountain/lake/koi-pond/vignette landmarks are parameterized-size procedural (no fixed-size pack equivalent fits). 33.4.6 ICONS/PICKUPS (A5): icon.* and pickup.* entries carry ONE 16x16 rrfreelance \"Sprites pack 16px over 150\" cell (PropsInPixels_16x<N>.png) or 32x32 willYEE Sengoku weapon-icon cell (CC0; icon.tempest/cannonball). js/art/items.js buildIcons() bakes them centred into the unchanged 72x72 category-plate canvases (content bbox trimmed, nearest-neighbour, fit ~52px; entry.tint hex = lumaTintMap recolour, used ONLY for icon.blueFlame); pickup.* bake the EXACT engine sizes (render.bake = [24,26]/[22,20], test-boot 13.10 asserts) with per-level tints from GEM_PAL/HEART_PAL. LICENSE (user ruling 2026-10-26): the rrfreelance pack page states NO license terms — USE ANYWAY; the user will contact the author. Sengoku = CC0. The other 20 buildIcons() keys have no clean match in either pack and stay drawn (list in test-art). 33.4.6 SECOND PASS (A5b): icon.garlic/missile/laser/wolfpack/bat/sigil/reroll moved from drawn to packed via clockworkraven \"Free - Raven Fantasy Icons\" (imported 2026-10-27; 2192 unnamed icons — every cell VIEWED from indexed contact sheets of the Separated Files, D-F5; license commercial-OK per the round-1 research review). 13 keys stay drawn (no clean glyph in ANY imported pack): fangs, tongue, magnet, dash, skates, phoenix, flamingArrows, heartPiercer, stormVolley, heartMagnet, napalmMissile, staticPelt, homerKing.",
+  "notes": "Frame sources for packed-sprite art. Validated by tools/test-art.mjs (paths + sheet geometry + hero + enemy footprints). Loaded by js/art/load.js in the browser only. One entry per engine slot; strip = horizontal frame range of the source sheet. sheet = the engine footprint the built sheet must keep (test-boot 26.3 / 33.4.3 tables). render.artH = final art height in px (scale derived), render.trim = [x,y,w,h] crop for static battlers, render.head = [cx,top] in source-cell coords for the baseball overlay, recolour 'seat' = CFG.ghostColors paletteSwap ladder. A 'walk' strip (where the pack has real walk frames) feeds run[4]; without it run[4] reuses the idle frames + the ±1px bob derived in heroes.js. Enemy entries (33.4.3): frames = engine frame count (strip frames cycled + integer-px bob offsets where the source is static or shorter); facing 'right' = right-facing contract (every source was viewed before wiring; symmetric front-facing art is flip-invariant and satisfies it; a LEFT-facing source carries render.flip and bakeInto mirrors it); recolour 'elite' = gold skin path via palette.eliteColor + lumaTintMap (enemies.js keeps the gold-diamond tell; eliteFrames are the skin half); enemy.wolf.pack = per-coat wolfpack block (bigger footprint + own bob) tinted from PACK_PALS in characters.js. Boss entries (33.4.4/33.4.8: enemy.wraith, enemy.ryu, enemy.shark) keep the exact engine footprints (92x112/r20, 96x112/r20, 96x112/r20, 2 frames) and declare NO recolour — D105 rolls elite on non-bosses only. Large sprites may use guest-dialect sources downscaled ≤2× (PLAN-FORK §2). 'skin.<level>.<slot>' entries (skin.m02.wolf + the 33.4.8 skin.m03.* Drowned City set) are per-level re-skins of common slots: same footprint/frames as the base slot, own source strip, and the same 'elite' marker. 33.4.8 renamed Higan types (enemy.baku/kitsunebi/nue/dorotabo/amabie) are their OWN full type keys — only m02's weights reference them (world/levels.js) — carrying the exact footprint/frames of the slots they replace: left-facing Nasha stills bake through render.flip like the ryū, the Dorotabō strip is the walk sheet's measured EAST-facing row, and static single-frame sources cycle via bob[]. 33.4.8 m03 sea set (D-F5 viewings recorded in js/art/characters.js + docs): the Ocean Creatures sheet (305x368) is a 61x92-pitch grid — skin.m03.rat/bat/wolf/brute/cultist + the enemy.shark boss cut its cells via that grid pitch + measured content-rect trims (crab/clownfish/manta/dolphin/seahorse/great-white); skin.m03.goblin is Underwater Enemies pack #2's real 3-frame walk row (48x48 pitch). 'fx.snow'/'fx.petal'/'fx.bubble' (weather flake sources, blitted by entities/particles.js Snow.draw — emitter logic untouched): single-cell cuts from the Sengoku ambient-loop frames (X-snowflake; greyscale sakura petal clump declared tint \"petal\" = builder recolours to CFG.perf.petalColor) and the atlantis char_bubbles ring sheet. No sheet/render fields on fx entries — the builder slices the cell at native size. 33.4.5 TERRAIN entries (level tilesets; js/art/terrain.js packedGround/packedProp): 'terrain.ground.<level>' carries frame 16 + one strip per source ROW slice + a recipe {tile:256, pitch:16, seed, base:[strip,idx], scatter:[[strip,idx,weight],…]} — a deterministic patchwork of that pack's VERIFIED floor-interior cells at world.js's native tile size (the packs ship RPG-Maker autotile blocks, but the engine has no autotiler: Wang/transition rules stay unused, only seamless interior cells are consumed, and only fully-opaque cells are referenced); prefill = base-cell colour for the pre-art-ready frames. 'terrain.<prop>.<level>' cuts verified single cells (frame = measured content bbox, black cell-guide rows excluded) + place {strip, scale}; terrain.js bakes them into the exact decor-contract canvases (bottom-center, integer scale; mirror flag flips the same cell). Sources: m01 = clockworkraven 'Raven Fantasy Green Forest' All Tileset/16x16.png (26x15 free-form grid; grass cells c8/c11/c12 r0 + c8 r1; tree bbox (0,74,48,86), dead tree (64,16,48,61→44-crop), rocks (66,5)/(81,2), tent (96,112,64,63); NO autotile rules — free-form sheet). m02 = limezu Serene Village Outside.png (16px 8-col grid; r0-r2 c0-c4 grass/lawn variants). m03 = finalbossblues ATLANTIS RPGMAKER-100 (16px variant; tf_A5_atlantisA A5 flat grid: r0-r1 blue-grey city cobblestone, r14 mossy algae stone; the A2 48x48 autotile water blocks are NOT used — no autotiler). GAP LIST (kept procedural, rule 15): m01 pineBig/stump/mushroom/monolith/campfire/well + all ground decals; m02 all standing props (paulthepirateking Japanese-themed set VIEWED: walls/roofs/fences/rocks/small trees only — NO clean torii/pagoda/lantern single cells, so the own-drawn builders (plan C) stay; serenevillage props are tiny trees/flowers/signposts + indoor demo rows); m03 all standing props (atlantis sheets contain no matching kelp/coral/ruin props); mountain/lake/koi-pond/vignette landmarks are parameterized-size procedural (no fixed-size pack equivalent fits). 33.4.6 ICONS/PICKUPS (A5): icon.* and pickup.* entries carry ONE 16x16 rrfreelance \"Sprites pack 16px over 150\" cell (PropsInPixels_16x<N>.png) or 32x32 willYEE Sengoku weapon-icon cell (CC0; icon.tempest/cannonball). js/art/items.js buildIcons() bakes them centred into the unchanged 72x72 category-plate canvases (content bbox trimmed, nearest-neighbour, fit ~52px; entry.tint hex = lumaTintMap recolour, used ONLY for icon.blueFlame); pickup.* bake the EXACT engine sizes (render.bake = [24,26]/[22,20], test-boot 13.10 asserts) with per-level tints from GEM_PAL/HEART_PAL. LICENSE (user ruling 2026-10-26): the rrfreelance pack page states NO license terms — USE ANYWAY; the user will contact the author. Sengoku = CC0. The other 20 buildIcons() keys have no clean match in either pack and stay drawn (list in test-art). 33.4.6 SECOND PASS (A5b): icon.garlic/missile/laser/wolfpack/bat/sigil/reroll moved from drawn to packed via clockworkraven \"Free - Raven Fantasy Icons\" (imported 2026-10-27; 2192 unnamed icons — every cell VIEWED from indexed contact sheets of the Separated Files, D-F5; license commercial-OK per the round-1 research review). 13 keys stay drawn (no clean glyph in ANY imported pack): fangs, tongue, magnet, dash, skates, phoenix, flamingArrows, heartPiercer, stormVolley, heartMagnet, napalmMissile, staticPelt, homerKing. 35.3/35.4 (C1 — user-ordered D-F2 amendment: ALL remaining effect/impact/explosion/glow visuals packed, incl. engine-drawn): world.bolt/arrow/bullet/snowball/web/boulder/burn/blight/orb/scorch move out of kept-procedural; new engine blits fx.shieldRing/fx.garlicRing/fx.laserBeam/fx.lightningArc (game.js → combat.shieldRingImg/garlicRingImg/laserImg/arcImg — the ring bakes are scaled to 2·radius so the drawn ring keeps the TRUE radius, and the beam/arc stretch = the old vector envelopes) + fx.burstHomerun/Crag/Reflect/Ball/Slide (game.js onFx → Particles.burst — the hit-sparks/skates-marks slots; Sengoku spark-ball cell, one per-kind tint row each). Sources (all VIEWED this phase, D-F5): magic9 spark/Dark-Bolt/Fire-bomb sheets, willYEE Sengoku jp_proj_kunai + jp_spark_ball, Frostwindz lightning VFX1, pixel-magic Fire_Ball, rrfreelance PropsInPixels web/boulder cells (same cells as their card icons). Engine rows declare render.bake = the pre-baked canvas items.js hands out and the engine scales at draw (same D-F2 draw-call law). GAP (kept procedural, rule 15): baseball+HOMERUN variant (no stitched-ball art in any imported pack), boomerang (no boomerang cell), missile rocket (no rocket single cell — the pack comets are already the bullet identity), Particles dots (soul/ember/ball-trail: per-particle dynamic hue, no clean fixed-tint source), the snowball/bomb ground-shadow ellipses + hit-flash/white-out compositing (base.js helpers, PLAN-FORK §0 KEEP), and the bat/dash wind-up telegraph strokes (player silhouettes, not effects). 35.5 (D-F9 r8): the five regular small-enemy footprint families (rat+baku+m03.rat, bat+kitsunebi+m03.bat, goblin+nue+m03.goblin, brute+dorotabo+m03.brute, cultist+amabie+m03.cultist) carry sheet/artH/shadowR x1.3 (nearest int) — VISUAL-ONLY art+shadow scale (D-F2: hitboxes/stats/weights/spawns, strips, frames, bob and trims untouched). The wolf family (enemy.wolf/skin.m02.wolf/skin.m03.wolf = 192px sources), bosses, heroes and pickups stay unscaled. 36.x (2026-10-28, Phase 36 agent D1 — every source VIEWED, QA sheets under unsloth-tmp/qa-d1/): 36.1 pickup.shard = Soulshard world-pickup art SEAM from the Sengoku soul-drain collapse core (tint-declared per the blueFlame law; NO engine spawn site — Soulshards are score-derived meta currency and D-F2 keeps gameplay frozen; items.js soulShardSprite + the test-art row/bake asserts hold the seam). 36.2 ryū identity close (34.3 OPEN): enemy.ryu moved OFF aaron_fb3_002 (RED MECH — the wrong-identity defect) ONTO aaron_fb3_001, the F46 gold eastern-serpent dragon (left-facing → render.flip stands); DeepDive dragon-asset-pack VIEWED and REJECTED — its 16px wyrms read as small minions at the 96x112 boss footprint. 36.3 terrain.campfire.m01 + terrain.well.m01 packed from nanasha hunters-camp single cells (±20% footprint law + the measured reject list live in those rows). 36.4 world.baseball packed (hamuko27 Pixel Sports Ball Assets, stitched-ball cell) — baseball moved OUT of the kept-procedural list; items.js keeps the stitched-ball builder as the Node fallback and the HOMERUN variant paints the same cell under its rainbow halo (packOver under-painter). 36.5 m02-landmark fit call for the mmorwynn EAST free sample = NOT WIRED (verdict): its art is true-isometric (2:1 ground plates, its own single light, shadows shipped as separate _shadow.png files the engine would double up); measured vs the own-drawn slot canvases torii content 110x174 > 110x130 (+34% h), pagoda 140x215 > 100x170 (+40% w) — both over the ±20% law; the one size-legal cell (kasuga lantern 25x47 in the 30x56 slot) still clashes: an iso stone lantern standing beside front-view own-drawn torii/pagoda over a flat top-down packed ground (composite viewed: d1-fit-m02.png). Own-drawn m02 props STAND. 36.6 rocket body: deepdive magical-asset-pack Basic sheet + pixel-magic Icons/Molten_Spear re-checked (VIEWED) — no rocket cell; fire-spears/meteors are not a steel rocket and would collide with world.bullet owned reads — world.missile keeps its documented procedural gap. Also executed the 35.3-logged corrective pass: fx.frostBurst now declares the sheet's true 64x88 pitch (from:7 = the same complete splat motif, viewed before/after — the old 88x88 rect spanned a three-cell seam).",
   "palette": {
     "eliteColor": "#ffd75e"
   },
   "sprites": {
+    "world.bolt": {
+      "frame": {
+        "w": 256,
+        "h": 128
+      },
+      "tint": "#5eead4",
+      "strips": {
+        "art": {
+          "src": "assets/itch/pixel-art-skill-animations-lightning/VFX1/Sprite-sheet/Sprite-sheet.png",
+          "from": 0,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          28,
+          12
+        ]
+      },
+      "notes": "Moonbolt projectile (items.js boltSprite, rotated to velocity) — Frostwindz lightning_skill1 horizontal arc; the #5eead4 moonbolt ladder moved from the builder gradient to the manifest (blueFlame law)."
+    },
+    "world.baseball": {
+      "frame": {
+        "w": 32,
+        "h": 32
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/pixel-sports-ball-assets/balls.png",
+          "from": 0,
+          "count": 1,
+          "sx": 5,
+          "sy": 55
+        }
+      },
+      "render": {
+        "bake": [
+          16,
+          16
+        ]
+      },
+      "notes": "36.4 Baseball Bat line drive (items.js baseballSprite; the HOMERUN variant paints this SAME cell under its rainbow halo via packOver under-painter). Source: hamuko27 Pixel Sports Ball Assets (imported+approved 2026-10-28; sheet VIEWED — six balls, row-2-col-1 stitched white baseball = cell (5,55,32,32); tennis/basket/soccer/bowling/pool rejected by identity)."
+    },
+    "world.bullet": {
+      "frame": {
+        "w": 64,
+        "h": 64
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/pixel-magic-sprite-effects/Fire_Ball/003.png",
+          "from": 0,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          20,
+          10
+        ]
+      },
+      "notes": "Twin Fangs bullet (items.js bulletSprite, rotated) — pixel-magic fireball comet; the source IS the warm round + fading trail this builder approximated (no tint, world.bomb law)."
+    },
+    "world.arrow": {
+      "frame": {
+        "w": 85,
+        "h": 85
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/fx/jp_proj_kunai.png",
+          "from": 0,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          30,
+          12
+        ]
+      },
+      "notes": "Bow & Arrow projectile (items.js arrowSprite, rotated) — Sengoku thrown kunai, steel right-facing frame 0 (the same pack family as world.blade/world.bomb; no tint — the source is the steel dart)."
+    },
+    "world.snowball": {
+      "frame": {
+        "w": 32,
+        "h": 32
+      },
+      "tint": "#cfe8fa",
+      "strips": {
+        "art": {
+          "src": "assets/itch/gothicvania-magic-pack-9/Magic Pack 9 files/spritesheets/spark.png",
+          "from": 2,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          22,
+          22
+        ]
+      },
+      "notes": "Snowball Launcher ball (items.js snowballSprite; lobbed, never rotates) — magic9 spark splat-ball cell (same cell fx.spark re-uses at its blue ladder; here the cold #cfe8fa snow ladder = the slot identity)."
+    },
+    "world.web": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x107.png",
+          "from": 0,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          18,
+          18
+        ]
+      },
+      "notes": "Spider Web knot (items.js webSprite; no rotation) — the SAME rrfreelance cobweb cell icon.webs shows on the card (projectile ↔ card identity; no tint, white silk = existing)."
+    },
+    "world.boulder": {
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x66.png",
+          "from": 0,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          68,
+          68
+        ]
+      },
+      "notes": "Rolling Boulder stone (items.js boulderSprite; rotates with travel — round art) — the SAME boulder cell as icon.boulder (card ↔ projectile identity; no tint)."
+    },
+    "world.burn": {
+      "frame": {
+        "w": 64,
+        "h": 64
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/gothicvania-magic-pack-9/Magic Pack 9 files/spritesheets/Fire-bomb.png",
+          "from": 7,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          16,
+          16
+        ]
+      },
+      "notes": "Burn status flame (enemies.js burnImg blit, draw-time flicker unchanged) — magic9 Fire-bomb small hot core frame (the source IS the warm flick; fx.flame keeps the full dome frame 9)."
+    },
+    "world.blight": {
+      "frame": {
+        "w": 64,
+        "h": 88
+      },
+      "tint": "#78dc5a",
+      "strips": {
+        "art": {
+          "src": "assets/itch/gothicvania-magic-pack-9/Magic Pack 9 files/spritesheets/Dark-Bolt.png",
+          "from": 7,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          16,
+          16
+        ]
+      },
+      "notes": "Blight status wisp (enemies.js blightImg blit) — magic9 Dark-Bolt flame-ring wisp re-toned to the #78dc5a blight ladder (same re-tone mechanism as fx.frostBurst)."
+    },
+    "world.orb": {
+      "frame": {
+        "w": 32,
+        "h": 32
+      },
+      "tint": "#b07af0",
+      "strips": {
+        "art": {
+          "src": "assets/itch/gothicvania-magic-pack-9/Magic Pack 9 files/spritesheets/spark.png",
+          "from": 0,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          18,
+          18
+        ]
+      },
+      "notes": "Cultist orb (enemies.js orbImg blit; the Mirror Shield reflect input) — magic9 spark white-core glow ball re-toned to the #b07af0 orb ladder (radial art = the orb has no facing)."
+    },
+    "world.scorch": {
+      "frame": {
+        "w": 64,
+        "h": 64
+      },
+      "tint": "#ff7896",
+      "strips": {
+        "art": {
+          "src": "assets/itch/gothicvania-magic-pack-9/Magic Pack 9 files/spritesheets/Fire-bomb.png",
+          "from": 5,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          24,
+          24
+        ]
+      },
+      "notes": "Continuous-Laser scorch spark (items.js scorchSparkSprite → combat._fx.scorch, per-spark rotate + flare unchanged) — magic9 Fire-bomb X-star frame re-toned to the beam pink (#ff7896 = the scorch identity)."
+    },
+    "fx.shieldRing": {
+      "frame": {
+        "w": 32,
+        "h": 32
+      },
+      "tint": "#a8d8ff",
+      "strips": {
+        "art": {
+          "src": "assets/itch/gothicvania-magic-pack-9/Magic Pack 9 files/spritesheets/spark.png",
+          "from": 5,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          256,
+          256
+        ]
+      },
+      "notes": "Mirror Shield ACTIVE ring (combat.js _shieldStep indicator → shieldRingImg, engine blits scaled to 2·row.r so the drawn radius stays the TRUE reflect radius; charge pips stay engine strokes). magic9 ring+bolt cell at the old #a8d8ff stroke ladder."
+    },
+    "fx.garlicRing": {
+      "frame": {
+        "w": 32,
+        "h": 32
+      },
+      "tint": "#b9f2a0",
+      "strips": {
+        "art": {
+          "src": "assets/itch/gothicvania-magic-pack-9/Magic Pack 9 files/spritesheets/spark.png",
+          "from": 6,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          256,
+          256
+        ]
+      },
+      "notes": "Wraith Garlic ground-pulse ring (combat.js draw → garlicRingImg, feet-centered, scaled to 2·S.r pulse; same radius as the damage field, 23.2 rule). magic9 broken-spark ring cell at the #b9f2a0 garlic stroke colour."
+    },
+    "fx.laserBeam": {
+      "frame": {
+        "w": 64,
+        "h": 88
+      },
+      "tint": "#ff7896",
+      "strips": {
+        "art": {
+          "src": "assets/itch/gothicvania-magic-pack-9/Magic Pack 9 files/spritesheets/Dark-Bolt.png",
+          "from": 0,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          64,
+          88
+        ]
+      },
+      "notes": "Continuous-Laser beam (combat.js beams loop → laserImg, rotated to the live orbit angle + stretched to len×w — ramp-in/alpha unchanged). magic9 Dark-Bolt thin streak at the beam pink ladder (was the two-stroke vector)."
+    },
+    "fx.lightningArc": {
+      "frame": {
+        "w": 256,
+        "h": 128
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/pixel-art-skill-animations-lightning/VFX1/Sprite-sheet/Sprite-sheet.png",
+          "from": 0,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          256,
+          128
+        ]
+      },
+      "notes": "Ring of Chain Lightning link arc (combat.js _ringBeams → arcImg, rotated + stretched between link points; fade over ringBeamDur + strike-point sparkImg unchanged). Frostwindz bolt arc, natural blue-white = the old rgba(210,230,255) stroke (no tint, source-is-identity law)."
+    },
+    "fx.burstHomerun": {
+      "frame": {
+        "w": 256,
+        "h": 256
+      },
+      "tint": "#ffd878",
+      "strips": {
+        "art": {
+          "src": "assets/itch/fx/jp_spark_ball.png",
+          "from": 2,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          128,
+          128
+        ]
+      },
+      "notes": "HOMERUN impact (game.js onFx homerun → Particles.burst; old dot-spray RGB 255,216,120 moved to the manifest ladder). Sengoku spark-ball impact frame, per-kind tint IS the identity (blueFlame law)."
+    },
+    "fx.burstCrag": {
+      "frame": {
+        "w": 256,
+        "h": 256
+      },
+      "tint": "#9aa7b8",
+      "strips": {
+        "art": {
+          "src": "assets/itch/fx/jp_spark_ball.png",
+          "from": 2,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          128,
+          128
+        ]
+      },
+      "notes": "Boulder crag impact (onFx crag → Particles.burst; old stone-grey dot RGB 154,167,184 → manifest ladder). Same spark-ball cell."
+    },
+    "fx.burstReflect": {
+      "frame": {
+        "w": 256,
+        "h": 256
+      },
+      "tint": "#aad2ff",
+      "strips": {
+        "art": {
+          "src": "assets/itch/fx/jp_spark_ball.png",
+          "from": 2,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          128,
+          128
+        ]
+      },
+      "notes": "Mirror Shield reflect burst (onFx reflect → Particles.burst; old mirror-blue dot RGB 170,210,255 → manifest ladder). Same spark-ball cell."
+    },
+    "fx.burstBall": {
+      "frame": {
+        "w": 256,
+        "h": 256
+      },
+      "tint": "#c8c8d2",
+      "strips": {
+        "art": {
+          "src": "assets/itch/fx/jp_spark_ball.png",
+          "from": 2,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          128,
+          128
+        ]
+      },
+      "notes": "Baseball hit-puff (onFx ball → Particles.burst; old grey dot RGB 200,200,210 → manifest ladder). Same spark-ball cell. (The BALL itself stays procedural — gap list, no stitched-ball art.)"
+    },
+    "fx.burstSlide": {
+      "frame": {
+        "w": 256,
+        "h": 256
+      },
+      "tint": "#e6f0fa",
+      "strips": {
+        "art": {
+          "src": "assets/itch/fx/jp_spark_ball.png",
+          "from": 2,
+          "count": 1
+        }
+      },
+      "render": {
+        "bake": [
+          128,
+          128
+        ]
+      },
+      "notes": "Ice Skates slide marks (player.js slide-hit → onFx slide → Particles.burst; old ice-white dot RGB 230,240,250 → manifest ladder). Same spark-ball cell."
+    },
     "hero.mage": {
       "frame": {
         "w": 16,
@@ -240,9 +655,9 @@
         "h": 16
       },
       "sheet": {
-        "w": 30,
-        "h": 26,
-        "shadowR": 8
+        "w": 39,
+        "h": 34,
+        "shadowR": 10
       },
       "frames": 1,
       "facing": "right",
@@ -254,7 +669,7 @@
         }
       },
       "render": {
-        "artH": 20,
+        "artH": 26,
         "trim": [
           2,
           6,
@@ -270,9 +685,9 @@
         "h": 16
       },
       "sheet": {
-        "w": 34,
-        "h": 28,
-        "shadowR": 8
+        "w": 44,
+        "h": 36,
+        "shadowR": 10
       },
       "frames": 2,
       "facing": "right",
@@ -284,7 +699,7 @@
         }
       },
       "render": {
-        "artH": 18,
+        "artH": 23,
         "trim": [
           0,
           4,
@@ -300,9 +715,9 @@
         "h": 16
       },
       "sheet": {
-        "w": 30,
-        "h": 38,
-        "shadowR": 9
+        "w": 39,
+        "h": 49,
+        "shadowR": 12
       },
       "frames": 3,
       "facing": "right",
@@ -314,7 +729,7 @@
         }
       },
       "render": {
-        "artH": 32,
+        "artH": 42,
         "trim": [
           0,
           0,
@@ -391,9 +806,9 @@
         "h": 16
       },
       "sheet": {
-        "w": 64,
-        "h": 60,
-        "shadowR": 14
+        "w": 83,
+        "h": 78,
+        "shadowR": 18
       },
       "frames": 2,
       "facing": "right",
@@ -405,7 +820,7 @@
         }
       },
       "render": {
-        "artH": 48,
+        "artH": 62,
         "trim": [
           1,
           0,
@@ -421,9 +836,9 @@
         "h": 16
       },
       "sheet": {
-        "w": 32,
-        "h": 46,
-        "shadowR": 9
+        "w": 42,
+        "h": 60,
+        "shadowR": 12
       },
       "frames": 2,
       "facing": "right",
@@ -435,7 +850,7 @@
         }
       },
       "render": {
-        "artH": 44,
+        "artH": 57,
         "trim": [
           3,
           0,
@@ -496,7 +911,7 @@
       "facing": "right",
       "strips": {
         "frames": {
-          "src": "assets/itch/aaron-sprites-freebies-3/192/aaron_fb3_002.png",
+          "src": "assets/itch/aaron-sprites-freebies-3/192/aaron_fb3_001.png",
           "from": 0,
           "count": 1
         }
@@ -504,13 +919,14 @@
       "render": {
         "artH": 88,
         "trim": [
-          14,
-          24,
-          160,
-          148
+          16,
+          4,
+          168,
+          162
         ],
         "flip": true
-      }
+      },
+      "notes": "36.2 ryū re-skin (closes 34.3): aaron_fb3_001 = the F46 GOLD EASTERN-SERPENT dragon (VIEWED; head+neck LEFT, wing mass right, tail curl — render.flip bakes it into the right-facing contract). The previous src fb3_002 was a red MECH (wrong identity, logged 34.3). trim = measured content bbox; artH 88 ⇒ 0.54× downscale (≤2× guest law holds). DeepDive dragon-asset-pack evaluated first per 36.2(a) and rejected after viewing all candidate rows: 16px wyrms (AquaDrake/AdultGreen/YoungRed/White + Basic 1x/2x/4x) read as minion-size lizards scaled to 96x112."
     },
     "skin.m02.wolf": {
       "frame": {
@@ -555,9 +971,9 @@
         "h": 53
       },
       "sheet": {
-        "w": 30,
-        "h": 26,
-        "shadowR": 8
+        "w": 39,
+        "h": 34,
+        "shadowR": 10
       },
       "frames": 1,
       "facing": "right",
@@ -569,7 +985,7 @@
         }
       },
       "render": {
-        "artH": 20,
+        "artH": 26,
         "trim": [
           0,
           0,
@@ -586,9 +1002,9 @@
         "h": 60
       },
       "sheet": {
-        "w": 34,
-        "h": 28,
-        "shadowR": 8
+        "w": 44,
+        "h": 36,
+        "shadowR": 10
       },
       "frames": 2,
       "bob": [
@@ -604,7 +1020,7 @@
         }
       },
       "render": {
-        "artH": 24,
+        "artH": 31,
         "trim": [
           0,
           0,
@@ -620,9 +1036,9 @@
         "h": 63
       },
       "sheet": {
-        "w": 30,
-        "h": 38,
-        "shadowR": 9
+        "w": 39,
+        "h": 49,
+        "shadowR": 12
       },
       "frames": 3,
       "bob": [
@@ -639,7 +1055,7 @@
         }
       },
       "render": {
-        "artH": 30,
+        "artH": 39,
         "trim": [
           0,
           0,
@@ -656,9 +1072,9 @@
         "h": 32
       },
       "sheet": {
-        "w": 64,
-        "h": 60,
-        "shadowR": 14
+        "w": 83,
+        "h": 78,
+        "shadowR": 18
       },
       "frames": 2,
       "facing": "right",
@@ -671,7 +1087,7 @@
         }
       },
       "render": {
-        "artH": 48,
+        "artH": 62,
         "trim": [
           23,
           12,
@@ -687,9 +1103,9 @@
         "h": 16
       },
       "sheet": {
-        "w": 32,
-        "h": 46,
-        "shadowR": 9
+        "w": 42,
+        "h": 60,
+        "shadowR": 12
       },
       "frames": 2,
       "bob": [
@@ -705,7 +1121,7 @@
         }
       },
       "render": {
-        "artH": 36,
+        "artH": 47,
         "trim": [
           1,
           0,
@@ -757,9 +1173,9 @@
         "h": 92
       },
       "sheet": {
-        "w": 30,
-        "h": 26,
-        "shadowR": 8
+        "w": 39,
+        "h": 34,
+        "shadowR": 10
       },
       "frames": 1,
       "bob": [
@@ -776,7 +1192,7 @@
         }
       },
       "render": {
-        "artH": 22,
+        "artH": 29,
         "trim": [
           4,
           13,
@@ -792,9 +1208,9 @@
         "h": 92
       },
       "sheet": {
-        "w": 34,
-        "h": 28,
-        "shadowR": 8
+        "w": 44,
+        "h": 36,
+        "shadowR": 10
       },
       "frames": 2,
       "bob": [
@@ -812,7 +1228,7 @@
         }
       },
       "render": {
-        "artH": 20,
+        "artH": 26,
         "trim": [
           4,
           12,
@@ -828,9 +1244,9 @@
         "h": 48
       },
       "sheet": {
-        "w": 30,
-        "h": 38,
-        "shadowR": 9
+        "w": 39,
+        "h": 49,
+        "shadowR": 12
       },
       "frames": 3,
       "bob": [
@@ -847,7 +1263,7 @@
         }
       },
       "render": {
-        "artH": 30,
+        "artH": 39,
         "trim": [
           2,
           11,
@@ -903,9 +1319,9 @@
         "h": 92
       },
       "sheet": {
-        "w": 64,
-        "h": 60,
-        "shadowR": 14
+        "w": 83,
+        "h": 78,
+        "shadowR": 18
       },
       "frames": 2,
       "bob": [
@@ -923,7 +1339,7 @@
         }
       },
       "render": {
-        "artH": 44,
+        "artH": 57,
         "trim": [
           5,
           18,
@@ -940,9 +1356,9 @@
         "h": 92
       },
       "sheet": {
-        "w": 32,
-        "h": 46,
-        "shadowR": 9
+        "w": 42,
+        "h": 60,
+        "shadowR": 12
       },
       "frames": 2,
       "bob": [
@@ -960,7 +1376,7 @@
         }
       },
       "render": {
-        "artH": 32,
+        "artH": 42,
         "trim": [
           11,
           15,
@@ -1291,18 +1707,55 @@
         "scale": 1
       }
     },
-    "icon.wand": {
+    "terrain.campfire.m01": {
       "frame": {
-        "w": 16,
-        "h": 16
+        "w": 59,
+        "h": 39
       },
       "strips": {
         "art": {
-          "src": "assets/itch/sprites-pack-16px-over-150/PropsInPixels_16x5.png",
+          "src": "assets/itch/sprites/hunters_camp_and_wild_places/stone_ring_fire_pit_with_glowing_coals.png",
           "from": 0,
           "count": 1
         }
-      }
+      },
+      "place": {
+        "strip": "art",
+        "scale": 1
+      },
+      "notes": "36.3 m01 campfire decor ← nanasha hunters-camp fire pit (single-cell PNG, whole frame = content, VIEWED). 59x39 baked into the 56x48 decor contract = +5%/-19% — within the ±20% law; 3px of the stone-ring flanks clip. REJECTED same-view: hunters_campfire_with_a_hanging_kettle 57x55 (+15% h clips the kettle bar at the top-anchored bake), small_cooking_fire 58x61 (+27% → skip)."
+    },
+    "terrain.well.m01": {
+      "frame": {
+        "w": 45,
+        "h": 54
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/sprites/hunters_camp_and_wild_places/big_covered_clay_storage_jar.png",
+          "from": 0,
+          "count": 1
+        }
+      },
+      "place": {
+        "strip": "art",
+        "scale": 1
+      },
+      "notes": "36.3 m01 well decor ← nanasha covered clay storage jar (whole frame = content, VIEWED). 45x54 baked into 56x64 = -20%/-16% — within the ±20% law (bottom-center bake, same anchor class as the m01 tent). REJECTED same-view (measured vs slot canvases): low_wooden_lantern_stand 40x60 vs m02 lantern 30x56 (+33% w); straw_yokai_dummy 54x68 vs m01 monolith 44x96 (+23% w/-29% h); stack_of_iron_beast_traps 60x51 no matching slot; hunters_camp_tent 70x61 vs hut 120x96 (-42%); stump/lightning-stump/tree-stump-table and ring_of_pale_mushrooms vs the 36x26/20x22 slots (>2× over)."
+    },
+    "icon.wand": {
+      "frame": {
+        "w": 32,
+        "h": 32
+      },
+      "strips": {
+        "art": {
+          "src": "assets/itch/Free - Raven Fantasy Icons/Separated Files/32x32/fb770.png",
+          "from": 0,
+          "count": 1
+        }
+      },
+      "notes": "35.1 (D-F9 r8): magic-bolt cell (violet comet + spark trail) replaces the A5 mis-pick PropsInPixels_16x5 (arrow glyph); candidate sheets viewed: unsloth-tmp/qa-c2/cand-icons.png + cand-staff.png"
     },
     "icon.bow": {
       "frame": {
@@ -1683,6 +2136,29 @@
       },
       "notes": "world heal heart; per-level tint = HEART_PAL.low ladder (items.js heartSprite)"
     },
+    "pickup.shard": {
+      "frame": {
+        "w": 48,
+        "h": 48
+      },
+      "tint": "#7ee3c8",
+      "strips": {
+        "art": {
+          "src": "assets/itch/fx/jp_soul_drain_frames/jp_soul_drain_08.png",
+          "from": 0,
+          "count": 1,
+          "sx": 102,
+          "sy": 68
+        }
+      },
+      "render": {
+        "bake": [
+          24,
+          26
+        ]
+      },
+      "notes": "36.1 Soulshard world-pickup ART SEAM (no engine spawn site — D-F2 frozen gameplay; items.js soulShardSprite holds the seam, test-art pins the bake). Source: willYEE Sengoku soul-drain loop (CC0), frame 08 — all 12 frames VIEWED: 00-05 open wide, 06/07 mid-spiral, 10/11 too small/dark; the (102,68,48,48) bright-core crop of 08 bakes brightest and most shard-like at 24x26 (d1-soul-pick/d1-soul-core QA sheets viewed). tint #7ee3c8 declared here = the particles.soul death-wisp teal family (blueFlame law)."
+    },
     "icon.garlic": {
       "frame": {
         "w": 32,
@@ -1858,14 +2334,14 @@
     },
     "fx.frostBurst": {
       "frame": {
-        "w": 88,
+        "w": 64,
         "h": 88
       },
       "tint": "#bfe9f7",
       "strips": {
         "art": {
           "src": "assets/itch/gothicvania-magic-pack-9/Magic Pack 9 files/spritesheets/Dark-Bolt.png",
-          "from": 5,
+          "from": 7,
           "count": 1
         }
       },
@@ -1875,7 +2351,7 @@
           64
         ]
       },
-      "notes": "snowball/avalanche impact burst (items.js frostBurstSprite, additive) — magic9 Dark-Bolt energy splat re-toned cold through the shared luma ladder"
+      "notes": "snowball/avalanche impact burst (items.js frostBurstSprite, additive) — magic9 Dark-Bolt energy splat re-toned cold through the shared luma ladder. 36.x corrective pass (logged 35.3): sheet pitch is truly 64x88 (704/11 cells), not 88x88 — the old frame spanned a seam across three cells; from:7 is the same complete splat motif (viewed before/after: s11-frost crops)."
     },
     "fx.spark": {
       "frame": {

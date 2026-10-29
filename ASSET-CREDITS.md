@@ -216,3 +216,17 @@
 - File: Free - Raven Fantasy Icons.zip
 - Imported: 2026-10-27
 - License: This asset can be used in any project, even commercial and physical(print or tabletop) ones, but it cannot be distributed or sold as a separate product without the creator's permission (me). 5- Attribution is not necessary but welcome. 7- For more detailed licensing information: License Freebies: Click here to see and get our free products!
+
+## EAST — Free Sample: Japanese-inspired pixel art from every pack in the collection
+- Author: mmorwynn
+- Store: https://mmorwynn.itch.io/east-free-sample
+- File: east-free-sample.zip
+- Imported: 2026-10-28
+- License: Licence: any project, commercial or not, no credit required; do not resell the files as an asset pack.
+
+## Pixel Sports Ball Assets - Free
+- Author: hamu
+- Store: https://hamuko27.itch.io/pixel-sports-ball-assets
+- File: balls.png
+- Imported: 2026-10-28
+- License: Credit is not required but always welcome (˶˃ ᵕ ˂˶) .ᐟ.ᐟ Please do not resell or redistribute this asset on its own or give it away separately.

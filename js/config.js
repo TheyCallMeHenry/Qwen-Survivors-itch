@@ -578,7 +578,23 @@ export const CFG = {
     slots: 3,
   },
 
-  gems: { magnetBase: 70, collectR: 16, maxAlive: 320, heartPool: 32, heartChance: 0.03, heartChanceLowHp: 0.08, heartHeal: 15, heartDecayAfter: 600, heartDecayMul: 0.5, lowHpFrac: 0.3, escapePad: 6 }, // escapePad (22.2): px beyond a spot's edge — 32.3 (user approved 2026-10-26): heartChance 0.045→0.03, heartHeal 20→15, normal roll ×heartDecayMul after heartDecayAfter s (panic valve exempt)
+  gems: { magnetBase: 70, collectR: 16, maxAlive: 320, heartPool: 32, heartChance: 0.03, heartChanceLowHp: 0.08, heartHeal: 15, heartDecayAfter: 600, heartDecayMul: 0.5, lowHpFrac: 0.3, escapePad: 6,
+    // escapePad (22.2): px beyond a spot's edge — 32.3 (user approved 2026-10-26): heartChance 0.045→0.03, heartHeal 20→15, normal roll ×heartDecayMul after heartDecayAfter s (panic valve exempt)
+    // 35.2 (D-F9 r8, phone playtest 2026-10-26): m01 XP gems sank into the packed
+    // raven-forest ground (teal ≈ green tiles). Gem ladders + pop controls live here
+    // (rule 5; art/items.js re-exports GEM_PAL for the test-logic 22.3 invariants and
+    // CONSUMES the pop fields in gemSprite): glowR/glowA = baked halo underlay (the
+    // 24×26 boot-asserted bake canvas caps radius at 12 — enlarging the bake itself
+    // would move the engine footprint, D-F2), rim/rimPx = silhouette outline ring drawn
+    // under the packed cell (hex + width px; absent = no rim). m01 retuned colder +
+    // brighter than its old #0fb89b mid (hue away from greens); m02/m03 keep their
+    // shipped ladders EXACTLY — Phase-23 law: change only what the user names.
+    pal: {
+      m01: { glow: '90,225,255', stops: ['#3ff0dc', '#18cfe8', '#0b7fa6'], edge: 'rgba(4,44,68,0.6)', glowR: 12, glowA: 0.5, rim: '#eafcff', rimPx: 1 },
+      m02: { glow: '255,196,128', stops: ['#ffd98a', '#ff9e7d', '#c94f6d'], edge: 'rgba(120,40,60,0.6)', glowR: 11, glowA: 0.35 },
+      m03: { glow: '80,220,255', stops: ['#6fd8ff', '#1f9fd8', '#0d5f96'], edge: 'rgba(8,60,90,0.6)', glowR: 11, glowA: 0.35 },
+    },
+  },
 
   // XP needed to go from level L to L+1
   xpNeed: (L) => 4 + (L - 1) * 3,

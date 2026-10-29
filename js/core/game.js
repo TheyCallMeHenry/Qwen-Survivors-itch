@@ -96,6 +96,14 @@ export class Game {
     this.combat.missileImg = items.missile;
     this.combat.boulderImg = items.boulder;
     this.combat.webImg = items.web;
+    // 35.3/35.4 (C1, user-ordered D-F2 amendment): engine-drawn FX → packed art.
+    // combat.js blits these where it used to stroke the ring/beam/arc primitives;
+    // positions, radii, timing and alphas unchanged — lookups only.
+    this.combat.shieldRingImg = items.shieldRing;
+    this.combat.garlicRingImg = items.garlicRing;
+    this.combat.laserImg = items.laserBeam;
+    this.combat.arcImg = items.lightningArc;
+    this.sparkBursts = { homerun: items.burstHomerun, crag: items.burstCrag, reflect: items.burstReflect, ball: items.burstBall, slide: items.burstSlide };
     // B3 (2026-10-26): Baseball Bat baseballs (+ the HOMERUN variant through the draw seam).
     this.combat.baseballImg = items.baseball;
     this.combat.baseballVar = items.baseballVar;
@@ -110,13 +118,16 @@ export class Game {
     this.combat.pulse = (n) => this.bus.emit(n);
     this.combat.onBomb = () => this.camera.addShake(CFG.camera.shake.bomb);
     // P21 cosmetic bursts (particles only — damage already resolved in combat).
+    // 35.4 (C1): the five kinds now pop a PACKED impact burst (fx.burst*, per-kind
+    // tint in the manifest) instead of the old per-RGB dot sprays — same positions,
+    // same lifetimes; the ball-trail dots stay (per-particle hue cycle, documented gap).
     this.combat.onFx = (kind, x, y) => {
       const P = this.particles;
-      if (kind === 'homerun') { P.spark(x, y, 16, 320, 255, 216, 120, 3, 0.9, 260); P.spark(x, y, 8, 200, 255, 140, 90, 2.4, 0.7, 260); }
-      else if (kind === 'crag') P.spark(x, y, 10, 220, 154, 167, 184, 2.8, 0.6, 420);
-      else if (kind === 'reflect') P.spark(x, y, 8, 240, 170, 210, 255, 2.4, 0.5, 0);
-      else if (kind === 'ball') P.spark(x, y, 8, 180, 200, 200, 210, 2.2, 0.45, 200);
-      else if (kind === 'slide') P.spark(x, y, 6, 160, 230, 240, 250, 2, 0.4, 0);
+      if (kind === 'homerun') P.burst(x, y, this.sparkBursts.homerun, 0.9, 150);
+      else if (kind === 'crag') P.burst(x, y, this.sparkBursts.crag, 0.6, 110);
+      else if (kind === 'reflect') P.burst(x, y, this.sparkBursts.reflect, 0.5, 96);
+      else if (kind === 'ball') P.burst(x, y, this.sparkBursts.ball, 0.45, 84);
+      else if (kind === 'slide') P.burst(x, y, this.sparkBursts.slide, 0.4, 72);
       // B3: rainbow trail dot for the HOMERUN baseball — pooled fading dots (the standard
       // particle style), hue cycling through CFG.combat.ballTrailHues per emission.
       else if (kind === 'balltrail') {

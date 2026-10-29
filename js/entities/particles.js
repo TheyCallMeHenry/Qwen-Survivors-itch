@@ -3,7 +3,7 @@
 import { CFG } from '../config.js';
 import { TAU, rand } from '../utils/math.js';
 
-const DOT = 0, TEXT = 1, GHOST = 2;
+const DOT = 0, TEXT = 1, GHOST = 2, BURST = 3;
 
 export class Particles {
   constructor(cap = CFG.perf.particleCap) {
@@ -76,6 +76,18 @@ export class Particles {
     }
   }
 
+  // 35.4 (C1): packed impact burst — one baked sprite popped at (x, y): scales up
+  // slightly while fading out over `life`, exactly where the old dot-sprays landed
+  // (game.js onFx hit-sparks / skates-marks now pass the packed fx.burst* cells).
+  // Visual kind only: pool/cap/timing mechanics identical to the other kinds.
+  burst(x, y, img, life = 0.5, size = 96) {
+    const p = this._slot();
+    p.on = true; p.kind = BURST;
+    p.x = x; p.y = y;
+    p.life = p.max = life; p.size = size;
+    p.img = img;
+  }
+
   // Rising embers (campfire-ish).
   ember(x, y, n) {
     for (let i = 0; i < n; i++) {
@@ -125,6 +137,12 @@ export class Particles {
         if (p.flip) ctx.scale(-1, 1);
         ctx.drawImage(p.img, -p.img.width / 2, -p.img.height);
         ctx.restore();
+      } else if (p.kind === BURST) {
+        // 35.4: the packed burst's own art carries the spikes/debris — pop in at 90%
+        // size, flare to 105% as it fades (same rhythm as the reflect-flash pattern).
+        ctx.globalAlpha = k;
+        const s = Math.max(4, Math.round(p.size * (0.9 + 0.15 * (1 - k))));
+        ctx.drawImage(p.img, p.x - s / 2, p.y - s / 2, s, s);
       } else if (p.kind === TEXT) {
         ctx.globalAlpha = Math.min(1, k * 1.6);
         ctx.font = p.fnt;

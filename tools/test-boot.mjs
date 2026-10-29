@@ -1453,14 +1453,16 @@ m03RunDone = true;
     holdRing(999); // probe over — no more bolts, nothing drifts during the draw checks
     // Beam lifetime = ringBeamDur; every fire emits one bolt beam (+ chain beams).
     // Freshly pin cd=0 and fire ONE bolt right before the draw checks so a live arc
-    // exists on the owner for combat.draw to stroke.
+    // exists on the owner. 35.3 (C1): combat.draw now BLITS the packed arc
+    // (fx.lightningArc via combat.arcImg) + the strike spark — the old vector stroke is
+    // only the unwired fallback.
     fireBolt();
     assert(p2._ringBeams.length >= 1, '12.4: bolt arcs emitted on the owner during the probe');
     const ringBeam = p2._ringBeams.find((b) => b.x === p2.x && b.y === sy162);
     assert(!!ringBeam, '12.4: bolt arc carries the mid-torso origin (16.2)');
-    const st0r = drawOps.stroke;
+    const di0r = drawOps.drawImage;
     g2.combat.draw(g2.ctx, g2.t, g2.players);
-    assert(drawOps.stroke - st0r >= 1, '12.4: combat.draw strokes the lightning arcs (sparkImg path live)');
+    assert(drawOps.drawImage - di0r >= 2, '12.4: combat.draw blits the packed lightning arc + the strike spark (arcImg + sparkImg paths live)');
     p2.weapons.ringLightning = 0; p2._ringBeams.length = 0;
     g2.combat.damagePlayer = dmgPLayerBak;
     g2.combat._dot = dotBak;
@@ -1487,8 +1489,11 @@ m03RunDone = true;
   p2.weapons.garlic = 1; // mage has no garlic — grant one for the ring draw
   const d0 = drawOps.drawImage, ar0 = drawOps.arc;
   g2.combat.draw(g2.ctx, g2.t, g2.players);
-  assert(drawOps.drawImage - d0 >= CFG.weapons.blades.levels[0].n, '16.2: combat.draw drew the blade sprites (per-player loop live)');
-  assert(drawOps.arc - ar0 === 1, '16.2: combat.draw drew the garlic pulse ring (feet-centered, live phase)');
+  // 16.2 + 35.3 (C1): blades blit AND the garlic ring is now the packed blit
+  // (garlicRingImg, scaled to the true 2·S.r pulse) — the vector arc must NOT draw
+  // once the art is wired (arc delta 0 proves the packed path, not the fallback).
+  assert(drawOps.drawImage - d0 >= CFG.weapons.blades.levels[0].n + 1, '16.2/35.3: combat.draw blits the blade sprites + the packed garlic ring');
+  assert(drawOps.arc - ar0 === 0, '35.3: the garlic ring draws as packed art, not a vector arc (feet-centered blit live)');
 
   // 22.1 audit: garlic is the only weapon with a drawn effect but NO in-tree damage
   // check — assert the pulse lands. Park a rat inside S.r + e.r, force the per-player

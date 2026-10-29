@@ -3632,8 +3632,11 @@ const slots0 = (row) => row.filter((f) => f !== null).length;
   for (let i = 0; i < 30; i++) c.update(1 / 60, [pl], stub([], { orbs: [] }));
   ok(c.reflectFx.length === 0, '29.10: reflect flash self-expires (purely cosmetic lifecycle)');
   // ACTIVE-state indicator hooks in combat.draw: ring at the true reflect radius, pips from the bank.
-  ok(/passives && pl\.passives\.shield[\s\S]{0,700}?arc\(pl\.x, oy, row\.r, 0, TAU\)/.test(csrc),
-    '29.10: combat.draw paints the ACTIVE mirror ring at the shield radius (torso-centered like _shieldStep)');
+  // 35.3 (C1): the ring is now the packed blit scaled to DIAMETER 2·row.r (radius
+  // fidelity kept); the vector arc remains the unwired fallback — either path proves it.
+  ok(/this\.shieldRingImg[\s\S]{0,200}?row\.r \* 2/.test(csrc) ||
+    /passives && pl\.passives\.shield[\s\S]{0,700}?arc\(pl\.x, oy, row\.r, 0, TAU\)/.test(csrc),
+    '29.10/35.3: combat.draw paints the ACTIVE mirror ring at the true shield radius (packed ring or fallback arc, torso-centered like _shieldStep)');
   ok(/i < C\.shieldCharges[\s\S]{0,300}?i < bank\.n/.test(csrc),
     '29.10: banked-charge pips draw from the live bank (active-state read)');
 

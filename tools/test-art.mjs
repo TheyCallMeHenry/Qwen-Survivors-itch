@@ -99,19 +99,23 @@ for (const [slot, want] of Object.entries(HERO)) {
 // source sheet was viewed before wiring; symmetric front-facing art is flip-invariant
 // and still declares 'right'), the elite marker + palette hex, and the pack block.
 const ENEMY = {
-  rat: { sheet: [30, 26, 8], frames: 1 },
-  bat: { sheet: [34, 28, 8], frames: 2 },
-  goblin: { sheet: [30, 38, 9], frames: 3 },
-  wolf: { sheet: [46, 32, 11], frames: 4 }, // static sheet → bob-derived cycle
-  brute: { sheet: [64, 60, 14], frames: 2 },
-  cultist: { sheet: [32, 46, 9], frames: 2 },
+  // 35.5 (D-F9 r8, this session): the five small-enemy families are baked +30% VISUAL
+  // (sheet/artH/shadowR ×1.3 nearest-int in sprites.json); the wolf family + bosses
+  // stay unscaled (192px sources / D-F9 exclusion). Hitboxes/stats/weights are the
+  // CFG.enemies tables — untouched. Renamed Higan types keep the scaled base tables.
+  rat: { sheet: [39, 34, 10], frames: 1 },
+  bat: { sheet: [44, 36, 10], frames: 2 },
+  goblin: { sheet: [39, 49, 12], frames: 3 },
+  wolf: { sheet: [46, 32, 11], frames: 4 }, // static sheet → bob-derived cycle (192px source — NOT scaled)
+  brute: { sheet: [83, 78, 18], frames: 2 },
+  cultist: { sheet: [42, 60, 12], frames: 2 },
   // 33.4.8 Higan-only renamed types: same footprint + frame counts as the slots they
   // replace (levels.js m02 weights only) — the swap is art-only (D-F2).
-  baku: { sheet: [30, 26, 8], frames: 1 },        // static Nasha still (baked with flip)
-  kitsunebi: { sheet: [34, 28, 8], frames: 2 },   // static still + bob cycle
-  nue: { sheet: [30, 38, 9], frames: 3 },         // static still + bob cycle (baked with flip)
-  dorotabo: { sheet: [64, 60, 14], frames: 2 },   // real walk row from the sheet (east-facing)
-  amabie: { sheet: [32, 46, 9], frames: 2 },      // static 16px still + bob cycle
+  baku: { sheet: [39, 34, 10], frames: 1 },        // static Nasha still (baked with flip)
+  kitsunebi: { sheet: [44, 36, 10], frames: 2 },   // static still + bob cycle
+  nue: { sheet: [39, 49, 12], frames: 3 },         // static still + bob cycle (baked with flip)
+  dorotabo: { sheet: [83, 78, 18], frames: 2 },    // real walk row from the sheet (east-facing)
+  amabie: { sheet: [42, 60, 12], frames: 2 },      // static 16px still + bob cycle
 };
 const ELITE_HEX = /^#[0-9a-f]{6}$/;
 let enemyChecked = 0;
@@ -194,13 +198,13 @@ for (const [slot, want] of Object.entries(BOSS)) {
 // base tables; sources (D-F5 viewings in js/art/characters.js): Ocean Creatures grid
 // cells + the Underwater Enemies #2 drowned-triton walk row.
 const SKIN = {
-  'm02.wolf': { sheet: [46, 32, 11], frames: 4 },
-  'm03.rat': { sheet: [30, 26, 8], frames: 1 },      // red crab (front-facing → no flip)
-  'm03.bat': { sheet: [34, 28, 8], frames: 2 },      // clownfish (right-facing, bob cycle)
-  'm03.goblin': { sheet: [30, 38, 9], frames: 3 },   // drowned triton: real walk row (left-facing → flip)
+  'm02.wolf': { sheet: [46, 32, 11], frames: 4 },      // 192px family — deliberately NOT +30% (35.5 law)
+  'm03.rat': { sheet: [39, 34, 10], frames: 1 },      // red crab (front-facing → no flip)
+  'm03.bat': { sheet: [44, 36, 10], frames: 2 },      // clownfish (right-facing, bob cycle)
+  'm03.goblin': { sheet: [39, 49, 12], frames: 3 },   // drowned triton: real walk row (left-facing → flip)
   'm03.wolf': { sheet: [46, 32, 11], frames: 4 },    // manta ray (measured left → flip + bob)
-  'm03.brute': { sheet: [64, 60, 14], frames: 2 },   // dolphin (eye LEFT, like the shark → flip)
-  'm03.cultist': { sheet: [32, 46, 9], frames: 2 },  // seahorse (snout left → flip, bob)
+  'm03.brute': { sheet: [83, 78, 18], frames: 2 },   // dolphin (eye LEFT, like the shark → flip)
+  'm03.cultist': { sheet: [42, 60, 12], frames: 2 },  // seahorse (snout left → flip, bob)
 };
 let skinChecked = 0;
 for (const [slot, want] of Object.entries(SKIN)) {
@@ -361,6 +365,9 @@ const TERRAIN_PROPS = {
   'terrain.dead.m01': [44, 92],
   'terrain.boulder.m01': [48, 36],
   'terrain.hut.m01': [120, 96],
+  // 36.3: m01 camp/well ← nanasha hunters-camp cells (±20% law + reject list in the rows).
+  'terrain.campfire.m01': [56, 48],
+  'terrain.well.m01': [56, 64],
 };
 for (const [slot, canvas] of Object.entries(TERRAIN_PROPS)) {
   const e = sprites[slot];
@@ -427,18 +434,23 @@ const eBf = sprites['icon.blueFlame'];
 if (eBf && !/^#[0-9a-f]{6}$/i.test(eBf.tint || '')) fail('icon.blueFlame: tint hex required (reuses the inferno flame cell)');
 if (eBf && sprites['icon.inferno'] && eBf.strips?.art?.src !== sprites['icon.inferno'].strips?.art?.src) fail('icon.blueFlame: must reuse the icon.inferno source cell (tinted)');
 if (!isrc.includes("packDraw('")) fail('items.js: packDraw wiring missing');
-// pickup bake contracts (sizes = the boot asserts; tints config-side)
-const PICKUP = { 'pickup.gem': [24, 26], 'pickup.heart': [22, 20] };
+// pickup bake contracts (sizes = the boot asserts; tints config-side). 36.1 adds
+// pickup.shard — the Soulshard world-pickup ART SEAM: the Sengoku fx dir is a legal
+// source for it, it has NO engine spawn site (D-F2 keeps gameplay frozen), and its
+// items.js builder (soulShardSprite) must wire through packOver like the others.
+const PICKUP = { 'pickup.gem': [24, 26], 'pickup.heart': [22, 20], 'pickup.shard': [24, 26] };
+const PICKUP_SRC_DIRS = [...PACK_DIRS, 'assets/itch/fx/']; // 36.1: shard ← Sengoku soul-drain frames
 let pickupChecked = 0;
 for (const [slot, [bw, bh]] of Object.entries(PICKUP)) {
   const e = sprites[slot];
   if (!e) { fail(slot + ': missing pickup manifest entry'); continue; }
   const b = e.render?.bake;
   if (!Array.isArray(b) || b[0] !== bw || b[1] !== bh) { fail(`${slot}: render.bake must be [${bw},${bh}] (boot-asserted)`); continue; }
-  if (!e.strips?.art || e.strips.art.count !== 1 || !PACK_DIRS.some((d) => (e.strips.art.src || '').startsWith(d))) { fail(`${slot}: must slice one pack cell`); continue; }
+  if (!e.strips?.art || e.strips.art.count !== 1 || !PICKUP_SRC_DIRS.some((d) => (e.strips.art.src || '').startsWith(d))) { fail(`${slot}: must slice one pack cell`); continue; }
   pickupChecked++;
   console.log(`ok   ${slot}  pack cell → bake ${bw}x${bh} (boot footprint)`);
 }
+if (!isrc.includes("packOver(c, 'pickup.shard'")) fail('items.js: pickup.shard seam not wired (soulShardSprite must packOver the slot)');
 // 33.4.7 (A6) WORLD/FX + backdrop asserts: every packed world projectile/FX slot and
 // every m02 backdrop cell slices exactly ONE frame from a VIEWED FX/background pack,
 // declares render.bake = the exact pre-rendered engine canvas footprint (draw-call and
@@ -446,12 +458,32 @@ for (const [slot, [bw, bh]] of Object.entries(PICKUP)) {
 // packM02Ridges cells in sky.js. Tinted slots declare their ladder hex IN THE MANIFEST
 // (blueFlame law). KEPT-PROCEDURAL slots (no clean source in any imported pack — rule 15
 // documented gaps) must have NO manifest entry and keep their path-drawn builder body.
-const WORLD_SRC_DIRS = ['assets/itch/gothicvania-magic-pack-9/', 'assets/itch/explosion-animations-pack/', 'assets/itch/fx/'];
+// 35.3/35.4 (C1): the ten kept tracers/blobs/statuses that DO have clean sources moved
+// into the table below (frostwindz lightning, pixel-magic fireball, Sengoku kunai/spark-
+// ball, magic9 spark/Dark-Bolt/Fire-bomb, rrfreelance web+boulder = their own card-icon
+// cells), plus the four engine-drawn standing FX (fx.shieldRing/garlicRing/laserBeam/
+// lightningArc → combat.js blit hooks) and the five impact-burst kinds (fx.burst* →
+// game.js onFx → Particles.burst). Engine consumers are asserted against their real
+// source files (unwired bake = silent visual regression).
+const WORLD_SRC_DIRS = ['assets/itch/gothicvania-magic-pack-9/', 'assets/itch/explosion-animations-pack/', 'assets/itch/fx/', 'assets/itch/pixel-art-skill-animations-lightning/', 'assets/itch/pixel-magic-sprite-effects/', 'assets/itch/sprites-pack-16px-over-150/', 'assets/itch/pixel-sports-ball-assets/'];
 const WORLD = {
   'world.bomb': [30, 34], 'world.bomb.napalm': [30, 34], 'world.blade': [30, 30],
   'fx.explosion': [128, 128], 'fx.blastStar': [128, 128], 'fx.frostBurst': [64, 64],
   'fx.spark': [20, 20], 'fx.flame': [24, 24], 'fx.reflectRing': [48, 48],
+  // 35.3 — previously kept-procedural, packed this phase:
+  'world.bolt': [28, 12], 'world.bullet': [20, 10], 'world.arrow': [30, 12],
+  'world.snowball': [22, 22], 'world.web': [18, 18], 'world.boulder': [68, 68],
+  'world.burn': [16, 16], 'world.blight': [16, 16], 'world.orb': [18, 18], 'world.scorch': [24, 24],
+  // 36.4 — packed this phase (base ball; the HOMERUN variant paints the same cell under
+  // its drawn rainbow halo, and both builders keep the procedural fallback for Node):
+  'world.baseball': [16, 16],
+  // 35.3 — engine-stroke replacements (bakes = the canvases game.js wires to combat):
+  'fx.shieldRing': [256, 256], 'fx.garlicRing': [256, 256], 'fx.laserBeam': [64, 88], 'fx.lightningArc': [256, 128],
+  // 35.4 — impact bursts (Particles.burst kind; per-kind tint IS the identity):
+  'fx.burstHomerun': [128, 128], 'fx.burstCrag': [128, 128], 'fx.burstReflect': [128, 128], 'fx.burstBall': [128, 128], 'fx.burstSlide': [128, 128],
 };
+// packOver for the normal slots; impactBurstSprite('slot') for the shared burst painter.
+const worldWired = (slot) => isrc.includes(`packOver(c, '${slot}'`) || isrc.includes(`impactBurstSprite('${slot}'`);
 let worldChecked = 0;
 for (const [slot, [bw, bh]] of Object.entries(WORLD)) {
   const e = sprites[slot];
@@ -460,7 +492,7 @@ for (const [slot, [bw, bh]] of Object.entries(WORLD)) {
   if (!st || st.count !== 1 || !WORLD_SRC_DIRS.some((d) => (st.src || '').startsWith(d))) { fail(`${slot}: must slice ONE cell from a viewed FX pack`); continue; }
   const b = e.render?.bake;
   if (!Array.isArray(b) || b[0] !== bw || b[1] !== bh) { fail(`${slot}: render.bake must be [${bw},${bh}] (engine footprint)`); continue; }
-  if (!isrc.includes(`packOver(c, '${slot}'`)) { fail(`items.js: ${slot} is not wired through packOver`); continue; }
+  if (!worldWired(slot)) { fail(`items.js: ${slot} is not wired through packOver/impactBurstSprite`); continue; }
   worldChecked++;
   console.log(`ok   ${slot}  FX-pack cell → bake ${bw}x${bh}${e.tint ? ' · tint ' + e.tint : ''}`);
 }
@@ -468,14 +500,47 @@ for (const [slot, [bw, bh]] of Object.entries(WORLD)) {
 const eNap = sprites['world.bomb.napalm'];
 if (eNap && sprites['world.bomb'] && eNap.strips?.art?.src !== sprites['world.bomb'].strips?.art?.src) fail('world.bomb.napalm: must reuse the world.bomb source cell');
 if (eNap && eNap.tint !== '#a8462e') fail(`world.bomb.napalm: tint must be #a8462e (the card casing identity), got ${eNap?.tint}`);
-// Kept-procedural world sprites (every item.js builder NOT packed this phase — the
-// honest gap list; any drift either way fails): no manifest entry, real draw body.
-const WORLD_KEPT = { bolt: 'boltSprite', bullet: 'bulletSprite', arrow: 'arrowSprite', snowball: 'snowballSprite', baseball: 'baseballSprite', boomerang: 'boomerangSprite', missile: 'missileSprite', web: 'webSprite', boulder: 'boulderSprite', burn: 'burnSprite', blight: 'blightSprite', orb: 'orbSprite', scorch: 'scorchSparkSprite' };
+// Kept-procedural world sprites (the HONEST gap list after 35.3/35.4 + 36.4 packed every
+// other one — rule 15; any drift either way fails):
+//  • boomerang: no boomerang cell in any imported pack (the only find, erick1310, is
+//    PAID $2.99 — free-first law skips it; gap research 2026-10-28 §G7).
+//  • missile: the Homing Missile keeps its steel-rocket identity (pairs with the
+//    icon.missile rocket); 36.6 re-viewed the deepdive magical Basic sheet + pixel-magic
+//    Icons/Molten_Spear — no rocket cell exists, and the pack's comet/fireball cells are
+//    already owned by world.bullet (re-using them here would erase the two weapons'
+//    distinct reads).
+const WORLD_KEPT = { boomerang: 'boomerangSprite', missile: 'missileSprite' };
 for (const [key, fn] of Object.entries(WORLD_KEPT)) {
   if (sprites['world.' + key] || sprites['fx.' + key]) { fail(`world.${key}: manifest entry exists but the slot is declared kept-procedural`); continue; }
   if (!new RegExp(`function ${fn}\\(\\) \\{`).test(isrc)) { fail(`items.js: kept-procedural builder ${fn} missing`); continue; }
   if (isrc.includes(`packOver(c, 'world.${key}'`) || isrc.includes(`packOver(c, 'fx.${key}'`)) { fail(`items.js: ${fn} is wired to a pack slot but declared kept-procedural`); continue; }
 }
+// 35.3/35.4 engine-consumer wiring: the packed bakes must actually replace the engine
+// strokes/spot-emitters (an unwired bake is a silent regression, rule 15). Each pair
+// asserts the combat/game identifiers on both sides of the seam, lookups only.
+const csrc = readFileSync(join(root, 'js/entities/combat.js'), 'utf8');
+const gsrc = readFileSync(join(root, 'js/core/game.js'), 'utf8');
+const psrc = readFileSync(join(root, 'js/entities/particles.js'), 'utf8');
+let engineChecked = 0;
+for (const [slot, field] of [['fx.shieldRing', 'shieldRingImg'], ['fx.garlicRing', 'garlicRingImg'], ['fx.laserBeam', 'laserImg'], ['fx.lightningArc', 'arcImg']]) {
+  if (!csrc.includes('this.' + field)) { fail(`combat.js: ${slot} has no ${field} draw hook`); continue; }
+  if (!gsrc.includes(`this.combat.${field} = items.`)) { fail(`game.js: combat.${field} is not wired from items`); continue; }
+  engineChecked++;
+  console.log(`ok   ${slot}  bake → combat.${field} (engine blit wired, stroke fallback kept)`);
+}
+for (const [kind, slot] of [['homerun', 'fx.burstHomerun'], ['crag', 'fx.burstCrag'], ['reflect', 'fx.burstReflect'], ['ball', 'fx.burstBall'], ['slide', 'fx.burstSlide']]) {
+  if (!isrc.includes(`impactBurstSprite('${slot}')`)) { fail(`items.js: ${slot} has no impactBurstSprite build slot`); continue; }
+  if (!gsrc.includes(`this.sparkBursts.${kind} = `) && !gsrc.includes(`${kind}: items.burst`)) { fail(`game.js: sparkBursts.${kind} not wired from items`); continue; }
+  if (!gsrc.includes(`P.burst(x, y, this.sparkBursts.${kind}`)) { fail(`game.js: onFx '${kind}' does not emit the packed burst`); continue; }
+  engineChecked++;
+  console.log(`ok   ${slot}  onFx ${kind} → Particles.burst (packed impact burst)`);
+}
+if (!/p\.kind = BURST/.test(psrc) || !psrc.includes('burst(x, y, img')) fail('particles.js: the BURST kind / burst() emitter is missing — onFx bursts would throw');
+// Kept-procedural particle dots (documented gaps, 35.4): soul wisps, embers and the
+// HOMERUN rainbow ball-trail carry per-particle dynamic hues — no fixed-tint pack
+// source fits; the snow/bomb ground-shadow ellipses + the bat/dash wind-up strokes are
+// base.js/player silhouette helpers (PLAN-FORK §0 KEEP), not effect sprites.
+if (!psrc.includes('ctx.arc(p.x, p.y')) fail('particles.js: procedural dot path vanished — documented gaps must stay drawable');
 const skySrc = readFileSync(join(root, 'js/art/sky.js'), 'utf8');
 const BG = ['bg.m02.far1', 'bg.m02.far2', 'bg.m02.torii', 'bg.m02.castle', 'bg.m02.buddha'];
 let bgChecked = 0;
@@ -489,5 +554,5 @@ for (const slot of BG) {
   console.log(`ok   ${slot}  backdrop scene cell wired in sky.js`);
 }
 if (!skySrc.includes('packM02Ridges')) fail('sky.js: packM02Ridges (m02 packed parallax) missing — m02 backdrops would silently stay procedural');
-console.log(fails === 0 ? `\ntest-art: PASS (${checked} manifest entries validated, ${heroChecked} hero slots, ${enemyChecked} enemy slots, ${bossChecked} boss slots, ${skinChecked} skin slots, ${weatherChecked} weather slots, ${terrainChecked} terrain slots, ${faceChecked} pixel facing probes, ${iconChecked}/${ICON_PACKED.length} packed icons + ${ICON_DRAWN.length} kept-drawn verified, ${pickupChecked} pickup bakes, ${worldChecked} world/FX bakes + ${Object.keys(WORLD_KEPT).length} kept-procedural verified, ${bgChecked} m02 backdrop cells)` : `\ntest-art: ${fails} FAILURE(S)`);
+console.log(fails === 0 ? `\ntest-art: PASS (${checked} manifest entries validated, ${heroChecked} hero slots, ${enemyChecked} enemy slots, ${bossChecked} boss slots, ${skinChecked} skin slots, ${weatherChecked} weather slots, ${terrainChecked} terrain slots, ${faceChecked} pixel facing probes, ${iconChecked}/${ICON_PACKED.length} packed icons + ${ICON_DRAWN.length} kept-drawn verified, ${pickupChecked} pickup bakes, ${worldChecked} world/FX bakes + ${Object.keys(WORLD_KEPT).length} kept-procedural verified + ${engineChecked} engine blit wirings, ${bgChecked} m02 backdrop cells)` : `\ntest-art: ${fails} FAILURE(S)`);
 process.exit(fails === 0 ? 0 : 1);

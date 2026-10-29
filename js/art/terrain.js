@@ -1207,6 +1207,10 @@ export function buildTerrain() {
     propSwap('boulder:1', 'terrain.boulder.m01', 'rockB', 48, 36, true);
     propSwap('hut:0', 'terrain.hut.m01', 'art', 120, 96, false);
     propSwap('hut:1', 'terrain.hut.m01', 'art', 120, 96, true);
+    // 36.3 (Phase 36): m01 camp/well decor ← nanasha hunters-camp single cells (VIEWED;
+    // the ±20% footprint law + the measured reject list live in the manifest rows).
+    propSwap('campfire', 'terrain.campfire.m01', 'art', 56, 48, false);
+    propSwap('well', 'terrain.well.m01', 'art', 56, 64, false);
   }
   return { grassTiles, decals, pine, pineBig, deadTree, boulders, stump, mushroom, monolith, campfire, huts, well, sprites, ground: { m01: grassTiles, m02: m02Tiles, m03: m03Tiles }, koi, koiF };
 }

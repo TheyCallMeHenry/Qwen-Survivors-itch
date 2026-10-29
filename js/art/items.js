@@ -1,19 +1,16 @@
 // Pickups, projectiles and card icons — pre-rendered sprites.
 
-import { makeCanvas, glowSprite, shadowSprite, poly, roundRectPath, formShade } from './base.js';
+import { makeCanvas, glowSprite, shadowSprite, poly, roundRectPath, formShade, flashCopy } from './base.js';
 import { loadPack, onArtReady, sliceStrip, paletteSwap, lumaTintMap } from './load.js';
 import { CFG } from '../config.js';
 import { TAU } from '../utils/math.js';
 
-// Per-level pickup tints (13.10, A5): m01 = original, M02 gold-pink, M03 cyan.
-// 22.3: the m03 heart moved from teal (≈ gem cyan at a glance) to warm coral —
-// cool gems vs warm hearts is the strongest in-run discrimination, and coral
-// keeps the underwater identity. Exported for the test-logic contrast invariant.
-export const GEM_PAL = {
-  m01: { glow: '94,234,212', stops: ['#25f2cf', '#0fb89b', '#0a6f60'], edge: 'rgba(6,60,50,0.6)' },
-  m02: { glow: '255,196,128', stops: ['#ffd98a', '#ff9e7d', '#c94f6d'], edge: 'rgba(120,40,60,0.6)' },
-  m03: { glow: '80,220,255', stops: ['#6fd8ff', '#1f9fd8', '#0d5f96'], edge: 'rgba(8,60,90,0.6)' },
-};
+// Per-level pickup tints (13.10, A5). 22.3: cool gems vs warm hearts is the
+// strongest in-run discrimination — the m03 heart is warm coral for it; test-logic
+// asserts those invariants against these exports. 35.2 (D-F9): the GEM side of the
+// table moved to CFG.gems.pal (rule 5 — per-level ladders + glow/rim pop controls
+// are tuning data); this alias keeps the test-logic 22.3 import contract stable.
+export const GEM_PAL = CFG.gems.pal;
 export const HEART_PAL = {
   m01: { top: '#ff7d90', low: '#d42a4c', edge: 'rgba(90,10,30,0.65)' },
   m02: { top: '#ffb3a0', low: '#e0446e', edge: 'rgba(120,20,50,0.65)' },
@@ -29,10 +26,13 @@ export function gemHeartFor(levelKey) {
 }
 
 // World XP gem (24×26 — the exact boot-asserted footprint). 33.4.6: packed from
-// pickup.gem (rrfreelance blue-diamond cell) with the per-level identity tint (13.10,
-// D-F2: colors unchanged — GEM_PAL stops[1] drives the shared luma ladder) + the same
-// glow underlay. The procedural draw below stays as the Node/failed-image fallback
-// (test-boot boots headless), painted over in place when the pack art decodes.
+// pickup.gem (rrfreelance blue-diamond cell) with the per-level identity tint (13.10).
+// 35.2 (D-F9): the pack cell stays the source; its POP against the packed ground is
+// driven entirely by CFG.gems.pal data — glowR/glowA halo (was a hardcoded 11/.35),
+// brighter cooler m01 ladder, and a silhouette rim ring under the art (rim/rimPx).
+// The procedural draw below stays as the Node/failed-image fallback (test-boot boots
+// headless; it takes the new glow params but keeps its own edge stroke — the rim
+// mechanism is a packed-pixel concern), painted over in place when the pack art decodes.
 function gemSprite(pal = GEM_PAL.m01) {
   const c = makeCanvas(24, 26);
   const g = c.getContext('2d');
@@ -42,12 +42,14 @@ function gemSprite(pal = GEM_PAL.m01) {
     const paint = () => {
       const gg = c.getContext('2d');
       gg.clearRect(0, 0, 24, 26);
-      gg.drawImage(glowSprite(11, pal.glow, 0.35), 0, -1);
-      paintArt(gg, packCellArt(pk, 'pickup.gem', pal.stops[1]), 22, 24, 12, 13);
+      gg.drawImage(glowSprite(pal.glowR, pal.glow, pal.glowA), 0, -1);
+      const f = packCellArt(pk, 'pickup.gem', pal.stops[1]);
+      if (pal.rim) paintRim(gg, f, 22, 24, 12, 13, pal.rim, pal.rimPx);
+      paintArt(gg, f, 22, 24, 12, 13);
     };
     if (pk.ready) paint(); else onArtReady(pk, paint);
   };
-  g.drawImage(glowSprite(11, pal.glow, 0.35), 0, -1);
+  g.drawImage(glowSprite(pal.glowR, pal.glow, pal.glowA), 0, -1);
   const grad = g.createLinearGradient(0, 2, 0, 24);
   grad.addColorStop(0, pal.stops[0]);
   grad.addColorStop(0.5, pal.stops[1]);
@@ -109,7 +111,38 @@ function heartSprite(pal = HEART_PAL.m01) {
   return c;
 }
 
+// World Soulshard pickup (36.1) — an ART SEAM, not a feature: the engine has no shard
+// entity (Soulshards are score-derived meta currency, js/core/meta.js) and D-F2 keeps
+// gameplay frozen, so nothing spawns this yet. The builder + manifest row + test-art
+// bake contract stand ready, wired exactly like pickup.gem/pickup.heart; the drawn teal
+// crystal below is the Node/failed-image fallback (deliberately NOT a gem-diamond twin —
+// rule 16 near-twin law) so the slot paints real pixels if a future drop feature uses it.
+export function soulShardSprite() {
+  const c = makeCanvas(24, 26);
+  const g = c.getContext('2d');
+  g.drawImage(glowSprite(11, '126,227,200', 0.35), 1, 0);
+  const grad = g.createLinearGradient(0, 2, 0, 24);
+  grad.addColorStop(0, '#c8fff0');
+  grad.addColorStop(0.5, '#7ee3c8');
+  grad.addColorStop(1, '#2b8f78');
+  g.fillStyle = grad;
+  poly(g, [[9, 1], [19, 8], [16, 24], [6, 19], [3, 9]]);
+  g.fill();
+  g.fillStyle = 'rgba(240,255,250,0.55)';
+  poly(g, [[9, 1], [19, 8], [11, 12]]);
+  g.fill();
+  g.strokeStyle = 'rgba(6,48,40,0.7)';
+  g.lineWidth = 1;
+  poly(g, [[9, 1], [19, 8], [16, 24], [6, 19], [3, 9]]);
+  g.stroke();
+  // packed soul-drain core repaints this canvas in place; glow underlay kept (pickup pop).
+  packOver(c, 'pickup.shard', 24, 26, 12, 13, (gg) => gg.drawImage(glowSprite(11, '126,227,200', 0.35), 1, 0));
+  return c;
+}
+
 function boltSprite() {
+  // 35.3: Moonbolt ← Frostwindz bolt arc cell (world.bolt, teal ladder in the manifest;
+  // the engine rotates tracers to velocity angle — b.rot seam unchanged).
   const c = makeCanvas(28, 12);
   const g = c.getContext('2d');
   const grad = g.createLinearGradient(2, 0, 26, 0);
@@ -125,10 +158,13 @@ function boltSprite() {
   g.beginPath(); g.moveTo(8, 6); g.lineTo(22, 6); g.stroke();
   const head = glowSprite(7, '150,255,240', 0.9);
   g.drawImage(head, 22 - 7, 6 - 7);
+  packOver(c, 'world.bolt', 28, 12, 14, 6);
   return c;
 }
 
 function orbSprite() {
+  // 35.3: Cultist orb ← magic9 spark glow ball re-toned to the #b07af0 ladder
+  // (world.orb; radial art — the orb has no facing, enemies.js blit path unchanged).
   const c = makeCanvas(18, 18);
   const g = c.getContext('2d');
   const grad = g.createRadialGradient(9, 9, 0, 9, 9, 9);
@@ -138,6 +174,7 @@ function orbSprite() {
   grad.addColorStop(1, 'rgba(139,92,246,0)');
   g.fillStyle = grad;
   g.fillRect(0, 0, 18, 18);
+  packOver(c, 'world.orb', 18, 18, 9, 9);
   return c;
 }
 
@@ -195,6 +232,8 @@ function bladeSprite() {
 
 function bulletSprite() {
   // Twin Fangs tracer — small warm round (distinct from the cyan Moonbolt)
+  // 35.3: ← pixel-magic fireball comet (world.bullet; the source IS the warm round +
+  // fading trail this approximated — no tint). Rotation seam (b.rot) untouched.
   const c = makeCanvas(20, 10);
   const g = c.getContext('2d');
   const grad = g.createLinearGradient(0, 5, 18, 5);
@@ -210,11 +249,14 @@ function bulletSprite() {
   g.beginPath(); g.moveTo(6, 5); g.lineTo(16, 5); g.stroke();
   const head = glowSprite(6, '255,220,150', 0.85);
   g.drawImage(head, 16 - 6, 5 - 6);
+  packOver(c, 'world.bullet', 20, 10, 10, 5);
   return c;
 }
 
 function arrowSprite() {
   // 12.2: Bow & Arrow arrow — straight shaft, pointed tip, rear fletching
+  // 35.3: ← Sengoku thrown kunai (world.arrow; same pack family as world.blade/bomb —
+  // steel right-facing frame, rotated to velocity by the unchanged a.rot seam).
   const c = makeCanvas(30, 12);
   const g = c.getContext('2d');
   g.strokeStyle = '#c9b08a';
@@ -231,6 +273,7 @@ function arrowSprite() {
   g.moveTo(4, 6); g.lineTo(7, 8.8);
   g.moveTo(6.5, 6); g.lineTo(9.5, 8.8);
   g.stroke();
+  packOver(c, 'world.arrow', 30, 12, 15, 6);
   return c;
 }
 
@@ -268,6 +311,8 @@ function bombSprite() {
 
 function snowballSprite() {
   // 12.3: packed snow ball — bright core, bumpy frost rim, cold speckles
+  // 35.3: ← magic9 spark splat-ball at the cold #cfe8fa snow ladder (world.snowball;
+  // the bumpy rim reads as the frost-rim identity; the ball never rotates).
   const c = makeCanvas(22, 22);
   const g = c.getContext('2d');
   const grad = g.createRadialGradient(9, 9, 1, 11, 11, 10);
@@ -283,6 +328,7 @@ function snowballSprite() {
   g.strokeStyle = 'rgba(140,190,225,0.6)';
   g.lineWidth = 1;
   g.beginPath(); g.arc(11, 11, 9, 0, TAU); g.stroke();
+  packOver(c, 'world.snowball', 22, 22, 11, 11);
   return c;
 }
 
@@ -313,26 +359,37 @@ function drawStitchedBall(g, cx, cy, r) {
 function baseballSprite() {
   // B3: the Baseball Bat's line drive — stitched white ball. combat.draw spins it along
   // the flight, so the seams visibly rotate like a real baseball.
+  // 36.4: packed from hamuko27's stitched-ball cell (test-art moved world.baseball out
+  // of kept-procedural); this procedural draw stays the Node/failed-image fallback.
   const c = makeCanvas(16, 16);
   const g = c.getContext('2d');
   drawStitchedBall(g, 8, 8, 6.5);
+  packOver(c, 'world.baseball', 16, 16, 8, 8);
   return c;
 }
 
-function baseballHomerunSprite() {
-  // B3 HOMERUN ball (24.2 variant seam, v='homer'): the same ball under a hard rainbow
-  // halo — the mid-flight tell that pairs with the fading rainbow trail dots (game.js
-  // onFx 'balltrail' → particles).
-  const c = makeCanvas(24, 24);
-  const g = c.getContext('2d');
+// HOMERUN rainbow ring (24.2 mid-flight tell). Shared by the drawn fallback and the
+// pack repaint's `under` hook so the packed ball keeps its halo (one painter, no twin).
+function paintHomerunHalo(g, cx, cy, r) {
   const hues = ['#ff5a5a', '#ffaa46', '#f0dc5a', '#6ee182', '#5aaaff', '#a078f5'];
   g.lineWidth = 2.4;
   hues.forEach((col, i) => {
     g.strokeStyle = col;
     const a0 = (i * TAU) / hues.length;
-    g.beginPath(); g.arc(12, 12, 10.6, a0 + 0.05, a0 + TAU / hues.length - 0.05); g.stroke();
+    g.beginPath(); g.arc(cx, cy, r, a0 + 0.05, a0 + TAU / hues.length - 0.05); g.stroke();
   });
+}
+
+function baseballHomerunSprite() {
+  // B3 HOMERUN ball (24.2 variant seam, v='homer'): the same ball under a hard rainbow
+  // halo — the mid-flight tell that pairs with the fading rainbow trail dots (game.js
+  // onFx 'balltrail' → particles). 36.4: the variant's identity IS the halo — the packed
+  // world.baseball cell repaints under the same painted ring (packOver under-painter).
+  const c = makeCanvas(24, 24);
+  const g = c.getContext('2d');
+  paintHomerunHalo(g, 12, 12, 10.6);
   drawStitchedBall(g, 12, 12, 7.5);
+  packOver(c, 'world.baseball', 15, 15, 12, 12, (gg) => paintHomerunHalo(gg, 12, 12, 10.6));
   return c;
 }
 
@@ -589,9 +646,14 @@ export function scorchSparkSprite() {
   g.beginPath(); g.arc(19.5, 8.5, 1.1, 0, TAU); g.fill();
   g.beginPath(); g.arc(6.5, 16.5, 0.9, 0, TAU); g.fill();
   g.beginPath(); g.arc(15.5, 19.5, 0.8, 0, TAU); g.fill();
+  // 35.3: ← magic9 Fire-bomb X-star re-toned to the beam pink (world.scorch; the per-
+  // spark random rotation + pop-then-flare draw in combat.js is untouched).
+  packOver(c, 'world.scorch', 24, 24, 12, 12);
   return c;
 }
 function boulderSprite() {
+  // 35.3: Rolling Boulder ← the SAME rrfreelance boulder cell as icon.boulder
+  // (world.boulder; round stone, rotates with travel — b.rot seam unchanged).
   const c = makeCanvas(68, 68);
   const g = c.getContext('2d');
   g.drawImage(glowSprite(22, '90,100,115', 0.18), 12, 12);
@@ -607,9 +669,12 @@ function boulderSprite() {
   g.fillStyle = 'rgba(235,242,250,0.35)'; // top-left highlight facet
   poly(g, [[34, 6], [52, 12], [44, 22], [28, 16]]);
   g.fill();
+  packOver(c, 'world.boulder', 68, 68, 34, 34);
   return c;
 }
 function webSprite() {
+  // 35.3: Spider Web knot ← the SAME rrfreelance cobweb cell as icon.webs (world.web;
+  // white silk = the existing look; the strand line in combat.draw stays procedural).
   const c = makeCanvas(18, 18);
   const g = c.getContext('2d');
   g.strokeStyle = 'rgba(235,242,250,0.9)'; g.lineWidth = 1.3; g.lineCap = 'round';
@@ -625,10 +690,13 @@ function webSprite() {
   g.beginPath(); g.arc(cx, cy, 4, 0, TAU); g.stroke();
   g.fillStyle = 'rgba(255,255,255,0.95)';
   g.beginPath(); g.arc(cx, cy, 1.8, 0, TAU); g.fill();
+  packOver(c, 'world.web', 18, 18, 9, 9);
   return c;
 }
 function burnSprite() {
   // Small enemy-status flame (flicker is done at draw time)
+  // 35.3: ← magic9 Fire-bomb hot-core frame (world.burn; the source IS the warm flick —
+  // no tint; draw-time flicker scale untouched).
   const c = makeCanvas(16, 16);
   const g = c.getContext('2d');
   const grad = g.createRadialGradient(8, 10, 0.5, 8, 8, 7);
@@ -637,11 +705,13 @@ function burnSprite() {
   grad.addColorStop(1, 'rgba(255,80,30,0)');
   g.fillStyle = grad;
   g.fillRect(0, 0, 16, 16);
+  packOver(c, 'world.burn', 16, 16, 8, 8);
   return c;
 }
 
 function blightSprite() {
   // Green wisp for the blight status
+  // 35.3: ← magic9 Dark-Bolt flame-ring wisp re-toned to the #78dc5a ladder (world.blight).
   const c = makeCanvas(16, 16);
   const g = c.getContext('2d');
   const grad = g.createRadialGradient(8, 8, 0.5, 8, 8, 7);
@@ -650,6 +720,7 @@ function blightSprite() {
   grad.addColorStop(1, 'rgba(60,160,60,0)');
   g.fillStyle = grad;
   g.fillRect(0, 0, 16, 16);
+  packOver(c, 'world.blight', 16, 16, 8, 8);
   return c;
 }
 
@@ -828,6 +899,81 @@ function snowballBlueSprite() {
   return c;
 }
 
+// ── 35.3/35.4 engine-FX art hooks (C1 — user-ordered D-F2 amendment) ───────────────
+// The standing/beam FX combat.js used to stroke per frame, plus the impact bursts
+// game.js's onFx used to emit as dot sprays. Identical contract to every 33.4.7 world
+// bake: the procedural paint below is the Node/failed-image fallback at the exact bake
+// footprint, and the manifest cell repaints THAT canvas in place (packOver). The engine
+// only ever blits — ring diameters stay the TRUE effect radius (23.2 visual-vs-damage
+// rule), beam/arc blits reuse the old vector envelopes, bursts keep the old lifetimes.
+function shieldRingSprite() {
+  // Mirror Shield ACTIVE ring (combat.draw → shieldRingImg, scaled to 2·row.r; the
+  // charge pips stay engine strokes — they encode bank state, not art).
+  const c = makeCanvas(256, 256);
+  const g = c.getContext('2d');
+  g.strokeStyle = '#a8d8ff';
+  g.lineWidth = 2.5;
+  g.beginPath(); g.arc(128, 128, 126, 0, TAU); g.stroke();
+  packOver(c, 'fx.shieldRing', 256, 256, 128, 128);
+  return c;
+}
+function garlicRingSprite() {
+  // Wraith Garlic ground-pulse ring (combat.draw → garlicRingImg, feet-centered,
+  // scaled to 2·S.r with the unchanged pulse — same radius as the damage field).
+  const c = makeCanvas(256, 256);
+  const g = c.getContext('2d');
+  g.strokeStyle = '#b9f2a0';
+  g.lineWidth = 2;
+  g.setLineDash([10, 14]);
+  g.beginPath(); g.arc(128, 128, 126, 0, TAU); g.stroke();
+  g.setLineDash([]);
+  packOver(c, 'fx.garlicRing', 256, 256, 128, 128);
+  return c;
+}
+function laserBeamSprite() {
+  // Continuous-Laser beam segment (combat.draw beams loop → laserImg, rotated to the
+  // live orbit angle and stretched to len×w — the ramp-in alpha is untouched).
+  const c = makeCanvas(64, 88);
+  const g = c.getContext('2d');
+  g.strokeStyle = 'rgba(255,120,150,0.85)';
+  g.lineWidth = 3;
+  g.lineCap = 'round';
+  g.beginPath(); g.moveTo(8, 80); g.lineTo(56, 8); g.stroke();
+  packOver(c, 'fx.laserBeam', 64, 88, 32, 44);
+  return c;
+}
+function lightningArcSprite() {
+  // Ring of Chain Lightning link arc (combat.draw _ringBeams → arcImg, rotated +
+  // stretched between link points; fade over ringBeamDur unchanged, and the packed
+  // arc replaces ONLY the polyline stroke — the strike-point sparkImg already ships).
+  const c = makeCanvas(256, 128);
+  const g = c.getContext('2d');
+  g.strokeStyle = 'rgba(210,230,255,0.9)';
+  g.lineWidth = 2;
+  g.beginPath();
+  g.moveTo(2, 64);
+  for (let i = 1; i <= 4; i++) g.lineTo(i * 64 - 16, 64 + (i % 2 ? -22 : 22));
+  g.lineTo(254, 64);
+  g.stroke();
+  packOver(c, 'fx.lightningArc', 256, 128, 128, 64);
+  return c;
+}
+// One shared painter for the five impact bursts (hit-sparks: crag/ball/reflect/homerun;
+// skates marks: slide). The manifest TINT IS the kind identity (blueFlame law) — the old
+// per-kind dot RGBs from game.js's onFx handler moved into the manifest ladders.
+function impactBurstSprite(slot) {
+  const c = makeCanvas(128, 128);
+  const g = c.getContext('2d');
+  const grad = g.createRadialGradient(64, 64, 2, 64, 64, 52);
+  grad.addColorStop(0, 'rgba(255,255,255,0.95)');
+  grad.addColorStop(0.6, 'rgba(230,240,255,0.35)');
+  grad.addColorStop(1, 'rgba(200,220,255,0)');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 128, 128);
+  packOver(c, slot, 128, 128, 64, 64);
+  return c;
+}
+
 // 19.1 HUD equipment chip: blit a buildIcons() icon into a target canvas backing store
 // at `css` CSS-px with device-pixel-ratio baked once (crisp on HiDPI, no per-frame work).
 export function drawIconScaled(target, icon, css, dpr) {
@@ -911,6 +1057,20 @@ function paintArt(g, f, fitW, fitH, cx, cy) {
   const dw = Math.max(1, Math.round(w * s)), dh = Math.max(1, Math.round(h * s));
   g.imageSmoothingEnabled = false;
   g.drawImage(f, x, y, w, h, Math.round(cx - dw / 2), Math.round(cy - dh / 2), dw, dh);
+}
+
+// 35.2 (D-F9): contrast ring under a packed cell — the cell's opaque silhouette
+// recoloured to `hex` (flashCopy source-in idiom), stamped at every ±n offset; the
+// caller paints the real art on top and what survives is a uniform n-px outline.
+// Identical trim/fit maths to paintArt is what keeps the ring an even border.
+function paintRim(g, f, fitW, fitH, cx, cy, hex, n) {
+  const sil = flashCopy(f);
+  const sg = sil.getContext('2d');
+  sg.globalCompositeOperation = 'source-in';
+  sg.fillStyle = hex;
+  sg.fillRect(0, 0, sil.width, sil.height);
+  sg.globalCompositeOperation = 'source-over';
+  for (let dx = -n; dx <= n; dx++) for (let dy = -n; dy <= n; dy++) { if (!dx && !dy) continue; paintArt(g, sil, fitW, fitH, cx + dx, cy + dy); }
 }
 
 export function buildIcons() {
@@ -1480,6 +1640,17 @@ export function buildItems() {
     arrowVar: { flaming: arrowFlamingSprite(), piercer: arrowPiercerSprite() },
     bombVar: { napalm: bombNapalmSprite() },
     snowballVar: { blue: snowballBlueSprite() },
+    // 35.3/35.4 (C1): engine-FX art hooks — game.js wires these to combat.*Img /
+    // this.sparkBursts; combat.js and particles.js only blit them. Lookups only.
+    shieldRing: shieldRingSprite(),
+    garlicRing: garlicRingSprite(),
+    laserBeam: laserBeamSprite(),
+    lightningArc: lightningArcSprite(),
+    burstHomerun: impactBurstSprite('fx.burstHomerun'),
+    burstCrag: impactBurstSprite('fx.burstCrag'),
+    burstReflect: impactBurstSprite('fx.burstReflect'),
+    burstBall: impactBurstSprite('fx.burstBall'),
+    burstSlide: impactBurstSprite('fx.burstSlide'),
   };
 }
 
