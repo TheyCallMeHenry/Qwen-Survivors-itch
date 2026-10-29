@@ -999,7 +999,7 @@ const slots0 = (row) => row.filter((f) => f !== null).length;
   ok(typeof m1.layout === 'function' && m1.weights(1000).rat === 5 && m1.boss.key === 'wraith' && m1.boss.at === 240, 'm01: layout/weights/boss wired');
   ok(typeof m2.layout === 'function' && typeof m2.weights === 'function' && m2.boss.key === 'ryu' && m2.boss.at === 240, 'm02: layout/weights/boss (Ryū) wired (13.2/13.3)');
   ok(typeof m3.layout === 'function' && typeof m3.weights === 'function' && m3.boss.key === 'shark' && m3.boss.at === 240, 'm03: layout/weights/boss (Great White) wired (13.4/13.5)');
-  ok(generateWorld(20260820, 'm01').trees.length === 276 && generateWorld(20260820, 'm01').decor.length === 335 && generateWorld(20260820, 'm01').colliders.length === 329, 'm01 layout: golden counts (seed 20260820) — +1 collider = well landmark retained (D92)');
+  ok(generateWorld(20260820, 'm01').trees.length === 276 && generateWorld(20260820, 'm01').decor.length === 335 && generateWorld(20260820, 'm01').colliders.length === 325, 'm01 layout: golden counts (seed 20260820) — 37.5 (F5) tent = ONE r=24 round per hut (was a 2×r=34 pair); −4 net because one old duplicate was already spawn-filtered. Well landmark retained (D92).');
   // 13.2 — m02 (Higan) layout
   const g = generateWorld(20260822, 'm02');
   const g2 = generateWorld(20260822, 'm02');

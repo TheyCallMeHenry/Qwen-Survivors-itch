@@ -3,8 +3,29 @@
 // All levels wired: m01 13.1 · m02 13.2/13.3 · m03 13.4/13.5.
 
 import { mulberry32, clamp, TAU } from '../utils/math.js';
+import { loadPack } from '../art/load.js'; // 37.3 (F3) only: asks whether a level's ground is packed
 
 export const LEVEL_ORDER = ['m01', 'm02', 'm03'];
+
+// ── 37.5 (F5) collider truth: sizes match the VIEWED packed art, replacing the old
+// procedural guesses. Tent (terrain.hut.m01 = one 44-px-wide contiguous crop) → a single
+// r at the anchor (the old pair r=34 @ x±18 blocked a 104-px band for 44 px of art).
+// Rocks: art half-width runs 13–21 px over the 0.9–1.5× instance range → r = 10 + 6·s.
+// Solidness law unchanged (D92: landmarks always solid; spawn clearance rule intact).
+const TENT_R = 24;
+const boulderR = (s) => 10 + 6 * s;
+// ── 37.8 (F8b) torii landmark ×1.5 (matches terrain.toriiSprite's scale): posts move to
+// x±33 with r=15, which keeps a 36-px walk-through corridor between them (player r=14).
+const TORII_W = 165, TORII_H = 195, TORII_POST_DX = 33, TORII_POST_R = 15;
+// ── 37.3 (F3) ground-decal gate: a packed tileset already prints its own ground detail,
+// so the procedural soft-blob moss/mud decals are not placed on such a level (they read
+// as floating smudges over real tiles). Node has no pack (loadPack() → null), so headless
+// layout counts are untouched; only the browser drops them.
+const BLOB_DECAL_KEYS = ['moss', 'mud'];
+const groundIsPacked = (levelKey) => {
+  const pk = loadPack();
+  return !!(pk && pk.manifest.sprites['terrain.ground.' + levelKey]);
+};
 
 export const LEVELS = {
   m01: {
@@ -201,10 +222,11 @@ function layoutM01(seed) {
   }
 
   // --- ~1000 ground decals ---
-  const decalKeys = ['tuft', 'tuft', 'tuft', 'tuft', 'tuft', 'tuft', 'tuft', 'tuft',
+  let decalKeys = ['tuft', 'tuft', 'tuft', 'tuft', 'tuft', 'tuft', 'tuft', 'tuft',
     'pebble', 'pebble', 'pebble', 'pebble', 'pebble',
     'flowerA', 'flowerA', 'flowerB', 'flowerB',
     'bone', 'mud', 'mud', 'moss', 'moss'];
+  if (groundIsPacked('m01')) decalKeys = decalKeys.filter((k) => !BLOB_DECAL_KEYS.includes(k));
   const decals = [];
   for (let i = 0; i < 1000; i++) {
     const k = pick(decalKeys);
@@ -223,11 +245,8 @@ function layoutM01(seed) {
     colliders.push({ x: t.x, y: t.y, r });
   }
   for (const t of deadTrees) colliders.push({ x: t.x, y: t.y, r: 7 });
-  for (const h of huts) {
-    colliders.push({ x: h.x - 18, y: h.y, r: 34 });
-    colliders.push({ x: h.x + 18, y: h.y, r: 34 });
-  }
-  for (const r of rocks) colliders.push({ x: r.x, y: r.y, r: 14 + r.s * 8 }); // ≈14–22
+  for (const h of huts) colliders.push({ x: h.x, y: h.y, r: TENT_R }); // 37.5 (F5): one footprint = one round
+  for (const r of rocks) colliders.push({ x: r.x, y: r.y, r: boulderR(r.s) }); // 37.5 (F5): ≈15–19, matches the baked rock art
   for (const l of lakes) colliders.push({ x: l.x, y: l.y, rx: l.rx, ry: l.ry, ellipse: true });
   for (const m of mountains) colliders.push({ x: m.x, y: m.y - 30, r: m.w * 0.3 });
   for (const m of monoliths) colliders.push({ x: m.x, y: m.y, r: 12 });
@@ -412,12 +431,13 @@ function layoutM02(seed) {
   pave(clusters[2], clusters[3]);
 
   // --- ~900 ground decals ---
-  const decalKeys = ['tuftG', 'tuftG', 'tuftG', 'tuftG', 'tuftG', 'tuftG', 'tuftG', 'tuftG',
+  let decalKeys = ['tuftG', 'tuftG', 'tuftG', 'tuftG', 'tuftG', 'tuftG', 'tuftG', 'tuftG',
     'petalDrop', 'petalDrop', 'petalDrop', 'petalDrop', 'petalDrop', 'petalDrop',
     'flowerC', 'flowerC', 'flowerC', 'flowerC',
     'pebble', 'pebble', 'pebble', 'pebble', 'pebble',
     'stone', 'stone', 'stone',
     'moss', 'moss', 'moss'];
+  if (groundIsPacked('m02')) decalKeys = decalKeys.filter((k) => !BLOB_DECAL_KEYS.includes(k));
   for (let i = 0; i < 900; i++) {
     const k = pick(decalKeys);
     decals.push({
@@ -439,9 +459,10 @@ function layoutM02(seed) {
   colliders.push({ x: pagoda.x - 18, y: pagoda.y, r: 30, landmark: true });
   colliders.push({ x: pagoda.x + 18, y: pagoda.y, r: 30, landmark: true });
   for (const l of lanterns) colliders.push({ x: l.x, y: l.y, r: 8 });
+  // 37.8 (F8b): torii posts ×1.5 with the art (see TORII_* constants) — walk-through kept.
   for (const m of monoliths) {
-    colliders.push({ x: m.x - 22, y: m.y, r: 10 });
-    colliders.push({ x: m.x + 22, y: m.y, r: 10 });
+    colliders.push({ x: m.x - TORII_POST_DX, y: m.y, r: TORII_POST_R });
+    colliders.push({ x: m.x + TORII_POST_DX, y: m.y, r: TORII_POST_R });
   }
   colliders.push({ x: ringShrine.x - 18, y: ringShrine.y, r: 34, landmark: true });
   colliders.push({ x: ringShrine.x + 18, y: ringShrine.y, r: 34, landmark: true });
@@ -470,7 +491,7 @@ function layoutM02(seed) {
   for (const h of huts) put(h, `shrine:${h.v}`, 1, 120, 110);
   put(pagoda, 'pagoda:0', 1, 100, 170);
   for (const l of lanterns) put(l, 'lantern:0', 1, 30, 56);
-  for (const m of monoliths) put(m, 'torii', 1, 110, 130);
+  for (const m of monoliths) put(m, 'torii', 1, TORII_W, TORII_H); // 37.8 (F8b) ×1.5 landmark
   put(ringShrine, 'shrine:0', 1, 120, 110);
   for (const s of stumps) put(s, 'stump', 1, 36, 26);
 
@@ -640,12 +661,13 @@ function layoutM03(seed) {
   pave(lakes[1], lakes[2]);
 
   // --- ~900 ground decals ---
-  const decalKeys = ['sandTuft', 'sandTuft', 'sandTuft', 'sandTuft', 'sandTuft', 'sandTuft', 'sandTuft', 'sandTuft',
+  let decalKeys = ['sandTuft', 'sandTuft', 'sandTuft', 'sandTuft', 'sandTuft', 'sandTuft', 'sandTuft', 'sandTuft',
     'bubbleRise', 'bubbleRise', 'bubbleRise', 'bubbleRise', 'bubbleRise', 'bubbleRise',
     'coralDrop', 'coralDrop', 'coralDrop', 'coralDrop',
     'shell', 'shell', 'shell', 'shell', 'shell',
     'pebble', 'pebble', 'pebble',
     'moss', 'moss', 'moss'];
+  if (groundIsPacked('m03')) decalKeys = decalKeys.filter((k) => !BLOB_DECAL_KEYS.includes(k));
   for (let i = 0; i < 900; i++) {
     const k = pick(decalKeys);
     decals.push({

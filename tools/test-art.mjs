@@ -362,12 +362,16 @@ for (const slot of GROUND) {
 // slot → [bake canvas w,h]; must equal world/levels.js put() dims for that decor key.
 const TERRAIN_PROPS = {
   'terrain.pine.m01': [64, 88],
+  // 37.1 (F1): pineBig = the same round-bush cell in the 90x120 big-tree contract
+  // (species-consistency fallback — the pack has no conifer; row notes hold the viewing).
+  'terrain.pineBig.m01': [90, 120],
   'terrain.dead.m01': [44, 92],
   'terrain.boulder.m01': [48, 36],
   'terrain.hut.m01': [120, 96],
-  // 36.3: m01 camp/well ← nanasha hunters-camp cells (±20% law + reject list in the rows).
+  // 36.3: m01 camp ← nanasha hunters-camp cell (±20% law + reject list in the row).
+  // 37.6 (F6): terrain.well.m01 removed — reverted to the procedural well (see the
+  // revert record in the campfire row's notes); the well bake contract is terrain.js's.
   'terrain.campfire.m01': [56, 48],
-  'terrain.well.m01': [56, 64],
 };
 for (const [slot, canvas] of Object.entries(TERRAIN_PROPS)) {
   const e = sprites[slot];

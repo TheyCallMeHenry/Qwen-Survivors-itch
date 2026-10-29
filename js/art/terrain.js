@@ -400,7 +400,7 @@ function pathSlab(v) { // 46x32 stone slab
 
 // --- m02 (Higan) standing sprites ---
 
-function cherryTree(v) { // 64x88: trunk + 5-6 pink radial blobs
+function cherryTree(v) { // 64x88: trunk + 5-6 blossom-pink radial blobs
   const w = 64, h = 88;
   const c = makeCanvas(w, h);
   const g = c.getContext('2d');
@@ -412,14 +412,16 @@ function cherryTree(v) { // 64x88: trunk + 5-6 pink radial blobs
   g.lineWidth = 3;
   g.beginPath(); g.moveTo(31, 62); g.quadraticCurveTo(18, 52, 12, 40); g.stroke();
   g.beginPath(); g.moveTo(32, 58); g.quadraticCurveTo(46, 48, 52, 38); g.stroke();
-  const cols = ['#e896ae', '#e28aa4', '#ee9fb6', '#df85a0'];
+  // 37.7 (F7): saturated blossom pink (was washed mauve #e896ae — read dead under the
+  // m02 night lighting, audit p09). Geometry/rng byte-identical; only the canopy palette.
+  const cols = ['#ff9ec7', '#ff86b6', '#ffb3d4', '#f97cb0'];
   const n = 5 + (rng() * 2 | 0);
   for (let i = 0; i < n; i++) {
     const px = 14 + rng() * 36, py = 12 + rng() * 30, pr = 13 + rng() * 9;
     const grad = g.createRadialGradient(px, py, pr * 0.3, px, py, pr);
     grad.addColorStop(0, cols[v]);
     grad.addColorStop(0.75, cols[(v + 1) % 4]);
-    grad.addColorStop(1, 'rgba(214,120,150,0)');
+    grad.addColorStop(1, 'rgba(255,110,165,0)');
     g.fillStyle = grad;
     g.beginPath(); g.arc(px, py, pr, 0, TAU); g.fill();
   }
@@ -438,13 +440,13 @@ function cherryBigTree(v) { // 90x120
   g.lineWidth = 4;
   g.beginPath(); g.moveTo(44, 92); g.quadraticCurveTo(26, 78, 16, 60); g.stroke();
   g.beginPath(); g.moveTo(46, 84); g.quadraticCurveTo(64, 70, 76, 52); g.stroke();
-  const cols = ['#f0a4b8', '#e694a8'];
+  const cols = ['#ffadd0', '#ff92c0']; // 37.7 (F7): matches cherryTree's blossom palette
   for (let i = 0; i < 7; i++) {
     const px = 18 + rng() * 54, py = 16 + rng() * 40, pr = 16 + rng() * 12;
     const grad = g.createRadialGradient(px, py, pr * 0.3, px, py, pr);
     grad.addColorStop(0, cols[v]);
     grad.addColorStop(0.75, cols[v ^ 1]);
-    grad.addColorStop(1, 'rgba(214,120,150,0)');
+    grad.addColorStop(1, 'rgba(255,120,175,0)');
     g.fillStyle = grad;
     g.beginPath(); g.arc(px, py, pr, 0, TAU); g.fill();
   }
@@ -480,35 +482,40 @@ function bamboo(v) { // 44x110: 3-4 culms + nodes + leaves
   return c;
 }
 
-function toriiSprite() { // 110x130 vermilion gate
-  const w = 110, h = 130;
+function toriiSprite() { // 165x195 vermilion gate — 37.8 (F8b): landmark-tier, so it towers
+  // over the cherry canopy (88 at 1.9× ≈ 170). Geometry = the old 110x130 design authored
+  // natively at ×1.5 (integer coordinates — a ctx.scale(1.5) bake blurred half-pixel edges
+  // against the crisp sibling props, measured in the m02 bake sheet). levels.js put() and
+  // the TORII_* collider constants ride the same factor; the walk-through gap between the
+  // posts (canvas x 51..114 → ±32 px from centre) stays wider than the player (r=14).
+  const w = 165, h = 195;
   const c = makeCanvas(w, h);
   const g = c.getContext('2d');
   const red = '#b8382c';
   g.fillStyle = red;
-  g.fillRect(22, 38, 12, 92);
-  g.fillRect(76, 38, 12, 92);
-  g.fillRect(16, 46, 24, 8);
-  g.fillRect(70, 46, 24, 8);
+  g.fillRect(33, 57, 18, 138);
+  g.fillRect(114, 57, 18, 138);
+  g.fillRect(24, 69, 36, 12);
+  g.fillRect(105, 69, 36, 12);
   g.fillStyle = '#8e2b22';
-  g.fillRect(52, 30, 6, 26);
+  g.fillRect(78, 45, 9, 39);
   g.fillStyle = '#241c1c';
-  g.fillRect(20, 30, 70, 10);
+  g.fillRect(30, 45, 105, 15);
   g.beginPath();
-  g.moveTo(8, 24); g.lineTo(102, 24); g.lineTo(96, 14); g.lineTo(14, 14); g.closePath();
+  g.moveTo(12, 36); g.lineTo(153, 36); g.lineTo(144, 21); g.lineTo(21, 21); g.closePath();
   g.fill();
   g.fillStyle = '#2e2424';
-  g.fillRect(4, 24, 102, 6);
+  g.fillRect(6, 36, 153, 9);
   g.beginPath();
-  g.moveTo(8, 24); g.lineTo(102, 24); g.lineTo(96, 14); g.lineTo(14, 14); g.closePath();
+  g.moveTo(12, 36); g.lineTo(153, 36); g.lineTo(144, 21); g.lineTo(21, 21); g.closePath();
   g.fill();
   g.fillStyle = red;
-  g.fillRect(8, 12, 94, 5);
-  g.fillRect(10, 16, 90, 3);
+  g.fillRect(12, 18, 141, 8);
+  g.fillRect(15, 24, 135, 5);
   g.strokeStyle = 'rgba(0,0,0,0.25)';
-  g.lineWidth = 1.5;
-  g.beginPath(); g.moveTo(26, 46); g.lineTo(26, 130); g.stroke();
-  g.beginPath(); g.moveTo(84, 46); g.lineTo(84, 130); g.stroke();
+  g.lineWidth = 2;
+  g.beginPath(); g.moveTo(39, 69); g.lineTo(39, 195); g.stroke();
+  g.beginPath(); g.moveTo(126, 69); g.lineTo(126, 195); g.stroke();
   return c;
 }
 
@@ -712,7 +719,8 @@ function kelpPlant(v) { // 60x150: 3 stalks with side blades
   const w = 60, h = 150;
   const c = makeCanvas(w, h);
   const g = c.getContext('2d');
-  const cols = ['#2e6a4a', '#275e44', '#35755a', '#245840'];
+  const cols = ['#3d8a62', '#347c57', '#479e70', '#30734c']; // 37.8 (F8c): lifted off the
+  // dark stone ground (audit p13/p15 read as silhouettes); no glow spam — palette + core.
   g.lineCap = 'round';
   for (const [ox, top, wd] of [[-9, 60, 6], [0, 26, 7.5], [9, 48, 5.5]]) {
     const lean = (rngless(ox, top) - 0.5) * 22;
@@ -721,6 +729,9 @@ function kelpPlant(v) { // 60x150: 3 stalks with side blades
     g.beginPath();
     g.moveTo(30 + ox, h);
     g.quadraticCurveTo(30 + ox * 0.6 + lean * 0.4, (h + top) / 2, 30 + ox * 0.4 + lean, top);
+    g.stroke();
+    g.strokeStyle = 'rgba(140,235,180,0.35)'; // key-light core along each stalk
+    g.lineWidth = 1.6;
     g.stroke();
     g.strokeStyle = cols[(v + 1) % 4];
     g.lineWidth = 3.4;
@@ -731,7 +742,7 @@ function kelpPlant(v) { // 60x150: 3 stalks with side blades
       g.quadraticCurveTo(30 + ox + s * 12, y - 8, 30 + ox * 0.5 + lean * 0.5 + s * 18, y - 16);
       g.stroke();
     }
-    g.fillStyle = 'rgba(170,235,205,0.5)';
+    g.fillStyle = 'rgba(195,255,225,0.8)';
     g.beginPath(); g.arc(30 + ox * 0.4 + lean, top, 2.4, 0, TAU); g.fill();
   }
   return c;
@@ -744,7 +755,7 @@ function kelpBigPlant(v) { // 84x190: 4 stalks, taller
   const w = 84, h = 190;
   const c = makeCanvas(w, h);
   const g = c.getContext('2d');
-  const cols = ['#35755a', '#2e6a4a'];
+  const cols = ['#479e70', '#3d8a62']; // 37.8 (F8c) contrast lift, see kelpPlant
   g.lineCap = 'round';
   for (const [ox, top, wd] of [[-18, 84, 8], [-6, 34, 9.5], [8, 62, 8], [20, 100, 7]]) {
     const lean = (rngless(ox + 7, top + 3) - 0.5) * 26;
@@ -753,6 +764,9 @@ function kelpBigPlant(v) { // 84x190: 4 stalks, taller
     g.beginPath();
     g.moveTo(42 + ox, h);
     g.quadraticCurveTo(42 + ox * 0.6 + lean * 0.4, (h + top) / 2, 42 + ox * 0.4 + lean, top);
+    g.stroke();
+    g.strokeStyle = 'rgba(150,240,190,0.35)';
+    g.lineWidth = 2;
     g.stroke();
     g.strokeStyle = cols[v ^ 1];
     g.lineWidth = 4;
@@ -763,7 +777,7 @@ function kelpBigPlant(v) { // 84x190: 4 stalks, taller
       g.quadraticCurveTo(42 + ox + s * 14, y - 10, 42 + ox * 0.5 + lean * 0.5 + s * 22, y - 20);
       g.stroke();
     }
-    g.fillStyle = 'rgba(170,235,205,0.5)';
+    g.fillStyle = 'rgba(205,255,235,0.85)';
     g.beginPath(); g.arc(42 + ox * 0.4 + lean, top, 2.8, 0, TAU); g.fill();
   }
   return c;
@@ -773,8 +787,8 @@ function coralBranch(v) { // 40x46: branching coral
   const w = 40, h = 46;
   const c = makeCanvas(w, h);
   const g = c.getContext('2d');
-  const main = v ? '#e88a4a' : '#e0708c';
-  const tip = v ? '#f0b078' : '#f098ac';
+  const main = v ? '#ff9a4d' : '#ff6f95'; // 37.8 (F8c): saturated against the dark bed
+  const tip = v ? '#ffd08f' : '#ffb3c8';
   g.lineCap = 'round';
   g.strokeStyle = main;
   g.lineWidth = 4.5;
@@ -914,16 +928,17 @@ function wreckShip() { // 170x100: sunken hull, broken masts, coral growth
   const g = c.getContext('2d');
   // hull
   const hg = g.createLinearGradient(0, 40, 0, 96);
-  hg.addColorStop(0, '#4a3e30');
-  hg.addColorStop(1, '#332a20');
+  hg.addColorStop(0, '#5e4f3c'); // 37.8 (F8c): hull lifted off the seabed (audit p13)
+  hg.addColorStop(1, '#3d3226');
   g.fillStyle = hg;
   poly(g, [[6, 78], [14, 58], [48, 46], [104, 42], [148, 48], [166, 60], [160, 78], [120, 92], [40, 92], [10, 88]]);
   g.fill();
+  rimLight(g, 'rgba(190,212,235,0.30)'); // top rim only reads on the upper edge
   g.strokeStyle = 'rgba(12,10,8,0.5)';
   g.lineWidth = 1.4;
   for (const y of [56, 66, 76]) { g.beginPath(); g.moveTo(14, y); g.lineTo(158, y + 2); g.stroke(); }
   // raised bow + broken masts
-  g.strokeStyle = '#3d332a';
+  g.strokeStyle = '#4e4234';
   g.lineWidth = 5;
   g.beginPath(); g.moveTo(150, 52); g.lineTo(168, 24); g.stroke();
   g.lineWidth = 4;
@@ -936,7 +951,7 @@ function wreckShip() { // 170x100: sunken hull, broken masts, coral growth
   g.fillStyle = 'rgba(140,235,255,0.4)';
   g.beginPath(); g.arc(76, 62, 3, 0, TAU); g.fill();
   // coral growth + barnacles
-  g.strokeStyle = '#d86a86';
+  g.strokeStyle = '#ff7d9e'; // 37.8 (F8c)
   g.lineWidth = 2;
   for (const [x, y] of [[30, 88], [96, 90], [134, 84]]) {
     g.beginPath(); g.moveTo(x, y); g.lineTo(x - 3, y - 8); g.moveTo(x, y); g.lineTo(x + 3, y - 7); g.stroke();
@@ -1046,6 +1061,8 @@ export function koiPondSprite(rng, rx, ry) {
 // entry record which cells were measured as seamless interiors). Canvases are handed out
 // prefilled (entry.prefill = base-cell colour) and repainted IN PLACE when pixels decode
 // — the load.js deferred model, so the cached terrain never sees an object swap.
+// Optional entry.tint (#rrggbb) multiplies the finished mosaic: a night-tone pass for a
+// bright lawn that the lighting model otherwise washes to grey (37.8 F8a, m02).
 function packedGround(pk, entry) {
   const T = entry.recipe.tile;
   const out = [0, 1, 2].map(() => {
@@ -1071,6 +1088,12 @@ function packedGround(pk, entry) {
           }
           g.drawImage(cells[t[0]][t[1]], x, y);
         }
+      }
+      if (entry.tint) {
+        g.globalCompositeOperation = 'multiply';
+        g.fillStyle = entry.tint;
+        g.fillRect(0, 0, T, T);
+        g.globalCompositeOperation = 'source-over';
       }
     }
   });
@@ -1202,15 +1225,26 @@ export function buildTerrain() {
       if (S[slot]) sprites[key] = packedProp(pk, S[slot], strip, w, h, mirror);
     };
     for (let i = 0; i < 4; i++) propSwap(`pine:${i}`, 'terrain.pine.m01', 'art', 64, 88, i >= 2);
+    // 37.1 (F1): the raven green-forest pack carries NO conifer cell — the whole object
+    // inventory (16x16 master sheet + B/A5 re-packings) was VIEWED this session: its two
+    // single-tree cells are the round-bush broadleaf (green + autumn variants). Species
+    // CONSISTENCY wins over species correctness (user-approved fallback): pineBig = the
+    // SAME cell in the 90x120 big-tree slot, flip variant for variety; levels.js keeps its
+    // 1.4–1.9× instance scale, so the forest reads as one species at two sizes.
+    propSwap('pineBig:0', 'terrain.pineBig.m01', 'art', 90, 120, false);
+    propSwap('pineBig:1', 'terrain.pineBig.m01', 'art', 90, 120, true);
     propSwap('dead', 'terrain.dead.m01', 'art', 44, 92, false);
     propSwap('boulder:0', 'terrain.boulder.m01', 'rockA', 48, 36, false);
     propSwap('boulder:1', 'terrain.boulder.m01', 'rockB', 48, 36, true);
     propSwap('hut:0', 'terrain.hut.m01', 'art', 120, 96, false);
     propSwap('hut:1', 'terrain.hut.m01', 'art', 120, 96, true);
-    // 36.3 (Phase 36): m01 camp/well decor ← nanasha hunters-camp single cells (VIEWED;
-    // the ±20% footprint law + the measured reject list live in the manifest rows).
+    // 36.3 (Phase 36): m01 camp decor ← nanasha hunters-camp single cell (VIEWED; the
+    // ±20% footprint law + the measured reject list live in the manifest rows). 37.6 (F6):
+    // the 36.3 "well" jar swap is REVERTED to the procedural stone well — the jar read as
+    // a storage pot, not a well (semantic + style loss); revert note kept in the manifest.
     propSwap('campfire', 'terrain.campfire.m01', 'art', 56, 48, false);
-    propSwap('well', 'terrain.well.m01', 'art', 56, 64, false);
+    // (no well swap — 37.6 F6 reverted terrain.well.m01; the procedural stone well is
+    // the shipped art again, and the manifest note records why.)
   }
   return { grassTiles, decals, pine, pineBig, deadTree, boulders, stump, mushroom, monolith, campfire, huts, well, sprites, ground: { m01: grassTiles, m02: m02Tiles, m03: m03Tiles }, koi, koiF };
 }
